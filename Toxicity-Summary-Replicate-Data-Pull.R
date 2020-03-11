@@ -3,7 +3,7 @@
     if(run_script == TRUE) {
         
     # NOTE: To schedule this script to run automatically, go to 'Addins' and 'Schedule R scripts on...', then select 
-    # the file that calls this script ("C:\\David\\Open_Data_Project\\__CA_DataPortal\\_Call_Scripts\\Call_SurfWater_Script.R.R")
+    # the file that calls this script ("C:\\David\\Open_Data_Project\\__CA_DataPortal\\_Call_Scripts\\Call_SurfWater_Script.R")
     # and set the time/date option (make sure the date format is %m/%d/%Y)
 
 
@@ -14,11 +14,12 @@ library(lubridate)
 library(stringr)
 library(ckanr) # for working with CKAN data portal
 library(readr)
+library(reticulate)
 
 
 # define data portal resource IDs for the summary and replicate records
-    resourceID_summary <- '674474eb-e093-42de-aef3-da84fd2ff2d8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
-    resourceID_replicate <- '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
+    # resourceID_summary <- '674474eb-e093-42de-aef3-da84fd2ff2d8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
+    # resourceID_replicate <- '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
 
 # SQL Server Connections ----
     # References
@@ -29,20 +30,19 @@ library(readr)
         # https://cran.r-project.org/web/packages/odbc/odbc.pdf
 
     # get user ID and Password for CEDEN Data Mart
-        dm.user <- Sys.getenv('UID')
-        dm.password <- Sys.getenv('PWD')
+        dm_user <- Sys.getenv('UID')
+        dm_password <- Sys.getenv('PWD')
 
     # CEDEN Database connection
         # set up the connection
             con_CEDEN <- dbConnect(odbc(),
                                    Driver = "SQL Server",
-                                   #Server = "172.22.33.39, 2866",
-                                   Server = "172.22.33.38, 1541",
+                                   Server = "172.22.33.38, 1541", # "172.22.33.39, 2866"
                                    Database = "DataMarts",
-                                   UID = dm.user, 
-                                   PWD = dm.password, 
+                                   UID = dm_user, 
+                                   PWD = dm_password, 
                                    Port = 1433)
-        
+
 # Query Database ----
     # NOTE: There are two different methods in this script to retrieve the data and sort into summary vs replicate records -- only need to do one, not both (they should give the same result)
         # # METHOD 1 - Read all data from the database, then sort by summary or replicate records within R
@@ -55,7 +55,7 @@ library(readr)
         #     # Subset data to select summary or replicate records only ----
         #     # Required fields for summary records -- RepCount, Mean, StdDev, StatMethod, AlphaLevel, Probability, CriticalValue, PctControl, EvalThreshold, SigEffectCode
         #     # Optional fields for summary records -- bValue, CalcValueType, PercentEffect, MSD, ToxPointSummaryComments
-        #         summary.records.tf <- !is.na(WebSvc_Tox$RepCount) | 
+        #         summary_records_tf <- !is.na(WebSvc_Tox$RepCount) | 
         #             !is.na(WebSvc_Tox$Mean) | 
         #             !is.na(WebSvc_Tox$StdDev) | 
         #             !is.na(WebSvc_Tox$StatMethod) | 
@@ -66,31 +66,56 @@ library(readr)
         #             !is.na(WebSvc_Tox$EvalThreshold) |
         #             !is.na(WebSvc_Tox$SigEffectCode)
         #         
-        #         summary.records <- WebSvc_Tox[summary.records.tf, ]
-        #         replicate.records <- WebSvc_Tox[!summary.records.tf, ]
+        #         summary_records <- WebSvc_Tox[summary_records_tf, ]
+        #         replicate_records <- WebSvc_Tox[!summary_records_tf, ]
         
         # METHOD 2 - Query for either summary or replicate records, using SQL statements
             # run queries and import the result to R
             # All records
-                query_CEDEN_all <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox")
-                all.records <- dbFetch(query_CEDEN_all)
-                all.records.count <- nrow(all.records)
-                # rm(list = c('all.records'))  
+                # Method 1
+                    # query_CEDEN_all <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox")
+                    # all_records <- dbFetch(query_CEDEN_all)
+                # Method 2
+                    #all_records <- dbReadTable(con_CEDEN, 'WebSvc_Tox')
+                #all_records_count <- nrow(all_records)
+                # rm(list = c('all_records'))  
+                
+                # Method 3 (fix - 2020-03-10) # https://stackoverflow.com/questions/45001152/r-dbi-odbc-error-nanodbc-nanodbc-cpp3110-07009-microsoftodbc-driver-13-fo
+                    index <- dbColumnInfo(dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox"))
+                    index$type <- as.integer(index$type)
+                    index <- index %>% arrange(desc(type))
+                    query_text_all <- paste0("SELECT ", paste(index$name, sep="", collapse=", "), " FROM WebSvc_Tox")
+                    query_CEDEN_all <- dbSendQuery(con_CEDEN, query_text_all)
+                    all_records <- dbFetch(query_CEDEN_all)
+                    all_records_count <- nrow(all_records)
+                
             # Summary Records
-                query_CEDEN_summary <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox WHERE 
-                                                    Mean IS NOT NULL AND
-                                                    StdDev IS NOT NULL AND
-                                                    StatMethod IS NOT NULL AND
-                                                    AlphaLevel IS NOT NULL AND
-                                                    Probability IS NOT NULL AND
-                                                    CriticalValue IS NOT NULL AND
-                                                    PctControl IS NOT NULL AND
-                                                    EvalThreshold IS NOT NULL AND
-                                                    SigEffectCode IS NOT NULL")
-                summary.records <- dbFetch(query_CEDEN_summary)#, n = 1000)
-                summary.records <- summary.records %>% mutate(SampleDate = as.Date(SampleDate))
-                summary.records_distinct <- summary.records %>% select(-c('ToxID', 'LabReplicate', 'Result', 'ResQualCode', 'ToxResultComments', 'OrganismPerRep', 'ToxResultQACode')) %>% distinct()
-                summary.records_distinct_noQA <- summary.records_distinct %>% filter(StationCode != 'LABQA_SWAMP')
+                # query_CEDEN_summary <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox WHERE 
+                #                                     Mean IS NOT NULL AND
+                #                                     StdDev IS NOT NULL AND
+                #                                     StatMethod IS NOT NULL AND
+                #                                     AlphaLevel IS NOT NULL AND
+                #                                     Probability IS NOT NULL AND
+                #                                     CriticalValue IS NOT NULL AND
+                #                                     PctControl IS NOT NULL AND
+                #                                     EvalThreshold IS NOT NULL AND
+                #                                     SigEffectCode IS NOT NULL")
+                # fix 2020-03-10
+                query_text_summary <- paste0("SELECT ", paste(index$name, sep="", collapse=", "), " FROM WebSvc_Tox WHERE
+                        Mean IS NOT NULL AND
+                        StdDev IS NOT NULL AND
+                        StatMethod IS NOT NULL AND
+                        AlphaLevel IS NOT NULL AND
+                        Probability IS NOT NULL AND
+                        CriticalValue IS NOT NULL AND
+                        PctControl IS NOT NULL AND
+                        EvalThreshold IS NOT NULL AND
+                        SigEffectCode IS NOT NULL")
+                query_CEDEN_summary <- dbSendQuery(con_CEDEN, query_text_summary)
+                summary_records <- dbFetch(query_CEDEN_summary)#, n = 1000)
+                summary_records <- summary_records %>% mutate(SampleDate = as.Date(SampleDate))
+                summary_records_distinct <- summary_records %>% select(-c('ToxID', 'LabReplicate', 'Result', 'ResQualCode', 'ToxResultComments', 'OrganismPerRep', 'ToxResultQACode')) %>% distinct()
+                summary_records_distinct_noQA <- summary_records_distinct %>% filter(StationCode != 'LABQA_SWAMP')
             # Replicate Records
                 # Method to find replicate records:
                     # start with all records
@@ -101,37 +126,37 @@ library(readr)
                     # select just the distinct records
                     # drop records where StationCode is"LABQA_SWAMP" to get non-QA records
                 # Get the Replicates
-                replicate.records <- all.records %>% 
+                replicate_records <- all_records %>% 
                     select(-c('Mean', 'StdDev', 'StatMethod', 'AlphaLevel', 'Probability', 
                               'CriticalValue', 'PctControl', 'EvalThreshold', 'SigEffectCode')) %>% 
                     select(-c('ToxID')) %>% 
                     select(-c('ToxPoint_MatrixName')) %>% 
                     filter(!is.na(LabReplicate))
-                replicate.records_distinct <- replicate.records %>% distinct()
-                replicate.records_noQA <- replicate.records %>% filter(StationCode != 'LABQA_SWAMP')
-                replicate.records_noQA_distinct <- replicate.records_noQA %>% distinct()
+                replicate_records_distinct <- replicate_records %>% distinct()
+                replicate_records_noQA <- replicate_records %>% filter(StationCode != 'LABQA_SWAMP')
+                replicate_records_noQA_distinct <- replicate_records_noQA %>% distinct()
                 # check to see if there are any non-distinct records after the query to get the replicates
                 # result of the operation should be zero if all records are distinct
-                    # nrow(replicate.records) - nrow(replicate.records_distinct)
-                    # nrow(replicate.records_noQA) - nrow(replicate.records_noQA_distinct)
+                    # nrow(replicate_records) - nrow(replicate_records_distinct)
+                    # nrow(replicate_records_noQA) - nrow(replicate_records_noQA_distinct)
                 
                 # # As a check, look at LabReplicate, and Result - if these are NA (or some other related value) it may indicate a summary record
                 #     # Look at cases where there are summary records (defined by the 9 fields) but the LabReplicate is NA or -88
-                #         table(summary.records$LabReplicate, useNA = 'ifany') # there are 20168 "NA" and 178 "-88"
+                #         table(summary_records$LabReplicate, useNA = 'ifany') # there are 20168 "NA" and 178 "-88"
                 #     # Look at cases where there are summary records but no Result value
-                #         min(summary.records$Result, na.rm = TRUE)
-                #         sum(summary.records$Result == -88, na.rm = TRUE) # 65 records where result is -88
-                #         sum(is.na(summary.records$Result)) # 23364 records where result is NA
-                #     summary.records_LabRepNA <- summary.records %>% filter(is.na(LabReplicate) & StationCode != 'LABQA_SWAMP')
-                #         View(summary.records_LabRepNA)
-                #         sum(is.na(summary.records_LabRepNA$Result)) # 17374 -- All of these records are missing a result value too - can probably get rid of them
-                #     summary.records_LabRep88 <- summary.records %>% filter(LabReplicate == -88)
-                #         sum(is.na(summary.records_LabRep88$Result)) # 5
-                #         table(summary.records_LabRep88$Result, useNA = 'ifany') # most of these have a distinct result
-                #         View(summary.records_LabRep88)
-                #     summary.records_ResultNA <- summary.records %>% filter(is.na(Result) & StationCode != 'LABQA_SWAMP' & !is.na(LabReplicate) & LabReplicate != -88)
-                #         View(summary.records_ResultNA)
-                #         table(summary.records_ResultNA$LabReplicate, useNA = 'ifany') # probably want to retain these values where result is NA since there are associated LabReplicate numbers for some
+                #         min(summary_records$Result, na.rm = TRUE)
+                #         sum(summary_records$Result == -88, na.rm = TRUE) # 65 records where result is -88
+                #         sum(is.na(summary_records$Result)) # 23364 records where result is NA
+                #     summary_records_LabRepNA <- summary_records %>% filter(is.na(LabReplicate) & StationCode != 'LABQA_SWAMP')
+                #         View(summary_records_LabRepNA)
+                #         sum(is.na(summary_records_LabRepNA$Result)) # 17374 -- All of these records are missing a result value too - can probably get rid of them
+                #     summary_records_LabRep88 <- summary_records %>% filter(LabReplicate == -88)
+                #         sum(is.na(summary_records_LabRep88$Result)) # 5
+                #         table(summary_records_LabRep88$Result, useNA = 'ifany') # most of these have a distinct result
+                #         View(summary_records_LabRep88)
+                #     summary_records_ResultNA <- summary_records %>% filter(is.na(Result) & StationCode != 'LABQA_SWAMP' & !is.na(LabReplicate) & LabReplicate != -88)
+                #         View(summary_records_ResultNA)
+                #         table(summary_records_ResultNA$LabReplicate, useNA = 'ifany') # probably want to retain these values where result is NA since there are associated LabReplicate numbers for some
                 
             # Old method for getting the replicates
                 # query_CEDEN_replicate <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox WHERE
@@ -144,18 +169,18 @@ library(readr)
                 #                                       PctControl IS NULL AND
                 #                                       EvalThreshold IS NULL AND
                 #                                       SigEffectCode IS NULL")
-                # replicate.records_Old <- dbFetch(query_CEDEN_replicate)#, n = 1000)
-                # replicate.records_Old <- replicate.records_Old %>% mutate(SampleDate = as.Date(SampleDate))
+                # replicate_records_Old <- dbFetch(query_CEDEN_replicate)#, n = 1000)
+                # replicate_records_Old <- replicate_records_Old %>% mutate(SampleDate = as.Date(SampleDate))
           
             # Close connection 
                 dbDisconnect(con_CEDEN)
                 
             # check -- number of records
-                # nrow(replicate.records) + nrow(summary.records) - all.records.count # should be zero - means all records in the database are within one of the two datasets
+                # nrow(replicate_records) + nrow(summary_records) - all_records_count # should be zero - means all records in the database are within one of the two datasets
 
         # # check
-        #     View(summary.records %>% select(Mean, StdDev, StatMethod, AlphaLevel, Probability, CriticalValue, PctControl, EvalThreshold, SigEffectCode))
-        #     View(replicate.records %>% select(Mean, StdDev, StatMethod, AlphaLevel, Probability, CriticalValue, PctControl, EvalThreshold, SigEffectCode))
+        #     View(summary_records %>% select(Mean, StdDev, StatMethod, AlphaLevel, Probability, CriticalValue, PctControl, EvalThreshold, SigEffectCode))
+        #     View(replicate_records %>% select(Mean, StdDev, StatMethod, AlphaLevel, Probability, CriticalValue, PctControl, EvalThreshold, SigEffectCode))
  
                            
 # NAMES - get a list of the names used in the tox data entry template, and the corresponding names used in the CEDEN database (for more info, see the workbook called: Mapping_Fields_ToxTemplateToWebServices.xls) ----    
@@ -227,36 +252,36 @@ library(readr)
         
 # Format Records ----
     # define which data frame to use as the output
-        summary.records_output <- summary.records_distinct
-        replicate.records_output <- replicate.records_distinct
+        summary_records_output <- summary_records_distinct
+        replicate_records_output <- replicate_records_distinct
     # select just the relevant fields for the output
         # summary
-        summary.records_output <- summary.records_output %>% select(summary_records_db_names)
-        names(summary.records_output) <- summary_records_template_names
+        summary_records_output <- summary_records_output %>% select(summary_records_db_names)
+        names(summary_records_output) <- summary_records_template_names
         # replicate
-        replicate.records_output <- replicate.records_output %>% select(replicate_records_db_names)
-        names(replicate.records_output) <- replicate_records_template_names
+        replicate_records_output <- replicate_records_output %>% select(replicate_records_db_names)
+        names(replicate_records_output) <- replicate_records_template_names
     # make sure the output records are still distinct
         # summary
-        summary.records_output_check <- summary.records_output %>% distinct()
-            nrow(summary.records_output) - nrow(summary.records_output_check) # should be zero
+        summary_records_output_check <- summary_records_output %>% distinct()
+            nrow(summary_records_output) - nrow(summary_records_output_check) # should be zero
         # replicate
-        replicate.records_output_check <- replicate.records_output %>% distinct()
-            nrow(replicate.records_output) - nrow(replicate.records_output_check) # should be zero
+        replicate_records_output_check <- replicate_records_output %>% distinct()
+            nrow(replicate_records_output) - nrow(replicate_records_output_check) # should be zero
 
         # The code below was used to check which fields contain distinct values which are not included in the final output, and would result in duplicates when the un-used fields are dropped
-            # nrow(summary.records_output) - nrow(summary.records_output_check)
-            # z_summary_dup <- duplicated(summary.records_output) | duplicated(summary.records_output, fromLast = TRUE)
+            # nrow(summary_records_output) - nrow(summary_records_output_check)
+            # z_summary_dup <- duplicated(summary_records_output) | duplicated(summary_records_output, fromLast = TRUE)
             # sum(z_summary_dup)
-            # z_summary_dup <- summary.records_output[z_summary_dup,]
+            # z_summary_dup <- summary_records_output[z_summary_dup,]
             # View(z_summary_dup)
             # z_summary_dup_2 <- z_summary_dup %>% filter(StationCode == z_summary_dup$StationCode[1])
             # View(z_summary_dup_2)
-            # zzz <-  summary.records_distinct %>% filter(StationCode == z_summary_dup_2$StationCode[1] & SampleDate == z_summary_dup_2$SampleDate[1] & Analyte == z_summary_dup_2$AnalyteName[1] & ToxBatch == z_summary_dup_2$ToxBatch[1]) %>% distinct()
+            # zzz <-  summary_records_distinct %>% filter(StationCode == z_summary_dup_2$StationCode[1] & SampleDate == z_summary_dup_2$SampleDate[1] & Analyte == z_summary_dup_2$AnalyteName[1] & ToxBatch == z_summary_dup_2$ToxBatch[1]) %>% distinct()
             # View(zzz)
             
-            # nrow(replicate.records_output) - nrow(replicate.records_output_check)
-            # z_replicate_dup <- duplicated(replicate.records_output) | duplicated(replicate.records_output, fromLast = TRUE)
+            # nrow(replicate_records_output) - nrow(replicate_records_output_check)
+            # z_replicate_dup <- duplicated(replicate_records_output) | duplicated(replicate_records_output, fromLast = TRUE)
             # sum(z_replicate_dup)
             # z_replicate_dup <- replicate.records_output[z_replicate_dup,]
             # View(z_replicate_dup)
@@ -268,20 +293,20 @@ library(readr)
             
 # check dataset for portal compatibility and adjust as needed  ----  
     # summary records ----
-            dplyr::glimpse(summary.records_output)
+            dplyr::glimpse(summary_records_output)
             
             # fix collection time field
-                summary.records_output <- summary.records_output %>% 
+                summary_records_output <- summary_records_output %>% 
                     mutate(CollectionTime = paste(sep = ':',
-                                                  str_pad(hour(x = summary.records_output$CollectionTime),width = 2, pad = 0),
-                                                  str_pad(minute(x = summary.records_output$CollectionTime),width = 2, pad = 0),
-                                                  str_pad(second(x = summary.records_output$CollectionTime),width = 2, pad = 0)))
+                                                  str_pad(hour(x = summary_records_output$CollectionTime),width = 2, pad = 0),
+                                                  str_pad(minute(x = summary_records_output$CollectionTime),width = 2, pad = 0),
+                                                  str_pad(second(x = summary_records_output$CollectionTime),width = 2, pad = 0)))
             
             # date fields - convert dates into a timestamp field that can be read by the portal
                 fields_dates <- c('SampleDate', 'StartDate')
                 for (counter in seq(length(fields_dates))) {
                     # convert the date field to ISO format
-                        dates_iso <- ymd(as.Date(summary.records_output[[fields_dates[counter]]]))
+                        dates_iso <- ymd(as.Date(summary_records_output[[fields_dates[counter]]]))
                             # check NAs: sum(is.na(dates_iso))
                     # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
                         dates_iso <- as.character(dates_iso)
@@ -289,7 +314,7 @@ library(readr)
                         dates_iso[is.na(dates_iso)] <- ''
                             # check NAs: sum(is.na(dates_iso))
                     # Insert the revised date field back into the dataset
-                        summary.records_output[,fields_dates[counter]] <- dates_iso
+                        summary_records_output[,fields_dates[counter]] <- dates_iso
                 }
             
             # numeric fields - ensure all records are compatible with numeric format 
@@ -299,28 +324,28 @@ library(readr)
                                     'Long')
                 # convert to numeric
                     for (counter in seq(length(fields_numeric))) {
-                        summary.records_output[,fields_numeric[counter]] <- as.numeric(summary.records_output[[fields_numeric[counter]]])
+                        summary_records_output[,fields_numeric[counter]] <- as.numeric(summary_records_output[[fields_numeric[counter]]])
                     }
             
             # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
             # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-                summary.records_output <- summary.records_output %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+                summary_records_output <- summary_records_output %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
                 
     # replicate records ----
-        dplyr::glimpse(replicate.records_output)
+        dplyr::glimpse(replicate_records_output)
     
         # fix collection time field
-            replicate.records_output <- replicate.records_output %>% 
+            replicate_records_output <- replicate_records_output %>% 
                 mutate(CollectionTime = paste(sep = ':',
-                                              str_pad(hour(x = replicate.records_output$CollectionTime),width = 2, pad = 0),
-                                              str_pad(minute(x = replicate.records_output$CollectionTime),width = 2, pad = 0),
-                                              str_pad(second(x = replicate.records_output$CollectionTime),width = 2, pad = 0)))
+                                              str_pad(hour(x = replicate_records_output$CollectionTime),width = 2, pad = 0),
+                                              str_pad(minute(x = replicate_records_output$CollectionTime),width = 2, pad = 0),
+                                              str_pad(second(x = replicate_records_output$CollectionTime),width = 2, pad = 0)))
     
         # date fields - convert dates into a timestamp field that can be read by the portal
             fields_dates <- c('SampleDate', 'StartDate')
             for (counter in seq(length(fields_dates))) {
                 # convert the date field to ISO format
-                    dates_iso <- ymd(as.Date(replicate.records_output[[fields_dates[counter]]]))
+                    dates_iso <- ymd(as.Date(replicate_records_output[[fields_dates[counter]]]))
                         # check NAs: sum(is.na(dates_iso))
                 # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
                     dates_iso <- as.character(dates_iso)
@@ -328,7 +353,7 @@ library(readr)
                     dates_iso[is.na(dates_iso)] <- ''
                         # check NAs: sum(is.na(dates_iso))
                 # Insert the revised date field back into the dataset
-                    replicate.records_output[,fields_dates[counter]] <- dates_iso
+                    replicate_records_output[,fields_dates[counter]] <- dates_iso
             }
     
         # numeric fields - ensure all records are compatible with numeric format 
@@ -336,12 +361,12 @@ library(readr)
                                 'Lat', 'Long')
             # convert to numeric
                 for (counter in seq(length(fields_numeric))) {
-                    replicate.records_output[,fields_numeric[counter]] <- as.numeric(replicate.records_output[[fields_numeric[counter]]])
+                    replicate_records_output[,fields_numeric[counter]] <- as.numeric(replicate_records_output[[fields_numeric[counter]]])
                 }
     
         # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
         # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-            replicate.records_output <- replicate.records_output %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+            replicate_records_output <- replicate_records_output %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
     
                 
 # Write CSV Files (Note: have to do multiple steps to fix encoding) ----
@@ -349,34 +374,44 @@ library(readr)
         out_file_summary <- paste0('Toxicity-Summary-Records_', Sys.Date(), '.csv')
         out_file_replicate <- paste0('Toxicity-Replicate-Records_', Sys.Date(), '.csv')
     # # first write to file using base write.csv, and specify encoding
-        write.csv(x = summary.records_output, file = out_file_summary, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
-        write.csv(x = replicate.records_output, file = out_file_replicate, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+        write.csv(x = summary_records_output, file = out_file_summary, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+        write.csv(x = replicate_records_output, file = out_file_replicate, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
     # # then, read the results back to R using readr
-    #     summary.records_output <-  readr::read_csv(file = out_file_summary, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
-    #     replicate.records_output <- readr::read_csv(file = out_file_replicate, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
+    #     summary_records_output <-  readr::read_csv(file = out_file_summary, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
+    #     replicate_records_output <- readr::read_csv(file = out_file_replicate, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
     # # last, overwrite the original file using readr::write_csv
-    #     readr::write_csv(x = summary.records_output, path = out_file_summary, na = 'NaN')
-    #     readr::write_csv(x = replicate.records_output, path = out_file_replicate, na = 'NaN')
+    #     readr::write_csv(x = summary_records_output, path = out_file_summary, na = 'NaN')
+    #     readr::write_csv(x = replicate_records_output, path = out_file_replicate, na = 'NaN')
     
 # # check
-#     summary.check <- readr::read_csv(file = paste0('Toxicity-Summary-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
-#     replicate.check <- readr::read_csv(file = paste0('Toxicity-Replicate-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
+#     summary_check <- readr::read_csv(file = paste0('Toxicity-Summary-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
+#     replicate_check <- readr::read_csv(file = paste0('Toxicity-Replicate-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
     
 # Load to the CA Data Portal ----
-    # get the data portal API key saved in the local environment (to change these, search Windows for 'Edit environment variables for your account')
-        # API key is available on data.ca.gov by going to your user profile)
-        portal_key <- Sys.getenv('data_portal_key')
-    # set the ckan defaults    
-        ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)    
-    # Summary Results
-        # get resource info (just as a check)
-            ckan_resource_info <- resource_show(id = resourceID_summary, as = 'table')
-        # write to the portal
-            file_upload <- ckanr::resource_update(id = resourceID_summary, path = out_file_summary)
-    # Replicate Results
-        # get resource info (just as a check)
-            ckan_resource_info <- resource_show(id = resourceID_replicate, as = 'table')
-        # write to the portal
-            file_upload <- ckanr::resource_update(id = resourceID_replicate, path = out_file_replicate)
+    # # get the data portal API key saved in the local environment (to change these, search Windows for 'Edit environment variables for your account')
+    #     # API key is available on data.ca.gov by going to your user profile)
+    #     portal_key <- Sys.getenv('data_portal_key')
+    # # set the ckan defaults
+    #     ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
+    # # Summary Results
+    #     # get resource info (just as a check)
+    #         ckan_resource_info <- resource_show(id = resourceID_summary, as = 'table')
+    #     # write to the portal
+    #         file_upload <- ckanr::resource_update(id = resourceID_summary, path = out_file_summary)
+    # # Replicate Results
+    #     # get resource info (just as a check)
+    #         ckan_resource_info <- resource_show(id = resourceID_replicate, as = 'table')
+    #     # write to the portal
+    #         file_upload <- ckanr::resource_update(id = resourceID_replicate, path = out_file_replicate)
+            
+    # load using python script for chunked uploads
+        import('click')
+        import('json')
+        import('math')
+        import('os')
+        import('requests')
+        import('requests_toolbelt')
+        import('datetime')
+        py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox.py")
                 
 }
