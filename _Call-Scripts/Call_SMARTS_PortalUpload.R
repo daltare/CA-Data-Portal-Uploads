@@ -1,0 +1,2 @@
+source('C:/David/Stormwater/_SMARTS_Data_Download_Automation/1_FilesList.R') # get information about the files to be retrieved from the SMARTS interface
+source('C:/David/Stormwater/_SMARTS_Data_Download_Automation/3_SMARTS_data_portal_automation.R', chdir = TRUE) # runs the program to upload a csv file to the portal
