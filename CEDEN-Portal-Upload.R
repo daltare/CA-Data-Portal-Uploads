@@ -14,6 +14,7 @@
     library(lubridate)
     library(chunked)
     library(httr)
+    library(reticulate)
 
         
 # enter the date appended to the output files - generally should be today's date
@@ -22,18 +23,18 @@
 # working directory
     setwd('C:\\David\\Open_Data_Project\\__CA_DataPortal\\CEDEN\\Python_Script\\CEDEN_Datasets\\')
     
-# get the data portal API key and set up the CKAN defaults
-    # get the data portal API key saved in the local environment (it's available on data.ca.gov by going to your user profile)
-        portal_key <- Sys.getenv('data_portal_key')
-    # set the ckan defaults    
-        ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
+# # get the data portal API key and set up the CKAN defaults
+#     # get the data portal API key saved in the local environment (it's available on data.ca.gov by going to your user profile)
+#         portal_key <- Sys.getenv('data_portal_key')
+#     # set the ckan defaults    
+#         ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
     
 # define file names and associated resource IDs (from the data portal)
     ceden_resource_list <- list(# Sites - #1
                                 'All_CEDEN_Sites' = list('id' = 'a927cb45-0de1-47e8-96a5-a5290816797b', # https://data.ca.gov/dataset/surface-water-sampling-location-information/resource/a927cb45-0de1-47e8-96a5-a5290816797b
                                                          'fields_numeric' = c('Latitude', 'Longitude'),
                                                          'fields_time' = c(),
-                                                         'fields_date' <- c()),
+                                                         'fields_date' = c()),
                                 # Safe to Swim - #2-3
                                 'SafeToSwim' = list('id' = 'fd2d24ee-3ca9-4557-85ab-b53aa375e9fc', # https://data.ca.gov/dataset/surface-water-fecal-indicator-bacteria-Results/resource/fd2d24ee-3ca9-4557-85ab-b53aa375e9fc
                                                     'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'ResultsReplicate',
@@ -43,44 +44,44 @@
                                                                          'StreamWidth', 'StationWaterDepth', 'ChannelWidth',
                                                                          'UpstreamLength', 'DownStreamLength','TotalReach'),
                                                     'fields_time' = c('CollectionTime'),
-                                                    'fields_date' <- c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
+                                                    'fields_date' = c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
                                                                        'DigestExtractDate', 'AnalysisDate')),
                                 'Sites_for_SafeToSwim' = list('id' = '4f41c529-a33f-4006-9cfc-71b6944cb951', # https://data.ca.gov/dataset/surface-water-fecal-indicator-bacteria-Results/resource/4f41c529-a33f-4006-9cfc-71b6944cb951
                                                               'fields_numeric' = c('Latitude', 'Longitude'),
                                                               'fields_time' = c(),
-                                                              'fields_date' <- c()),
+                                                              'fields_date' = c()),
                                 # Benthic - #4
                                 'BenthicData' = list('id' = '3dfee140-47d5-4e29-99ae-16b9b12a404f', # https://data.ca.gov/dataset/surface-water-benthic-macroinvertebrate-Results/resource/3dfee140-47d5-4e29-99ae-16b9b12a404f
                                                      'fields_numeric' = c('Latitude', 'Longitude', 'CollectionReplicate',
                                                                           'DistinctOrganism', 'Counts', 'BAResult',
                                                                           'CollectionDepth', 'GrabSize'),
                                                      'fields_time' = c('CollectionTime'),
-                                                     'fields_date' <- c('SampleDate')),
+                                                     'fields_date' = c('SampleDate')),
                                 # # Habitat - #5-7
                                 # 'HabitatData'= list('id' = '059212f2-13e0-4015-b088-e60fd418e55a', # https://data.ca.gov/dataset/surface-water-habitat-results/resource/059212f2-13e0-4015-b088-e60fd418e55a
-                                #                     'fields_numeric' = c('Latitude', 'Longitude', 'CollectionReplicate',
-                                #                                          'DistinctOrganism', 'Counts', 'BAResult',
-                                #                                          'CollectionDepth', 'GrabSize'),
+                                #                     'fields_numeric' = c('CollectionReplicate','Result',
+                                #                                                        'Latitude', 'Longitude', 'DistanceFromBank', 
+                                #                                                        'StreamWidth', 'StationWaterDepth'),
                                 #                     'fields_time' = c('CollectionTime'),
-                                #                     'fields_date' <- c('SampleDate')),
+                                #                     'fields_date' = c('SampleDate')),
                                 'HabitatData_prior_to_2000'= list('id' = '1eef884f-9633-45e0-8efb-09d48333a496', # https://data.ca.gov/dataset/surface-water-habitat-Results/resource/1eef884f-9633-45e0-8efb-09d48333a496
-                                                                  'fields_numeric' = c('Latitude', 'Longitude', 'CollectionReplicate',
-                                                                                       'DistinctOrganism', 'Counts', 'BAResult',
-                                                                                       'CollectionDepth', 'GrabSize'),
+                                                                  'fields_numeric' = c('CollectionReplicate','Result',
+                                                                                       'Latitude', 'Longitude', 'DistanceFromBank', 
+                                                                                       'StreamWidth', 'StationWaterDepth'),
                                                                   'fields_time' = c('CollectionTime'),
-                                                                  'fields_date' <- c('SampleDate')),
+                                                                  'fields_date' = c('SampleDate')),
                                 'HabitatData_2000-2009' = list('id' = '5bc866af-c176-463c-b513-88f536d69a28', # https://data.ca.gov/dataset/surface-water-habitat-Results/resource/5bc866af-c176-463c-b513-88f536d69a28
-                                                               'fields_numeric' = c('Latitude', 'Longitude', 'CollectionReplicate',
-                                                                                    'DistinctOrganism', 'Counts', 'BAResult',
-                                                                                    'CollectionDepth', 'GrabSize'),
+                                                               'fields_numeric' = c('CollectionReplicate','Result',
+                                                                                       'Latitude', 'Longitude', 'DistanceFromBank', 
+                                                                                       'StreamWidth', 'StationWaterDepth'),
                                                                'fields_time' = c('CollectionTime'),
-                                                               'fields_date' <- c('SampleDate')),
+                                                               'fields_date' = c('SampleDate')),
                                 'HabitatData_2010-present' = list('id' = 'fe54c1c5-c16b-4507-8b3b-d6563df98e95', # https://data.ca.gov/dataset/surface-water-habitat-Results/resource/fe54c1c5-c16b-4507-8b3b-d6563df98e95
-                                                                  'fields_numeric' = c('Latitude', 'Longitude', 'CollectionReplicate',
-                                                                                       'DistinctOrganism', 'Counts', 'BAResult',
-                                                                                       'CollectionDepth', 'GrabSize'),
+                                                                  'fields_numeric' = c('CollectionReplicate','Result',
+                                                                                       'Latitude', 'Longitude', 'DistanceFromBank', 
+                                                                                       'StreamWidth', 'StationWaterDepth'),
                                                                   'fields_time' = c('CollectionTime'),
-                                                                  'fields_date' <- c('SampleDate')),
+                                                                  'fields_date' = c('SampleDate')),
                                 # # Tissue - #8-10
                                 # 'TissueData' = list('id' = 'c8da2b23-0a55-4d86-80b3-06f68db2684c', # https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-results/resource/c8da2b23-0a55-4d86-80b3-06f68db2684c
                                 #                     'fields_numeric' = c('Latitude', 'Longitude', 'NumberFishperComp',
@@ -92,7 +93,7 @@
                                 #                                          'ForkLength', 'TotalLength', 'OrganismWeight',
                                 #                                          'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
                                 #                     'fields_time' = c('CollectionTime'),
-                                #                     'fields_date' <- c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
+                                #                     'fields_date' = c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
                                 #                                        'AnalysisDate', 'LatestDateSampled', 'SampleDate',
                                 #                                        'CompositeSampleDate', 'HomogonizedDate')),
                                 'TissueData_prior_to_2000' = list('id' = 'ed646127-50e1-4163-8ff6-d30e8b8056b1', # https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-Results/resource/ed646127-50e1-4163-8ff6-d30e8b8056b1
@@ -105,7 +106,7 @@
                                                                                        'ForkLength', 'TotalLength', 'OrganismWeight',
                                                                                        'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
                                                                   'fields_time' = c('CollectionTime'),
-                                                                  'fields_date' <- c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
+                                                                  'fields_date' = c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
                                                                                      'AnalysisDate', 'LatestDateSampled', 'SampleDate',
                                                                                      'CompositeSampleDate', 'HomogonizedDate')),
                                 'TissueData_2000-2009' = list('id' = '6890b717-19b6-4b1f-adfb-9c2874c8012e', # https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-Results/resource/6890b717-19b6-4b1f-adfb-9c2874c8012e
@@ -118,7 +119,7 @@
                                                                                    'ForkLength', 'TotalLength', 'OrganismWeight',
                                                                                    'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
                                                               'fields_time' = c('CollectionTime'),
-                                                              'fields_date' <- c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
+                                                              'fields_date' = c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
                                                                                  'AnalysisDate', 'LatestDateSampled', 'SampleDate',
                                                                                  'CompositeSampleDate', 'HomogonizedDate')),
                                 'TissueData_2010-present' = list('id' = '5d4d572b-004b-4e2b-b26c-20ef050c018f', # https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-Results/resource/5d4d572b-004b-4e2b-b26c-20ef050c018f
@@ -131,7 +132,7 @@
                                                                                       'ForkLength', 'TotalLength', 'OrganismWeight',
                                                                                       'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
                                                                  'fields_time' = c('CollectionTime'),
-                                                                 'fields_date' <- c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
+                                                                 'fields_date' = c('EarliestDateSampled', 'PrepPreservationDate', 'DigestExtractDate',
                                                                                     'AnalysisDate', 'LatestDateSampled', 'SampleDate',
                                                                                     'CompositeSampleDate', 'HomogonizedDate')),
                                 # # Toxicity - #11
@@ -145,7 +146,7 @@
                                                                            'ChannelWidth', 'UpstreamLength', 'DownstreamLength',
                                                                            'TotalReach', 'CalculatedValue', 'PercentEffect'),
                                                       'fields_time' = c('CollectionTime'),
-                                                      'fields_date' <- c('SampleDate', 'ToxBatchStartDate')),
+                                                      'fields_date' = c('SampleDate', 'ToxBatchStartDate')),
                                 # # Water Chemistry - #12-14
                                 # 'WaterChemistryData' = list('id' = '5d754b3f-8286-4200-9985-2d917958ebf6' , # https://data.ca.gov/dataset/surface-water-chemistry-results/resource/5d754b3f-8286-4200-9985-2d917958ebf6
                                 #                             'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'ResultsReplicate',
@@ -155,7 +156,7 @@
                                 #                                                  'StreamWidth', 'StationWaterDepth', 'ChannelWidth',
                                 #                                                  'UpstreamLength', 'DownStreamLength','TotalReach'),
                                 #                             'fields_time' = c('CollectionTime'),
-                                #                             'fields_date' <- c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
+                                #                             'fields_date' = c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
                                 #                                                'DigestExtractDate', 'AnalysisDate')),
                                 'WaterChemistryData_prior_to_2000' = list('id' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a' , # https://data.ca.gov/dataset/surface-water-chemistry-Results/resource/158c8ca1-b02f-4665-99d6-2c1c15b6de5a
                                                                           'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'ResultsReplicate',
@@ -165,7 +166,7 @@
                                                                                                'StreamWidth', 'StationWaterDepth', 'ChannelWidth',
                                                                                                'UpstreamLength', 'DownStreamLength','TotalReach'),
                                                                           'fields_time' = c('CollectionTime'),
-                                                                          'fields_date' <- c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
+                                                                          'fields_date' = c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
                                                                                              'DigestExtractDate', 'AnalysisDate')),
                                 'WaterChemistryData_2000-2009' = list('id' = 'feb79718-52b6-4aed-8f02-1493e6187294', # https://data.ca.gov/dataset/surface-water-chemistry-Results/resource/feb79718-52b6-4aed-8f02-1493e6187294
                                                                       'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'ResultsReplicate',
@@ -175,7 +176,7 @@
                                                                                            'StreamWidth', 'StationWaterDepth', 'ChannelWidth',
                                                                                            'UpstreamLength', 'DownStreamLength','TotalReach'),
                                                                       'fields_time' = c('CollectionTime'),
-                                                                      'fields_date' <- c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
+                                                                      'fields_date' = c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
                                                                                          'DigestExtractDate', 'AnalysisDate')),
                                 'WaterChemistryData_2010-present' = list('id' = 'afaeb2b2-e26f-4d18-8d8d-6aade151b34a', # https://data.ca.gov/dataset/surface-water-chemistry-Results/resource/afaeb2b2-e26f-4d18-8d8d-6aade151b34a
                                                                          'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'ResultsReplicate',
@@ -185,21 +186,23 @@
                                                                                               'StreamWidth', 'StationWaterDepth', 'ChannelWidth',
                                                                                               'UpstreamLength', 'DownStreamLength','TotalReach'),
                                                                          'fields_time' = c('CollectionTime'),
-                                                                         'fields_date' <- c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
+                                                                         'fields_date' = c('SampleDate', 'CalibrationDate', 'PrepPreservationDate',
                                                                                             'DigestExtractDate', 'AnalysisDate'))
                                 )
 
 
 # loop through the files
     for (i in seq(length(ceden_resource_list))) {
+        gc()
         # read the file into R
             out_file <- paste0(file_date, '\\', names(ceden_resource_list[i]), '_', file_date, '.csv')
-            df_original <- readr::read_csv(out_file, guess_max = 999999) 
+            # df_original <- readr::read_csv(out_file, guess_max = 999999) 
+            df_working <- readr::read_csv(out_file, guess_max = 999999) 
         # check dataset for portal compatibility and adjust as needed
             # clean up the names
-                df_working <- df_original # clean_names(df_original)
+                # df_working <- df_original # clean_names(df_original)
             # view summary of the data
-                glimpse(df_working)
+                # glimpse(df_working)
             # reformat time fields
                 fields_t <- ceden_resource_list[[i]][[3]]
                 if (length(fields_t) > 0) {
