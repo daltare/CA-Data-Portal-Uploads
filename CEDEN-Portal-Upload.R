@@ -15,6 +15,8 @@
     library(chunked)
     library(httr)
     library(reticulate)
+    library(vroom)
+    library(data.table)
 
         
 # enter the date appended to the output files - generally should be today's date
@@ -88,7 +90,7 @@
                                 #                                          'CompositeReplicate', 'ResultReplicate', 'Result',
                                 #                                          'MDL', 'RL', 'DilutionFactor',
                                 #                                          'WeightAvg(g)', 'TLMax(mm)', 'TLAvgLength(mm)',
-                                #                                          'CompSizeCheck', 'SampleDateRangeDays', 'CompositeLatitude',
+                                #                                          'CompSizeCheck', 'SampleDateRange(Days)', 'CompositeLatitude',
                                 #                                          'CompositeLongitude', 'CollectionReplicate', 'TotalCount',
                                 #                                          'ForkLength', 'TotalLength', 'OrganismWeight',
                                 #                                          'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
@@ -101,7 +103,7 @@
                                                                                        'CompositeReplicate', 'ResultReplicate', 'Result',
                                                                                        'MDL', 'RL', 'DilutionFactor',
                                                                                        'WeightAvg(g)', 'TLMax(mm)', 'TLAvgLength(mm)',
-                                                                                       'CompSizeCheck', 'SampleDateRangeDays', 'CompositeLatitude',
+                                                                                       'CompSizeCheck', 'SampleDateRange(Days)', 'CompositeLatitude',
                                                                                        'CompositeLongitude', 'CollectionReplicate', 'TotalCount',
                                                                                        'ForkLength', 'TotalLength', 'OrganismWeight',
                                                                                        'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
@@ -114,7 +116,7 @@
                                                                                    'CompositeReplicate', 'ResultReplicate', 'Result',
                                                                                    'MDL', 'RL', 'DilutionFactor',
                                                                                    'WeightAvg(g)', 'TLMax(mm)', 'TLAvgLength(mm)',
-                                                                                   'CompSizeCheck', 'SampleDateRangeDays', 'CompositeLatitude',
+                                                                                   'CompSizeCheck', 'SampleDateRange(Days)', 'CompositeLatitude',
                                                                                    'CompositeLongitude', 'CollectionReplicate', 'TotalCount',
                                                                                    'ForkLength', 'TotalLength', 'OrganismWeight',
                                                                                    'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
@@ -127,7 +129,7 @@
                                                                                       'CompositeReplicate', 'ResultReplicate', 'Result',
                                                                                       'MDL', 'RL', 'DilutionFactor',
                                                                                       'WeightAvg(g)', 'TLMax(mm)', 'TLAvgLength(mm)',
-                                                                                      'CompSizeCheck', 'SampleDateRangeDays', 'CompositeLatitude',
+                                                                                      'CompSizeCheck', 'SampleDateRange(Days)', 'CompositeLatitude',
                                                                                       'CompositeLongitude', 'CollectionReplicate', 'TotalCount',
                                                                                       'ForkLength', 'TotalLength', 'OrganismWeight',
                                                                                       'Age', 'TissueWeight', 'CompositeWeight', 'TLMin(mm)'),
@@ -137,7 +139,7 @@
                                                                                     'CompositeSampleDate', 'HomogonizedDate')),
                                 # # Toxicity - #11
                                 'ToxicityData' = list('id' = 'bd484e9b-426a-4ba6-ba4d-f5f8ce095836', # https://data.ca.gov/dataset/surface-water-toxicity-Results/resource/bd484e9b-426a-4ba6-ba4d-f5f8ce095836
-                                                      'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'lab_Replicate',
+                                                      'fields_numeric' = c('CollectionDepth', 'CollectionReplicate', 'LabReplicate',
                                                                            'Result', 'Latitude', 'Longitude',
                                                                            'Dilution', 'TreatmentConcentration', 'DistanceFromBank',
                                                                            'StreamWidth', 'StationWaterDepth', 'PctControl',
@@ -192,12 +194,18 @@
 
 
 # loop through the files
+    
     for (i in seq(length(ceden_resource_list))) {
         gc()
         # read the file into R
             out_file <- paste0(file_date, '\\', names(ceden_resource_list[i]), '_', file_date, '.csv')
             # df_original <- readr::read_csv(out_file, guess_max = 999999) 
-            df_working <- readr::read_csv(out_file, guess_max = 999999) 
+            # df_working <- readr::read_csv(out_file, guess_max = 999999)
+            df_working <- vroom(out_file, guess_max = 999999)
+            # df_working <- fread(out_file)
+
+            
+
         # check dataset for portal compatibility and adjust as needed
             # clean up the names
                 # df_working <- df_original # clean_names(df_original)
