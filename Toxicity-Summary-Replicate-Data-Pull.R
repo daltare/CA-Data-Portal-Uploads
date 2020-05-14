@@ -388,23 +388,23 @@ library(reticulate)
 #     replicate_check <- readr::read_csv(file = paste0('Toxicity-Replicate-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
     
 # Load to the CA Data Portal ----
-    # # get the data portal API key saved in the local environment (to change these, search Windows for 'Edit environment variables for your account')
-    #     # API key is available on data.ca.gov by going to your user profile)
-    #     portal_key <- Sys.getenv('data_portal_key')
-    # # set the ckan defaults
-    #     ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
-    # # Summary Results
-    #     # get resource info (just as a check)
-    #         ckan_resource_info <- resource_show(id = resourceID_summary, as = 'table')
-    #     # write to the portal
-    #         file_upload <- ckanr::resource_update(id = resourceID_summary, path = out_file_summary)
+    # get the data portal API key saved in the local environment (to change these, search Windows for 'Edit environment variables for your account')
+        # API key is available on data.ca.gov by going to your user profile)
+        portal_key <- Sys.getenv('data_portal_key')
+    # set the ckan defaults
+        ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
+    # Summary Results
+        # get resource info (just as a check)
+            ckan_resource_info <- resource_show(id = resourceID_summary, as = 'table')
+        # write to the portal
+            file_upload <- ckanr::resource_update(id = resourceID_summary, path = out_file_summary)
     # # Replicate Results
     #     # get resource info (just as a check)
     #         ckan_resource_info <- resource_show(id = resourceID_replicate, as = 'table')
     #     # write to the portal
     #         file_upload <- ckanr::resource_update(id = resourceID_replicate, path = out_file_replicate)
             
-    # load using python script for chunked uploads
+    # for replicate results, load using python script for chunked uploads (file too big to load with the normal method)
         import('click')
         import('json')
         import('math')
@@ -413,7 +413,7 @@ library(reticulate)
         import('requests_toolbelt')
         import('datetime')
         #py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox.py")
-        py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Summary.py")
+        #py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Summary.py")
         py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Replicate.py")
                 
 }
