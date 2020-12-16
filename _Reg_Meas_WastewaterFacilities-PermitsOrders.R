@@ -14,7 +14,8 @@
     library(lubridate)
 
 # define direct link to the data
-    file_link <- 'http://jasperreports/JasperReports/FlatFiles/reg_meas_export.txt'
+    file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=reg_meas_export.txt' 
+    # ' 'http://jasperreports/JasperReports/FlatFiles/reg_meas_export.txt'
     
 # define data portal resource ID
     resourceID <- '2446e10e-8682-4d7a-952e-07ffe20d4950' # https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950
@@ -22,23 +23,27 @@
 # download the files and read data into R
     temp <- tempfile()
     download.file(url = file_link, destfile = temp, method = 'curl')
-    dataset <- readr::read_tsv(file = temp, guess_max = 500000, quote = '') %>% select(-X264)
+    df_data <- readr::read_tsv(file = temp, guess_max = 999999, quote = '') %>% 
+        # clean_names() %>% 
+        select(-starts_with(c('X', 'x'))) %>%
+        # select(-X264) %>% 
+        {.}
     
 # define the fields to keep
     # fields_keep_original <- c('REG MEASURE ID','REG MEASURE TYPE','ORDER #','NPDES # CA#','PROGRAM','PROGRAM CATEGORY','WDID','MAJOR-MINOR','STATUS','EFFECTIVE DATE','EXPIRATION/REVIEW DATE','TERMINATION DATE','ADOPTION DATE','WDR REVIEW - AMEND','WDR REVIEW - REVISE/RENEW','WDR REVIEW - RESCIND','WDR REVIEW - NO ACTION REQUIRED','WDR REVIEW - PENDING','WDR REVIEW - PLANNED', 'INDIVIDUAL/GENERAL','FEE CODE','DESIGN FLOW','THREAT TO WATER QUALITY','COMPLEXITY','PRETREATMENT','POPULATION (MS4)/ACRES','RECLAMATION','FACILITY WASTE TYPE','FACILITY WASTE TYPE 2','# OF AMENDMENTS','FACILITY ID','FACILITY REGION','FACILITY NAME','PLACE TYPE','PLACE ADDRESS','PLACE CITY','PLACE ZIP','PLACE COUNTY','LATITUDE DECIMAL DEGREES','LONGITUDE DECIMAL DEGREES','Location 1')
     fields_keep <- c('REG MEASURE ID','REG MEASURE TYPE','ORDER #','NPDES # CA#', 'PROGRAM CATEGORY','WDID','MAJOR-MINOR','STATUS','EFFECTIVE DATE','EXPIRATION/REVIEW DATE','TERMINATION DATE','ADOPTION DATE','WDR REVIEW - AMEND','WDR REVIEW - REVISE/RENEW','WDR REVIEW - RESCIND','WDR REVIEW - NO ACTION REQUIRED','WDR REVIEW - PENDING','WDR REVIEW - PLANNED','STATUS ENROLLEE','INDIVIDUAL/GENERAL','FEE CODE','DESIGN FLOW','THREAT TO WATER QUALITY','COMPLEXITY','PRETREATMENT','POPULATION (MS4)/ACRES','RECLAMATION','FACILITY WASTE TYPE','FACILITY WASTE TYPE 2','# OF AMENDMENTS','FACILITY ID','FACILITY REGION','FACILITY NAME','PLACE TYPE','PLACE ADDRESS','PLACE CITY','PLACE ZIP','PLACE COUNTY','LATITUDE DECIMAL DEGREES','LONGITUDE DECIMAL DEGREES')
     
 # select just the relevant fields
-    dataset_revised <- dataset %>% select(fields_keep)
+    dataset_revised <- df_data %>% select(all_of(fields_keep))
 
 # select the rows where 'STATUS' is either 'Active' or 'Historical
     dataset_revised <- dataset_revised %>% filter(STATUS == 'Active' | STATUS == 'Historical')
     
 # clean up the names
-    dataset_revised <- janitor::clean_names(dataset_revised)
+    dataset_revised <- dataset_revised %>% clean_names()
     
 # check dataset for portal compatibility and adjust as needed
-    dplyr::glimpse(dataset_revised)
+    glimpse(dataset_revised)
     
     # date fields
         fields_dates <- c('effective_date', 'expiration_review_date', 'termination_date', 'adoption_date', 
@@ -68,7 +73,9 @@
         
     # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
     # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-        dataset_revised <- dataset_revised %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+        dataset_revised <- dataset_revised %>% 
+            mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+            # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
         
     glimpse(dataset_revised)
     

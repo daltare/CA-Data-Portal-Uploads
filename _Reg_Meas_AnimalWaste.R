@@ -14,7 +14,9 @@
     library(lubridate)
     
 # define direct link to the data
-    file_link <- 'http://jasperreports/JasperReports/FlatFiles/reg_meas_export.txt'
+    file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=reg_meas_export.txt'
+        # 'http://jasperreports/JasperReports/FlatFiles/reg_meas_export.txt'
+    
 
 # define data portal resource ID
     resourceID <- 'c16335af-f2dc-41e6-a429-f19edba5b957' # https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/c16335af-f2dc-41e6-a429-f19edba5b957
@@ -22,19 +24,20 @@
 # download the files and read data into R
     temp <- tempfile()
     download.file(url = file_link, destfile = temp, method = 'curl')
-    df.data <- readr::read_tsv(file = temp, guess_max = 999999, quote = '') %>% select(-X264)
-
-# clean up the names
-    df.data <- clean_names(df.data)
+    df_data <- readr::read_tsv(file = temp, guess_max = 999999, quote = '') %>% 
+        clean_names() %>% 
+        select(-starts_with(c('X', 'x'))) %>% 
+        # select(-X264) %>% 
+        {.}
 
 # select the rows where 'PROGRAM CATEGORY' is 'ANIMALWASTE', 'STATUS' is 'Active', and 'REG MEASURE TYPE' is not '13267 Letter (Non-Enforcement)' or 'Letter'
-    df.data_filter <- df.data %>% filter(program_category == 'ANIMALWASTE',
+    df_data_filter <- df_data %>% filter(program_category == 'ANIMALWASTE',
                                          status == 'Active',
                                          reg_measure_type != '13267 Letter (Non-Enforcement)',
                                          reg_measure_type != 'Letter')
 
 # select just the relevant fields
-    df.data_filter <- df.data_filter %>% select("reg_measure_id","reg_measure_type","reg_measure_title",
+    df_data_filter <- df_data_filter %>% select("reg_measure_id","reg_measure_type","reg_measure_title",
                                                 "reg_measure_description","order_number","npdes_number_ca_number",
                                                 "program","program_category","wdid",
                                                 "region","status","effective_date",
@@ -53,14 +56,14 @@
 
     
 # check dataset for portal compatibility and adjust as needed
-    dplyr::glimpse(df.data_filter)
+    dplyr::glimpse(df_data_filter)
     
     # date fields - convert dates into a timestamp field that can be read by the portal
         fields_dates <- c('effective_date', 'expiration_review_date', 'termination_date', 
                           'adoption_date', 'rescission_date')
          for (counter in seq(length(fields_dates))) {
             # convert the date field to ISO format
-                dates_iso <- mdy(df.data_filter[[fields_dates[counter]]])
+                dates_iso <- mdy(df_data_filter[[fields_dates[counter]]])
                     # check NAs: sum(is.na(dates_iso))
             # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
                 dates_iso <- as.character(dates_iso)
@@ -68,7 +71,7 @@
                 dates_iso[is.na(dates_iso)] <- ''
                     # check NAs: sum(is.na(dates_iso))
             # Insert the revised date field back into the dataset
-                df.data_filter[,fields_dates[counter]] <- dates_iso
+                df_data_filter[,fields_dates[counter]] <- dates_iso
         }
 
     # numeric fields - ensure all records are compatible with numeric format 
@@ -76,16 +79,18 @@
                             'cafo_population', 'animal_equivalent_units_aeu')
         # convert to numeric
             for (counter in seq(length(fields_numeric))) {
-                df.data_filter[,fields_numeric[counter]] <- as.numeric(df.data_filter[[fields_numeric[counter]]])
+                df_data_filter[,fields_numeric[counter]] <- as.numeric(df_data_filter[[fields_numeric[counter]]])
             }
     
     # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
     # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-        df.data_filter <- df.data_filter %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+        df_data_filter <- df_data_filter %>% 
+            mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+            # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
     
 # write out the revised dataset as a .csv file
     out_file <- paste0('reg_meas_export_CAFO_', Sys.Date(), '.csv')
-    write_csv(x = df.data_filter, path = out_file, na = 'NaN')
+    write_csv(x = df_data_filter, path = out_file, na = 'NaN')
     
     
 # write to the open data portal
