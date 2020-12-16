@@ -95,7 +95,9 @@
 
             # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
             # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-                data_active <- data_active %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+                data_active <- data_active %>% 
+                    mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+                    # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
     
     # RTC
         # clean up the names

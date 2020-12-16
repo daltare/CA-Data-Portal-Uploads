@@ -16,6 +16,19 @@
     library(ckanr)
     library(dplyr)
     library(lubridate)
+        
+# delete old versions of the dataset
+    delete_old_versions <- TRUE
+    filename_gama <- 'GAMA_Statewide_DW_PB_combined'
+    # Delete old versions of the files (if desired)
+            if (delete_old_versions == TRUE) {
+                files_list <- grep(pattern = paste0('^', filename_gama), x = list.files(), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
+                files_to_keep <- c(paste0(filename_gama, '_', Sys.Date() - seq(0,14), '.csv')) # keep the files from the previous 14 days
+                files_list_old <- files_list[!(files_list %in% files_to_keep)] # exclude the new file from the list of files to be deleted
+                if (length(files_list_old) > 0) {
+                    file.remove(files_list_old)
+                }
+            }
 
 # define direct links to the data
     gama_link <- 'https://gamagroundwater.waterboards.ca.gov/gama/data_download/gama_gama_statewide.zip' # Old: 'http://geotracker.waterboards.ca.gov/gama/data_download/gama_gama_statewide.zip'
@@ -67,7 +80,9 @@
                 }
             # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
                 # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-                data_gama <- data_gama %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+                data_gama <- data_gama %>% 
+                    mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+                    # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
 
     # USGS #------------------------------------------------#
         # check for and filter out any duplicates
@@ -98,7 +113,9 @@
                 }
             # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
                 # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-                data_usgs <- data_usgs %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+                data_usgs <- data_usgs %>% 
+                    mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+                    # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
 
 
 # combine the gama and usgs datasets #--------------------------------------------------------------------------------------#

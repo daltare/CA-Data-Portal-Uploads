@@ -20,6 +20,25 @@ library(reticulate)
 # define data portal resource IDs for the summary and replicate records
     resourceID_summary <- '674474eb-e093-42de-aef3-da84fd2ff2d8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
     resourceID_replicate <- '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
+    
+    
+# delete old versions of the datasets
+    delete_old_versions <- TRUE
+    filename_summary <- 'Toxicity-Summary-Records_'
+    filename_replicate <- 'Toxicity-Replicate-Records_'
+    # Delete old versions of the files (if desired)
+            if (delete_old_versions == TRUE) {
+                files_list <- grep(pattern = paste0('^', filename_summary), x = list.files(), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
+                files_list <- c(files_list,
+                                grep(pattern = paste0('^', filename_replicate), x = list.files(), value = TRUE))
+                # files_list_old <- files_list[files_list != paste0(filename, '_', Sys.Date(), '_Raw.txt')] # exclude the new file from the list of files to be deleted
+                files_to_keep <- c(paste0(filename_summary, Sys.Date() - seq(0,14), '.csv'),
+                                   paste0(filename_replicate, Sys.Date() - seq(0,14), '.csv')) # keep the files from the previous 14 days
+                files_list_old <- files_list[!(files_list %in% files_to_keep)] # exclude the new file from the list of files to be deleted
+                if (length(files_list_old) > 0) {
+                    file.remove(files_list_old)
+                }
+            }
 
 # SQL Server Connections ----
     # References
@@ -194,7 +213,7 @@ library(reticulate)
                                   'UnitTreatment', 'Dilution', 'CoordinateSource', 'ToxPointMethod', 'Analyte', 
                                   'Fraction', 'Unit', 'TimePointName', 'RepCount', 'Mean', 
                                   'StdDev', 'StatMethod', 'AlphaLevel', 'bValue', 'CalcValueType', 
-                                  'Probability', 'CriticalValue', 'PctControl', 'MSD', 'EvalThreshold', 
+                                  'Probability', 'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 
                                   'SigEffectCode', 'QACode', 'ComplianceCode', 'ToxPointSummaryComments', 'TIENarrative', 
                                   'Program', 'ParentProject', 'TargetLatitude', 'TargetLongitude', 'Datum', 
                                   'PctControl', 'ToxBatch', 'ToxBatchStartDate', 'LabAgency', 'LabSubmissionCode', 
@@ -202,10 +221,10 @@ library(reticulate)
                                   'ToxBatchComments')
         tf_duplicated <- duplicated(summary_records_db_names)
         summary_records_db_names <- summary_records_db_names[!tf_duplicated]
-    summary_records_template_names <- c('StationCode', 'SampleDate', 'ProjectCode', 'EventCode', 'ProtocolCode', 
-                                        'AgencyCode', 'SampleComments', 'LocationCode', 'GeometryShape', 'CollectionTime', 
-                                        'CollectionMethodCode', 'SampleTypeCode', 'Replicate', 'CollectionDeviceName', 'CollectionDepth', 
-                                        'UnitCollectionDepth', 'PositionWaterColumn', 'LabCollectionComments', 'ToxBatch', 'MatrixName', 
+    summary_records_template_names <- c('StationCode', 'SampleDate', 'ProjectCode', 'EventCode', 'ProtocolCode', # 1-5
+                                        'AgencyCode', 'SampleComments', 'LocationCode', 'GeometryShape', 'CollectionTime', # 6-10
+                                        'CollectionMethodCode', 'SampleTypeCode', 'Replicate', 'CollectionDeviceName', 'CollectionDepth', # 11-15
+                                        'UnitCollectionDepth', 'PositionWaterColumn', 'LabCollectionComments', 'ToxBatch', 'MatrixName', # 16-20
                                         'MethodName', 'TestDuration', 'OrganismName', 'TestExposureType', 'QAControlID', 
                                         'SampleID', 'LabSampleID', 'ToxTestComments', 'Treatment', 'Concentration', 
                                         'UnitTreatment', 'Dilution', 'WQSource', 'ToxPointMethod', 'AnalyteName', 
@@ -329,7 +348,10 @@ library(reticulate)
             
             # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
             # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-                summary_records_output <- summary_records_output %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+                summary_records_output <- summary_records_output %>% 
+                    mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+                    # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+                
                 
     # replicate records ----
         dplyr::glimpse(replicate_records_output)
@@ -366,7 +388,9 @@ library(reticulate)
     
         # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
         # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-            replicate_records_output <- replicate_records_output %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+            replicate_records_output <- replicate_records_output %>% 
+                mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+                # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
     
                 
 # Write CSV Files (Note: have to do multiple steps to fix encoding) ----
@@ -405,15 +429,15 @@ library(reticulate)
     #         file_upload <- ckanr::resource_update(id = resourceID_replicate, path = out_file_replicate)
             
     # for replicate results, load using python script for chunked uploads (file too big to load with the normal method)
-        import('click')
-        import('json')
-        import('math')
-        import('os')
-        import('requests')
-        import('requests_toolbelt')
-        import('datetime')
-        #py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox.py")
-        #py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Summary.py")
-        py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Replicate.py")
+        # import('click')
+        # import('json')
+        # import('math')
+        # import('os')
+        # import('requests')
+        # import('requests_toolbelt')
+        # import('datetime')
+        # #py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox.py")
+        # #py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Summary.py")
+        # py_run_file("C:\\David\\Open_Data_Project\\__CA_DataPortal\\Toxicity\\Summary-Replicate-Results\\portal-upload-ckan-chunked_Tox\\main_Tox_Replicate.py")
                 
 }
