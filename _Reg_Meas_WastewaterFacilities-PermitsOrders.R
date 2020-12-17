@@ -15,7 +15,7 @@
 
 # define direct link to the data
     file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=reg_meas_export.txt' 
-    # ' 'http://jasperreports/JasperReports/FlatFiles/reg_meas_export.txt'
+    # 'http://jasperreports/JasperReports/FlatFiles/reg_meas_export.txt'
     
 # define data portal resource ID
     resourceID <- '2446e10e-8682-4d7a-952e-07ffe20d4950' # https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950
