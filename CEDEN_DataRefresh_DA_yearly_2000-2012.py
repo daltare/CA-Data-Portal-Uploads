@@ -533,6 +533,49 @@ def data_retrieval(tables, saveLocation, sep, extension):
 																				recordDict[Longitude] = -long
 																		except ValueError:
 																			pass
+																		#########################################################
+#																		# DA - adding to check numeric columns for numeric values
+																		if filename == 'WaterChemistryData':
+																			for field in ["CollectionDepth", "CollectionReplicate", "ResultsReplicate", "Result", "MDL", "RL", "Latitude", "Longitude", "DilutionFactor", "ExpectedValue", "DistanceFromBank", "StreamWidth", "StationWaterDepth"]:
+																				try:
+																					converted_numb = str(float(recordDict[field]))
+																					recordDict[field] = converted_numb
+																				except ValueError: 
+																					converted_numb = "NaN"
+																					recordDict[field] = converted_numb
+																		if filename == 'BenthicData':
+																			for field in ["Latitude", "Longitude", "CollectionReplicate", "DistinctOrganism", "Counts", "CollectionDepth", "GrabSize", "PercentSampleCounted", "TotalGridsGridsAnalyzed", "GridsVolumeAnalyzed", "TargetOrganismCount", "ActualOrganismCount", "ExtraOrganismCount", "QCOrganismCount", "DiscardedOrganismCount"]:
+																				try:
+																					converted_numb = str(float(recordDict[field]))
+																					recordDict[field] = converted_numb
+																				except ValueError: 
+																					converted_numb = "NaN"
+																					recordDict[field] = converted_numb
+																		if filename == 'ToxicityData':
+																			for field in ["CollectionDepth", "CollectionReplicate", "LabReplicate", "Result", "Latitude", "Longitude", "Dilution", "TreatmentConcentration", "DistanceFromBank", "StreamWidth", "StationWaterDepth", "PctControl", "RepCount", "Mean", "StdDev", "Alphalevel", "EvalThreshold", "MSD", "CalculatedValue", "PercentEffect"]:
+																				try:
+																					converted_numb = str(float(recordDict[field]))
+																					recordDict[field] = converted_numb
+																				except ValueError: 
+																					converted_numb = "NaN"
+																					recordDict[field] = converted_numb
+																		if filename == 'TissueData':
+																			for field in ["Latitude", "Longitude", "NumberFishperComp", "CompositeReplicate", "ResultReplicate", "Result", "MDL", "RL", "DilutionFactor", "WeightAvg(g)", "TLMax(mm)", "TLAvgLength(mm)","CompSizeCheck", "SampleDateRangeDays", "CollectionReplicate", "TotalCount", "ForkLength", "TotalLength", "OrganismWeight", "TissueWeight", "CompositeWeight", "TLMin(mm)"]:
+																				try:
+																					converted_numb = str(float(recordDict[field]))
+																					recordDict[field] = converted_numb
+																				except ValueError: 
+																					converted_numb = "NaN"
+																					recordDict[field] = converted_numb
+																		if filename == 'HabitatData':
+																			for field in ["CollectionReplicate", "Latitude", "Longitude", "DistanceFromBank", "StreamWidth", "StationWaterDepth"]:
+																				try:
+																					converted_numb = str(float(recordDict[field]))
+																					recordDict[field] = converted_numb
+																				except ValueError: 
+																					converted_numb = "NaN"
+																					recordDict[field] = converted_numb
+																		########################################################
 																		#####  Benthic datasets do not need datum added  #####
 																		if filename == 'BenthicData':
 																			pass
