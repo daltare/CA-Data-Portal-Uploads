@@ -546,7 +546,7 @@ def data_retrieval(tables, saveLocation, sep, extension):
 																					converted_numb = "NaN"
 																					recordDict[field] = converted_numb
 																		if filename == 'BenthicData':
-																			for field in ["Latitude", "Longitude", "CollectionReplicate", "DistinctOrganism", "Counts", "CollectionDepth", "GrabSize", "PercentSampleCounted", "TotalGridsGridsAnalyzed", "GridsVolumeAnalyzed", "TargetOrganismCount", "ActualOrganismCount", "ExtraOrganismCount", "QCOrganismCount", "DiscardedOrganismCount"]:
+																			for field in ["Latitude", "Longitude", "CollectionReplicate", "DistinctOrganism", "Counts", "CollectionDepth", "GrabSize", "PercentSampleCounted", "TotalGrids", "GridsAnalyzed", "GridsVolumeAnalyzed", "TargetOrganismCount", "ActualOrganismCount", "ExtraOrganismCount", "QCOrganismCount", "DiscardedOrganismCount"]:
 																				try:
 																					converted_numb = str(float(recordDict[field]))
 																					recordDict[field] = converted_numb
