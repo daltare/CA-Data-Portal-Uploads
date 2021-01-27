@@ -560,7 +560,7 @@ def data_retrieval(tables, saveLocation, sep, extension):
 																					converted_numb = "NaN"
 																					recordDict[field] = converted_numb
 																		if filename == 'TissueData':
-																			for field in ["Latitude", "Longitude", "NumberFishperComp", "CompositeReplicate", "ResultReplicate", "Result", "MDL", "RL", "DilutionFactor", "WeightAvg(g)", "TLMax(mm)", "TLAvgLength(mm)","CompSizeCheck", "SampleDateRangeDays", "CollectionReplicate", "TotalCount", "ForkLength", "TotalLength", "OrganismWeight", "TissueWeight", "CompositeWeight", "TLMin(mm)"]:
+																			for field in ["Latitude", "Longitude", "NumberFishperComp", "CompositeReplicate", "ResultReplicate", "Result", "MDL", "RL", "DilutionFactor", "WeightAvg(g)", "TLMax(mm)", "TLAvgLength(mm)","CompSizeCheck", "SampleDateRange(Days)", "CollectionReplicate", "TotalCount", "ForkLength", "TotalLength", "OrganismWeight", "TissueWeight", "CompositeWeight", "TLMin(mm)"]:
 																				try:
 																					converted_numb = str(float(recordDict[field]))
 																					recordDict[field] = converted_numb
