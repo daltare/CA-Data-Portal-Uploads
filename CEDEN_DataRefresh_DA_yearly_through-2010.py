@@ -45,6 +45,7 @@ from datetime import datetime
 import string
 # import getpass
 # from dkan.client import DatasetAPI
+import zipfile
 
 ################################################################# Controls #################################################################
 
@@ -65,8 +66,8 @@ saveLocation = os.path.join(first, 'CEDEN_Datasets', today)
 	# This is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of
 	#  the list. The FIRST key in this dictionary MUST be WQX_Stations. 
 tables = {}  # initializes tables variable
-tables = {"WQX_Stations": "DM_WQX_Stations_MV", "WaterChemistryData": "WQDMart_MV",
-          "ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
+tables = {"WQX_Stations": "DM_WQX_Stations_MV", #"WaterChemistryData": "WQDMart_MV",
+          #"ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
           "BenthicData": "BenthicDMart_MV", "HabitatData": "HabitatDMart_MV", 
 		  }
 For_SafeToSwim = False # if True, create the SafeToSwim file - NOTE: in order to create this file, the WaterChemistryData element needs to be included in the tables variable
@@ -1096,6 +1097,38 @@ if __name__ == "__main__":
 	############## ^^^^^^^^^^^^  Subsets of datasets for Pesticides
 
 
+##########################################################################################################
+##########################################################################################################
+############### ####       Create Zip Files (DA)          ######################################
+##########################################################################################################
+##########################################################################################################
+# for files containing the data for all years, convert the file to .zip, and delete the original csv file
+print('Creating zip files...')
+# today = '2021-01-27'
+
+# create a list of files to be zipped, and a separate list of files to be deleted (may not want to delete them all)
+files_zip = ["WaterChemistryData", "TissueData", "HabitatData", "ToxicityData", "BenthicData"]
+files_delete = ["WaterChemistryData", "TissueData", "HabitatData"] # "ToxicityData", "BenthicData"
+
+# create zip files
+for fname in files_zip:
+	csv_file = saveLocation + '\\' + fname + '_' + today + '.csv'
+	zip_file = saveLocation + '\\' + fname + '_' + today + '.zip'
+	if os.path.exists(csv_file):
+		# create a ZipFile object
+		zipObj = zipfile.ZipFile(zip_file, 'w')
+		# Add file(s) to the zip file
+		zipObj.write(csv_file, compress_type = zipfile.ZIP_DEFLATED)
+		# close the zip File
+		zipObj.close()
+		print("Created: " + zip_file )
+		
+for fname in files_delete:
+	csv_file = saveLocation + '\\' + fname + '_' + today + '.csv'
+	if os.path.exists(csv_file):
+		# remove the csv file
+		os.remove(csv_file)
+		print("Deleted: " + csv_file )
 
 
 ##########################################################################################################

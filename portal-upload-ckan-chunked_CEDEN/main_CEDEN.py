@@ -1,12 +1,13 @@
 import click
-import json
+# import json
 import math
 import os
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
-from datetime import date #, timedelta
-today = str(date.today())
+# from datetime import date #, timedelta
+# today = str(date.today())
+today = '2021-01-27'
 
 
 ####### CONFIGURE CKAN PARAMETERS #######
@@ -16,21 +17,37 @@ ckan_api_key = os.environ.get('data_portal_key')
 
 
 ####### DAA - CONFIGURE UPLOAD FILES LOCATION AND LIST #######
-upload_files_location = 'C:/David/Open_Data_Project/__CA_DataPortal/CEDEN/Python_Script/CEDEN_Datasets/portal-formatted/' + today + '/'
-uploads = {'All_CEDEN_Sites' + '_' + today + '.csv': 'a927cb45-0de1-47e8-96a5-a5290816797b', 
-           #'SafeToSwim' + '_' + today + '.csv': 'fd2d24ee-3ca9-4557-85ab-b53aa375e9fc', 
-           #'Sites_for_SafeToSwim' + '_' + today + '.csv': '4f41c529-a33f-4006-9cfc-71b6944cb951',
-           'BenthicData' + '_' + today + '.csv': '3dfee140-47d5-4e29-99ae-16b9b12a404f', 
-           'HabitatData_prior_to_2000' + '_' + today + '.csv': '1eef884f-9633-45e0-8efb-09d48333a496',
-           'HabitatData_2000-2009' + '_' + today + '.csv': '5bc866af-c176-463c-b513-88f536d69a28',
-           'HabitatData_2010-present' + '_' + today + '.csv': 'fe54c1c5-c16b-4507-8b3b-d6563df98e95',
-           'TissueData_prior_to_2000' + '_' + today + '.csv': 'ed646127-50e1-4163-8ff6-d30e8b8056b1', 
-           'TissueData_2000-2009' + '_' + today + '.csv': '6890b717-19b6-4b1f-adfb-9c2874c8012e',
-           'TissueData_2010-present' + '_' + today + '.csv': '5d4d572b-004b-4e2b-b26c-20ef050c018f', 
-           'ToxicityData' + '_' + today + '.csv': 'bd484e9b-426a-4ba6-ba4d-f5f8ce095836',
-           'WaterChemistryData_prior_to_2000' + '_' + today + '.csv': '158c8ca1-b02f-4665-99d6-2c1c15b6de5a', 
-           'WaterChemistryData_2000-2009' + '_' + today + '.csv': 'feb79718-52b6-4aed-8f02-1493e6187294', 
-           'WaterChemistryData_2010-present' + '_' + today + '.csv': 'afaeb2b2-e26f-4d18-8d8d-6aade151b34a',}
+upload_files_location = 'C:/David/Open_Data_Project/__CA_DataPortal/CEDEN/data_download/CEDEN_Datasets/' + today + '/'
+
+
+# uploads = {'WaterChemistryData_year-2021' + '_' + today + '.csv': 'dde19a95-504b-48d7-8f3e-8af3d484009f',
+# 'WaterChemistryData_year-2020' + '_' + today + '.csv': '2eba14fa-2678-4d54-ad8b-f60784c1b234', 
+# 'WaterChemistryData_year-2019' + '_' + today + '.csv': '6cf99106-f45f-4c17-80af-b91603f391d9',
+# 'WaterChemistryData_year-2018' + '_' + today + '.csv': 'f638c764-89d5-4756-ac17-f6b20555d694',
+# 'WaterChemistryData_year-2017' + '_' + today + '.csv': '68787549-8a78-4eea-b5b9-ef719e65a05c', 
+# 'WaterChemistryData_year-2016' + '_' + today + '.csv': '42b906a2-9e30-4e44-92c9-0f94561e47fe', 
+# 'WaterChemistryData_year-2015' + '_' + today + '.csv': '7d9384fa-70e1-4986-81d6-438ce5565be6',
+# 'WaterChemistryData_year-2014' + '_' + today + '.csv': '7abfde16-61b6-425d-9c57-d6bd70700603', 
+# 'WaterChemistryData_year-2013' + '_' + today + '.csv': '341627e6-a483-4e9e-9a85-9f73b6ddbbba',
+# 'WaterChemistryData_year-2012' + '_' + today + '.csv': 'f9dd0348-85d5-4945-aa62-c7c9ad4cf6fd', 
+# 'WaterChemistryData_year-2011' + '_' + today + '.csv': '4d01a693-2a22-466a-a60b-3d6f236326ff', 
+# 'WaterChemistryData_year-2010' + '_' + today + '.csv': '572bf4d2-e83d-490a-9aa5-c1d574e36ae0',
+# 'WaterChemistryData_year-2009' + '_' + today + '.csv': '5b136831-8870-46f2-8f72-fe79c23d7118',
+# 'WaterChemistryData_year-2008' + '_' + today + '.csv': 'c587a47f-ac28-4f77-b85e-837939276a28',
+# 'WaterChemistryData_year-2007' + '_' + today + '.csv': '13e64899-df32-461c-bec1-a4e72fcbbcfa',
+# 'WaterChemistryData_year-2006' + '_' + today + '.csv': 'a31a7864-06b9-4a81-92ba-d8912834ca1d',
+# 'WaterChemistryData_year-2005' + '_' + today + '.csv': '9538cbfa-f8be-4445-97dc-b931579bb927',
+# 'WaterChemistryData_year-2004' + '_' + today + '.csv': 'c962f46d-6a7b-4618-90ec-3c8522836f28',
+# 'WaterChemistryData_year-2003' + '_' + today + '.csv': 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
+# 'WaterChemistryData_year-2002' + '_' + today + '.csv': '00c4ca34-064f-4526-8276-57533a1a36d9',
+# 'WaterChemistryData_year-2001' + '_' + today + '.csv': 'cec6768c-99d3-45bf-9e56-d62561e9939e',
+# 'WaterChemistryData_year-2000' + '_' + today + '.csv': '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
+# 'WaterChemistryData_prior_to_2000' + '_' + today + '.csv': '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
+# }
+uploads = {#'BenthicData' + '_' + today + '.csv': '3dfee140-47d5-4e29-99ae-16b9b12a404f',
+'ToxicityData' + '_' + today + '.csv': 'bd484e9b-426a-4ba6-ba4d-f5f8ce095836'
+}
+
 ####### END OF UPLOAD FILES CONFIGURATION #######
 
 chunk_size = 1024 * 1024 * 64 # 64MB
@@ -52,7 +69,8 @@ def ckanRequest(action, data_dict):
             )
         return r.json()
     except:
-        print(r.text)
+        #print(r.text)
+        print('error') # DA - Added this line
         return
 
 
