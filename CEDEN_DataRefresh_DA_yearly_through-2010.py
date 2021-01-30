@@ -1118,7 +1118,7 @@ for fname in files_zip:
 		# create a ZipFile object
 		zipObj = zipfile.ZipFile(zip_file, 'w')
 		# Add file(s) to the zip file
-		zipObj.write(csv_file, compress_type = zipfile.ZIP_DEFLATED)
+		zipObj.write(csv_file, fname + '_' + today + '.csv', compress_type = zipfile.ZIP_DEFLATED)
 		# close the zip File
 		zipObj.close()
 		print("Created: " + zip_file )
