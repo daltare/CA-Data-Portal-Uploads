@@ -50,7 +50,7 @@ convert_data <- function(year, directory_name, file_name) {
             df_ceden <- df_ceden %>% 
                 mutate_at(vars(contains(c('EarliestDateSampled', 'PrepPreservationDate', 
                                           'DigestExtractDate', 'AnalysisDate', 'LatestDateSampled', 
-                                          'CompositeSampleDate', 'HomogonizedDate'))), mdy) %>% 
+                                          'HomogonizedDate'))), mdy) %>% # 'CompositeSampleDate', 
                 mutate(SampleDate = ymd(SampleDate))
         }
         
@@ -79,7 +79,7 @@ convert_data <- function(year, directory_name, file_name) {
     
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # loop through all of the datasets and create parquet files
-for (i in 2){# seq_along(names(list_datasets))) {
+for (i in seq_along(names(list_datasets))) {
     directory_name <- names(list_datasets[i])
     directory_name <- glue('{directory_name}_{download_date}')
     # create a directory for the given data type
@@ -100,16 +100,27 @@ for (i in 2){# seq_along(names(list_datasets))) {
         field_types <- str_replace_all(string = field_types, pattern = 'T', replacement = 'c')
     }
     
+    
+    options(warn = 2) # this converts warnings into errors, so that the function below will stop if there is a problem reading in the data
+    
+    
     #### create folder and parquet file for each year from 2000 to present ####
         walk(2000:latest_year, ~ convert_data(., directory_name, file_name))
-        
+
     #### pre-2000 data ####
     # read file
     df_ceden_pre2000 <- read_csv(glue('{data_files_path}\\{download_date}\\{file_name}_prior_to_2000_{download_date}.csv'), 
                                       col_types = field_types, 
                                       na = 'NaN') %>% 
         mutate(sample_year = year(SampleDate))
-    
+    if (file_name == 'TissueData') { # dates in the tissue dataset are formatted differently than the other datasets
+        df_ceden_pre2000 <- df_ceden_pre2000 %>% 
+            mutate_at(vars(contains(c('EarliestDateSampled', 'PrepPreservationDate', 
+                                      'DigestExtractDate', 'AnalysisDate', 'LatestDateSampled', 
+                                      'HomogonizedDate'))), mdy) %>% # 'CompositeSampleDate', 
+            mutate(SampleDate = ymd(SampleDate))
+    }
+
     # get a list of years in the dataset
     list_years_pre2000 <- df_ceden_pre2000 %>% 
         distinct(sample_year) %>% 
@@ -120,6 +131,10 @@ for (i in 2){# seq_along(names(list_datasets))) {
         walk(list_years_pre2000, ~ convert_data_pre2000(., directory_name, df_ceden_pre2000))
         rm(df_ceden_pre2000)
         
+        
+    options(warn = 0) # this converts warnings back into regular warnings (not errors)
+        
+    
     # add all of the files to a zip file, but without compression (this file can be loaded to the data portal)
     zip::zip(zipfile = glue('{directory_name}.zip'), 
              root = directory_name,
@@ -133,6 +148,9 @@ for (i in 2){# seq_along(names(list_datasets))) {
     if (file.copy(from = glue('{directory_name}/{directory_name}.zip'), to = '.')) {
         unlink(glue('{directory_name}/{directory_name}.zip'))
     }
+    
+    # delete the un-zipped folder
+    unlink(directory_name, recursive = TRUE)
 }
     
 
