@@ -13,6 +13,7 @@ library(data.table)
 library(glue)
 library(readxl)
 library(zip)
+library(lubridate)
 
 # enter some information and create a parent directory
 download_date <- '2021-02-08'
@@ -45,6 +46,14 @@ convert_data <- function(year, directory_name, file_name) {
                              col_types = field_types, 
                              na = 'NaN')
         
+        if (file_name == 'TissueData') { # dates in the tissue dataset are formatted differently than the other datasets
+            df_ceden <- df_ceden %>% 
+                mutate_at(vars(contains(c('EarliestDateSampled', 'PrepPreservationDate', 
+                                          'DigestExtractDate', 'AnalysisDate', 'LatestDateSampled', 
+                                          'CompositeSampleDate', 'HomogonizedDate'))), mdy) %>% 
+                mutate(SampleDate = ymd(SampleDate))
+        }
+        
         # create parquet file
         arrow::write_parquet(df_ceden, glue('{directory_name}/{year}/data.parquet'))
     }
@@ -70,7 +79,7 @@ convert_data <- function(year, directory_name, file_name) {
     
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # loop through all of the datasets and create parquet files
-for (i in seq_along(names(list_datasets))) {
+for (i in 2){# seq_along(names(list_datasets))) {
     directory_name <- names(list_datasets[i])
     directory_name <- glue('{directory_name}_{download_date}')
     # create a directory for the given data type
@@ -87,6 +96,9 @@ for (i in seq_along(names(list_datasets))) {
         str_replace(pattern = 'timestamp', replacement = 'T') %>% 
         glue_collapse() %>%  
         {.}
+    if (file_name == 'TissueData') { # dates in the tissue dataset are formatted differently than the other datasets
+        field_types <- str_replace_all(string = field_types, pattern = 'T', replacement = 'c')
+    }
     
     #### create folder and parquet file for each year from 2000 to present ####
         walk(2000:latest_year, ~ convert_data(., directory_name, file_name))
@@ -166,6 +178,25 @@ for (i in seq_along(names(list_datasets))) {
         # filter(Analyte %in% c("E. coli")) %>% 
         collect() %>%
         count(year) %>% 
+        # collect() %>% 
+        # summarize(
+        #     avg_result = mean(Result, na.rm = TRUE),
+        #     max_result = max(Result, na.rm = TRUE),
+        #     n = n()
+        # ) %>%
+        {.}
+    toc()
+    View(df_from_arrow_all_counts)
+    
+    
+# single year
+    tic()
+    df_from_arrow_one_year <- ds_chemistry %>% 
+        # select(year, Analyte, Unit, Result, MDL, RL) %>%
+        filter(Analyte %in% c("E. coli"), 
+               year == 2018) %>%
+        collect() %>%
+        # count(year) %>% 
         # collect() %>% 
         # summarize(
         #     avg_result = mean(Result, na.rm = TRUE),
