@@ -58,7 +58,7 @@ cur_year = now.year
 
 ### DAA - Set the file location
 # first = 'C:\\Users\\%s\\Documents' % getpass.getuser()
-first = 'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\data_download'
+first = 'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\1_data_download'
 # All output files will be saved in this folder
 saveLocation = os.path.join(first, 'CEDEN_Datasets', today)
 
@@ -66,10 +66,14 @@ saveLocation = os.path.join(first, 'CEDEN_Datasets', today)
 	# This is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of
 	#  the list. The FIRST key in this dictionary MUST be WQX_Stations. 
 tables = {}  # initializes tables variable
-tables = {"WQX_Stations": "DM_WQX_Stations_MV", #"WaterChemistryData": "WQDMart_MV",
-          #"ToxicityData": "ToxDmart_MV", "TissueData": "TissueDMart_MV",
-          "BenthicData": "BenthicDMart_MV", "HabitatData": "HabitatDMart_MV", 
-		  }
+tables = {
+"WQX_Stations": "DM_WQX_Stations_MV", 
+"WaterChemistryData": "WQDMart_MV", 
+"ToxicityData": "ToxDmart_MV", 
+"TissueData": "TissueDMart_MV",
+"BenthicData": "BenthicDMart_MV", 
+"HabitatData": "HabitatDMart_MV", 
+}
 For_SafeToSwim = False # if True, create the SafeToSwim file - NOTE: in order to create this file, the WaterChemistryData element needs to be included in the tables variable
 For_Pesticides = False # if True, create the pesticides file - NOTE: in order to create this file, the WaterChemistryData element needs to be included in the tables variable
 
