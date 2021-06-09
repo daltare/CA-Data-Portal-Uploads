@@ -1,0 +1,25 @@
+Downloaded files are currently saved to: C:\David\_CA_data_portal\CEDEN
+Edit the scripts to change this location
+
+1. (Optional) delete any old files in the directory where the files are saved to (the files to delete would be in a subfolder labeled with a date, e.g. "2021-03-15", or they may be a .zip or .7z file also named with a date)
+
+2. Run the python script: 1_data_download\CEDEN_DataRefresh_DA_yearly_through-2010.py (this will download data from CEDEN for each year/data type, and put the files in the download folder specified - this is set in the variable named "first" in the script)
+	NOTE: you can run the file via the command line by setting the working directory then typing: python CEDEN_DataRefresh_DA_yearly_through-2010.py
+		OR you can run the file from spyder
+
+3. Same as step 2, but instead run the 'CEDEN_DataRefresh_DA_yearly_2011-to-2022.py' file
+
+4. Run the python script: 2_portal-upload-ckan-chunked_CEDEN\main_CEDEN_all.py (this will load the csv data files to the CA data portal)
+	- alternatively, run the python script associated with each data type separately (e.g. main_CEDEN_chemistry.py)
+	- in the script, you may have to set the date which is part of the data filenames (unless the files were created on the same day they are being uploaded)
+	- point to the directory where the files were downloaded to (from steps 2 and 3) using the variable named "upload_files_location"
+
+5. Manually load the .zip files to the data portal (there is 1 .zip file for each data type - each .zip file contains the data for all years for that data type)
+	- Note: the .zip files are saved to the same place where the files were downloaded to in steps 2 adn 3
+
+6. Run the 3_arrow_create_parquet\ceden_arrow_parquet_conversion.r file to create parquet files for each data type 
+	- set the location where the CEDEN files were saved in steps 2 and 3 (variable name: data_files_path) and the location where the parquet files will be saved to (locally) (variable name: "file_save_location")
+	- NOTE: you may first want to delete any old parquet files from the location where the script saves the files to (currently: C:\David\_CA_data_portal\CEDEN\parquet_datasets)
+	- NOTE 2: make sure that you update the 'download_date' variable to be consistent with the data you just downloaded
+
+7. Manually upload the new zip files from step 6 (containing the parquet files you just created) to the portal - there is 1 .zip file for each data type

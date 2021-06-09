@@ -1,0 +1,25 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+ignore/
+
+*.msg
+*.7z
+*.zip
+*.gz
+
+# *.csv
+# *.xls
+# *.xlsx
+# *.pdf
+
+*/email/
+*/Original_Dataset_(From_MarkE)/
+
+A Request for Real-time Open Data APIs for Specific SMARTS and CIWQS Data Sets.pdf
+
+xNotUsed/
+_CKAN_Testing/
+_API_queries_examples/

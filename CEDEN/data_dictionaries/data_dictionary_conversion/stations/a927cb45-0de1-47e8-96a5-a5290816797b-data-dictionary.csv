@@ -1,0 +1,6 @@
+column,type,label,description
+StationName,text,,
+SiteCode,text,,
+Latitude,text,,
+Longitude,text,,
+Datum,text,,

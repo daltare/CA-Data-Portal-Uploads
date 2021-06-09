@@ -1,0 +1,3 @@
+When scheduling scripts using R's TaskScheduler, make sure the date format is set to %m/%d/%Y.
+
+Also, if a scheduled task stops working, try deleting it and creating a new one.
