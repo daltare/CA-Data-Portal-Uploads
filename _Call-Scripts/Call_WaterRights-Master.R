@@ -1,1 +1,0 @@
-source('C:/David/Open_Data_Project/__CA_DataPortal/Water-Rights/master-flat-file/water-rights-master-flat-file.R', chdir = TRUE) # runs the program to upload a csv file to the portal

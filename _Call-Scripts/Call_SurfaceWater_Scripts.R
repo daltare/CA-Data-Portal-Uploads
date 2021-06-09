@@ -1,2 +1,0 @@
-source('C:\\David\\Open_Data_Project\\__CA_DataPortal\\Surface-Water-Datasets\\_Reg_Meas_WastewaterFacilities-PermitsOrders.R', chdir = TRUE)
-source('C:\\David\\Open_Data_Project\\__CA_DataPortal\\Surface-Water-Datasets\\_Reg_Meas_AnimalWaste.R', chdir = TRUE)
