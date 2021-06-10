@@ -274,10 +274,10 @@ library(reticulate)
         replicate_records_output <- replicate_records_distinct
     # select just the relevant fields for the output
         # summary
-        summary_records_output <- summary_records_output %>% select(summary_records_db_names)
+        summary_records_output <- summary_records_output %>% select(all_of(summary_records_db_names))
         names(summary_records_output) <- summary_records_template_names
         # replicate
-        replicate_records_output <- replicate_records_output %>% select(replicate_records_db_names)
+        replicate_records_output <- replicate_records_output %>% select(all_of(replicate_records_db_names))
         names(replicate_records_output) <- replicate_records_template_names
     # make sure the output records are still distinct
         # summary

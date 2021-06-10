@@ -19,7 +19,8 @@ ckan_api_key = os.environ.get('data_portal_key')
 # upload_files_location = 'C:/Users/daltare/OneDrive - Water Boards/projects/CA_data_portal/Toxicity/Summary-Replicate-Results/'
 upload_files_location = 'C:/David/_CA_data_portal/Toxicity/'
 uploads = {'Toxicity-Replicate-Records' + '_' + today + '.csv': '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8',  
-           #'Toxicity-Summary-Records' + '_' + today + '.csv': '674474eb-e093-42de-aef3-da84fd2ff2d8',}
+           #'Toxicity-Summary-Records' + '_' + today + '.csv': '674474eb-e093-42de-aef3-da84fd2ff2d8',
+		   }
 ####### END OF UPLOAD FILES CONFIGURATION #######
 
 chunk_size = 1024 * 1024 * 64 # 64MB
