@@ -32,12 +32,13 @@
                         file.create('_DataPortalUpload-Log.txt')
                     }
                 # write the result to the log file, depending on the current data portal filename
+                    file_name_check <- paste0(filename, '_', Sys.Date(), '.csv')
                     new_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = file_upload$url)
-                    if (tolower(new_dataportal_filename) == tolower(fileToUpload)) {
-                        write_lines(x = paste0(Sys.time(), ' - ', fileToUpload, ': ', 'Completed Upload'), 
+                    if (tolower(new_dataportal_filename) == tolower(file_name_check)) {
+                        write_lines(x = paste0(Sys.time(), ' - ', file_name_check, ': ', 'Completed Upload'), 
                                     file = '_DataPortalUpload-Log.txt', append = TRUE)   
                     } else {
-                        write_lines(x = paste0(Sys.time(), ' - ', fileToUpload, ': ', 'Upload NOT completed'), 
+                        write_lines(x = paste0(Sys.time(), ' - ', file_name_check, ': ', 'Upload NOT completed'), 
                                     file = '_DataPortalUpload-Log.txt', append = TRUE)
                     }
         }
