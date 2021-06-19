@@ -126,7 +126,7 @@
                 check_data <- identical(strsplit(ckan_resource_file, '.csv')[[1]], strsplit(dest_filename, '.xlsx')[[1]])
                 if(check_data == FALSE) { # only do this if there is new data that hasn't already been uploaded to the CA data portal
                     directory_name <- paste0(year(Sys.Date()), '-', sprintf('%02d',month(Sys.Date())))
-                    dir.create(paste0('..\\', directory_name), showWarnings = FALSE)
+                    dir.create(paste0(file_save_location, '\\', directory_name), showWarnings = FALSE)
                     download.file(url = test.link, 
                                   destfile = paste0(file_save_location, '\\', directory_name, '\\', dest_filename), 
                                   method = 'curl')
