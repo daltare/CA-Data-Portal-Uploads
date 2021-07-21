@@ -6,7 +6,6 @@
     library(ckanr) # this lets you work with the CKAN portal
     library(tidyverse)
     library(janitor)
-    library(dplyr)
     library(lubridate)
     
 # define direct link to the data

@@ -7,7 +7,7 @@ from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from datetime import date #, timedelta
 # today = str(date.today())
-today = '2021-06-01'
+today = '2021-07-19'
 
 
 ####### CONFIGURE CKAN PARAMETERS #######
@@ -17,7 +17,7 @@ ckan_api_key = os.environ.get('data_portal_key')
 
 
 ####### DAA - CONFIGURE UPLOAD FILES LOCATION AND LIST #######
-upload_files_location = 'C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets' + today + '\\'
+upload_files_location = 'C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\' + today + '\\'
 # upload_files_location = 'C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\CEDEN\\1_data_download\\CEDEN_Datasets\\' + today + '/'
 
 uploads = {
