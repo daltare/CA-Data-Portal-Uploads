@@ -16,7 +16,7 @@ library(zip)
 library(lubridate)
 
 # enter some information and create a parent directory
-download_date <- '2021-07-19'
+download_date <- '2021-09-01'
 list_datasets <- list('ceden_chemistry' = c(file_name = 'WaterChemistryData',
                                             data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx'),
                       'ceden_tissue' = c(file_name = 'TissueData',

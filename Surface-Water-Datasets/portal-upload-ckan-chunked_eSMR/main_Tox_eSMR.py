@@ -1,5 +1,5 @@
 import click
-# import json
+import json
 import math
 import os
 import requests
@@ -7,7 +7,6 @@ from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 from datetime import date #, timedelta
 today = str(date.today())
-# today = '2021-07-19'
 
 
 ####### CONFIGURE CKAN PARAMETERS #######
@@ -17,37 +16,14 @@ ckan_api_key = os.environ.get('data_portal_key')
 
 
 ####### DAA - CONFIGURE UPLOAD FILES LOCATION AND LIST #######
-upload_files_location = 'C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\' + today + '\\'
-# upload_files_location = 'C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\CEDEN\\1_data_download\\CEDEN_Datasets\\' + today + '/'
-
-uploads = {
-# chemistry
-'WaterChemistryData_year-2021' + '_' + today + '.csv': 'dde19a95-504b-48d7-8f3e-8af3d484009f',
-'WaterChemistryData_year-2020' + '_' + today + '.csv': '2eba14fa-2678-4d54-ad8b-f60784c1b234', 
-'WaterChemistryData_year-2019' + '_' + today + '.csv': '6cf99106-f45f-4c17-80af-b91603f391d9',
-'WaterChemistryData_year-2018' + '_' + today + '.csv': 'f638c764-89d5-4756-ac17-f6b20555d694',
-'WaterChemistryData_year-2017' + '_' + today + '.csv': '68787549-8a78-4eea-b5b9-ef719e65a05c', 
-'WaterChemistryData_year-2016' + '_' + today + '.csv': '42b906a2-9e30-4e44-92c9-0f94561e47fe', 
-'WaterChemistryData_year-2015' + '_' + today + '.csv': '7d9384fa-70e1-4986-81d6-438ce5565be6',
-'WaterChemistryData_year-2014' + '_' + today + '.csv': '7abfde16-61b6-425d-9c57-d6bd70700603', 
-'WaterChemistryData_year-2013' + '_' + today + '.csv': '341627e6-a483-4e9e-9a85-9f73b6ddbbba',
-'WaterChemistryData_year-2012' + '_' + today + '.csv': 'f9dd0348-85d5-4945-aa62-c7c9ad4cf6fd', 
-'WaterChemistryData_year-2011' + '_' + today + '.csv': '4d01a693-2a22-466a-a60b-3d6f236326ff', 
-'WaterChemistryData_year-2010' + '_' + today + '.csv': '572bf4d2-e83d-490a-9aa5-c1d574e36ae0',
-'WaterChemistryData_year-2009' + '_' + today + '.csv': '5b136831-8870-46f2-8f72-fe79c23d7118',
-'WaterChemistryData_year-2008' + '_' + today + '.csv': 'c587a47f-ac28-4f77-b85e-837939276a28',
-'WaterChemistryData_year-2007' + '_' + today + '.csv': '13e64899-df32-461c-bec1-a4e72fcbbcfa',
-'WaterChemistryData_year-2006' + '_' + today + '.csv': 'a31a7864-06b9-4a81-92ba-d8912834ca1d',
-'WaterChemistryData_year-2005' + '_' + today + '.csv': '9538cbfa-f8be-4445-97dc-b931579bb927',
-'WaterChemistryData_year-2004' + '_' + today + '.csv': 'c962f46d-6a7b-4618-90ec-3c8522836f28',
-'WaterChemistryData_year-2003' + '_' + today + '.csv': 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
-'WaterChemistryData_year-2002' + '_' + today + '.csv': '00c4ca34-064f-4526-8276-57533a1a36d9',
-'WaterChemistryData_year-2001' + '_' + today + '.csv': 'cec6768c-99d3-45bf-9e56-d62561e9939e',
-'WaterChemistryData_year-2000' + '_' + today + '.csv': '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
-'WaterChemistryData_prior_to_2000' + '_' + today + '.csv': '158c8ca1-b02f-4665-99d6-2c1c15b6de5a', 
-}
-
-
+upload_files_location = 'C:/David/_CA_data_portal/Surface-Water-Datasets/esmr/'
+uploads = {'esmr_analytical_export_year-2021' + '_' + today + '.csv': '16ecdef6-25ef-4779-99a1-1b78f8f08b30',  
+           #'esmr_analytical_export_year-2020' + '_' + today + '.csv': '',
+		   #'esmr_analytical_export_year-2019' + '_' + today + '.csv': '',
+           #'esmr_analytical_export_year-2018' + '_' + today + '.csv': '',
+           'esmr_analytical_export_year-2017' + '_' + today + '.csv': '1bd86127-f707-4f7b-9558-387b2f9d3787',
+           'esmr_analytical_export_year-2016' + '_' + today + '.csv': '2b693539-065a-453e-9207-83c693a40799',
+		   }
 ####### END OF UPLOAD FILES CONFIGURATION #######
 
 chunk_size = 1024 * 1024 * 64 # 64MB
@@ -69,8 +45,7 @@ def ckanRequest(action, data_dict):
             )
         return r.json()
     except:
-        #print(r.text)
-        print('error') # DA - Added this line
+        print(r.text)
         return
 
 
