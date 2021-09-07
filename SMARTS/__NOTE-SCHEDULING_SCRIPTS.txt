@@ -1,7 +1,0 @@
-When scheduling scripts using R's TaskScheduler, make sure the date format is set to %m/%d/%Y.
-
-Also, if a scheduled task stops working, try deleting it and creating a new one.
-
-Go to the 'C:\David\Open_Data_Project\__CA_DataPortal\_Portal-Scripts\_Call-Scripts' folder to find the scripts used for the automation process.
-
-As of 2020-07-22, all tasks are scheduled in R version 3.6 - make sure to change to version 3.6 before trying to update existing scheduled tasks or add new tasks. Scheduling tasks in R version 4 doesn't seem to work (path names may be too long?).
