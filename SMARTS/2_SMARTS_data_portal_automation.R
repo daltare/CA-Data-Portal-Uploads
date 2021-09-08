@@ -78,7 +78,7 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
     )
     
     
-    ### send email via SMTP (using credentials file) ----
+    ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
             to = "david.altare@waterboards.ca.gov",
@@ -88,9 +88,9 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
             # credentials = creds_key("outlook_key")
         )
     
-    ## sendmailR (for Jeff K) ----
-    # from <- sprintf("gisscripts-noreply@waterboards.ca.gov")
-    # to <- sprintf("jeff.kapellas@waterboards.ca.gov")
+    ## send email via sendmailR (for use on GIS scripting server) ----
+    # from <- "gisscripts-noreply@waterboards.ca.gov"
+    # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
     # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
     
     print('sent automated email')
