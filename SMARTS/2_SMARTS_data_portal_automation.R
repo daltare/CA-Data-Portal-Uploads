@@ -26,6 +26,9 @@ library(lubridate)
 library(glue)
 library(sendmailR)
 library(blastula)
+library(binman)
+library(stringr)
+library(magrittr)
 
 
 # 1 - USER INPUT --------------------------------------------------------------------------------------------------------------------------------------------
@@ -81,6 +84,7 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
     ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
+            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
             to = "david.altare@waterboards.ca.gov",
             from = "david.altare@waterboards.ca.gov",
             subject = subject,
@@ -88,7 +92,7 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
             # credentials = creds_key("outlook_key")
         )
     
-    ## send email via sendmailR (for use on GIS scripting server) ----
+    ### send email via sendmailR (for use on GIS scripting server) ----
     # from <- "gisscripts-noreply@waterboards.ca.gov"
     # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
     # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
@@ -138,9 +142,38 @@ tryCatch(
         
         
         #### NEW METHOD (works when running as an automated task)
+        #### (see: https://github.com/ropensci/RSelenium/issues/221)
+        
+        # selenium(jvmargs = 
+        #              c("-Dwebdriver.chrome.verboseLogging=true"), 
+        #          retcommand = TRUE)
+        
+        #### get current version of chrome browser ----
+        chrome_browser_version <-
+            system2(command = "wmic",
+                    args = 'datafile where name="C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+                    stdout = TRUE,
+                    stderr = TRUE) %>%
+            str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+        
+        #### get available chrome drivers ----
+        chrome_driver_versions <- list_versions("chromedriver")
+        
+        #### match driver / version
+        chrome_driver_current <- chrome_browser_version %>%
+            extract(!is.na(.)) %>%
+            str_replace_all(pattern = "\\.",
+                                     replacement = "\\\\.") %>%
+            paste0("^",  .) %>%
+            str_subset(string = dplyr::last(chrome_driver_versions)) %>%
+            as.numeric_version() %>%
+            max() %>%
+            as.character()
+        
         selCommand <- selenium(jvmargs = 
                                    c("-Dwebdriver.chrome.verboseLogging=true"), 
-                               retcommand = TRUE)
+                               retcommand = TRUE,
+                               chromever = chrome_driver_current)
         
         #### OLD - No longer needed
         # cat(selCommand) # view / print to console #Run this, and paste the output into a terminal (cmd) window

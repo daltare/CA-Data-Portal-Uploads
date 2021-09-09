@@ -36,13 +36,13 @@ file_save_location <- 'C:\\David\\_CA_data_portal\\Water-Rights\\'
 
 ### create email function ----
 fn_send_email <- function(error_msg) {
-    ### Step 1 - define input strings / images ----
+    ### create components ----
+    
+    #### date/time ----
     date_time <- add_readable_time()
     
-    ### Step 2 - create email ----
-    email <- compose_email(
-        body = md(
-            glue(
+    #### body ----
+    body <- glue(
                 "Hi,
 There was an error uploading the Water Rights Master Flat File data to the data.ca.gov portal on {Sys.Date()}.
                 
@@ -52,24 +52,39 @@ Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/w
                 
 Here's the link to the flat file with the source data: https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesEwrims.xhtml  (File Name = ewrims_flat_file.csv)"                
             )
-        ),
-        footer = md(glue("Email sent on {date_time}."))
+    
+    #### footer ----
+    footer <- glue("Email sent on {date_time}.")
+    
+    #### subject ----
+    subject <- "Data Portal Upload Error - SMARTS (Stormwater) Data"
+    
+    ### create email ----
+    email <- compose_email(
+        body = md(body),
+        footer = md(footer)
     )
     
     
-    ### Step 3 - send email by SMTP using credentials file ----
+    ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
+            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
             to = "david.altare@waterboards.ca.gov",
             from = "david.altare@waterboards.ca.gov",
-            subject = "Data Portal Upload Error (Water Rights Master Flat File)",
+            subject = subject,
             credentials = creds_file("outlook_creds")
             # credentials = creds_key("outlook_key")
         )
     
+    ### send email via sendmailR (for use on GIS scripting server) ----
+    # from <- "gisscripts-noreply@waterboards.ca.gov"
+    # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
+    # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
+    
     print('sent automated email')
 }
-    
+
 
 # delete old versions of dataset ----
 delete_old_versions <- TRUE
