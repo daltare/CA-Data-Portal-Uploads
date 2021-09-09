@@ -159,7 +159,7 @@ tryCatch(
         #### get available chrome drivers ----
         chrome_driver_versions <- list_versions("chromedriver")
         
-        #### match driver / version
+        #### match driver / version ----
         chrome_driver_current <- chrome_browser_version %>%
             extract(!is.na(.)) %>%
             str_replace_all(pattern = "\\.",
@@ -170,6 +170,7 @@ tryCatch(
             max() %>%
             as.character()
         
+        #### set up selenium with the current chrome version ----
         selCommand <- selenium(jvmargs = 
                                    c("-Dwebdriver.chrome.verboseLogging=true"), 
                                retcommand = TRUE,
@@ -178,10 +179,11 @@ tryCatch(
         #### OLD - No longer needed
         # cat(selCommand) # view / print to console #Run this, and paste the output into a terminal (cmd) window
         
+        #### write selenium specifications to batch file ----
         writeLines(selCommand, 
                    'Start_Server.bat')
         
-        ### start server ----
+        #### start server ----
         shell.exec('Start_Server.bat')
         
         # This command starts the server, by entering the output from the line above into a command window
