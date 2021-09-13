@@ -87,7 +87,8 @@ Here's the link to the flat file with the source data: https://intapps.waterboar
 
 
 # delete old versions of files ----
-if (delete_old_versions == TRUE) {
+tryCatch(
+    if (delete_old_versions == TRUE) {
         files_list <- grep(pattern = paste0('^', file_name), 
                            x = list.files(download_dir), 
                            value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
@@ -97,7 +98,14 @@ if (delete_old_versions == TRUE) {
             file.remove(paste0(download_dir, files_list_old))
         }
         
+    },
+    error = function(e) {
+        fn_send_email(error_msg = 'deleting old versions of dataset')
+        print('Error: deleting old versions of dataset')
+        stop()
     }
+)
+
 
 
 
