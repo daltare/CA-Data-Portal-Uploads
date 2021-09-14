@@ -29,6 +29,7 @@ library(blastula)
 library(binman)
 library(stringr)
 library(magrittr)
+library(pingr)
 
 
 # 1 - USER INPUT --------------------------------------------------------------------------------------------------------------------------------------------
@@ -170,11 +171,22 @@ tryCatch(
             max() %>%
             as.character()
         
+        #### check for open port
+        for (port_check in 4567L:4577L) {
+            port_test <- ping_port(destination = 'localhost', port = port_check)
+            # print(all(is.na(port_test)))
+            if (all(is.na(port_test)) == TRUE) {
+                port_use <- port_check
+                break
+            }
+        }
+        
         #### set up selenium with the current chrome version ----
         selCommand <- selenium(jvmargs = 
                                    c("-Dwebdriver.chrome.verboseLogging=true"), 
                                retcommand = TRUE,
-                               chromever = chrome_driver_current)
+                               chromever = chrome_driver_current,
+                               port = port_use)
         
         #### OLD - No longer needed
         # cat(selCommand) # view / print to console #Run this, and paste the output into a terminal (cmd) window
@@ -193,10 +205,11 @@ tryCatch(
         # driver (at: C:\Users\daltare\AppData\Local\binman\binman_chromedriver\win32) - also see: https://stackoverflow.com/questions/55201226/session-not-created-this-version-of-chromedriver-only-supports-chrome-version-7
         
         ### open connection ----
-        remDr <- remoteDriver(port = 4567L, 
+        remDr <- remoteDriver(port = port_use, # 4567L, 
                               browserName = "chrome", 
                               extraCapabilities = eCaps)
-        remDr$open()
+        remDr$open()  
+        
     },
     ## Error function
     error = function(e) {
