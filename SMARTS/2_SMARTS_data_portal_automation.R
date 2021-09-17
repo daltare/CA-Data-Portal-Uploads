@@ -32,7 +32,8 @@ library(magrittr)
 library(pingr)
 
 
-# 1 - USER INPUT --------------------------------------------------------------------------------------------------------------------------------------------
+
+# 1 - user input --------------------------------------------------------------
 ## set download directory ----
 ##(i.e., where to save any downloaded files)
 download_dir <- 'C:\\David\\_CA_data_portal\\SMARTS'
@@ -40,7 +41,14 @@ download_dir <- 'C:\\David\\_CA_data_portal\\SMARTS'
 ## delete old files
 delete_old_versions = TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
 # NOTE: currently set to keep the versions from the previous 7 days if TRUE
-# -------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+## enter the email address to send warning emails from
+### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+
+## enter the email address (or addresses) to send warning emails to
+email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+
 
 
 # 2 - setup automated email -----------------------------------------------
@@ -51,7 +59,7 @@ delete_old_versions = TRUE # whether or not to delete previous versions of each 
 #                        )   
 
 ## create email function ----
-fn_send_email <- function(error_msg) {
+fn_send_email <- function(error_msg, error_msg_r) {
     
     ### create components ----
     #### date/time ----
@@ -60,9 +68,16 @@ fn_send_email <- function(error_msg) {
     #### body ----
     body <- glue(
         "Hi,
+        
 There was an error uploading the SMARTS (stormwater) data to the data.ca.gov portal on {Sys.Date()}.
+
+------
                 
-The process failed at this step: {error_msg}
+The process failed at this step: *{error_msg}*
+
+Here's the error message from R: *{error_msg_r}*
+
+------
                 
 Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/stormwater-regulatory-including-enforcement-actions-information-and-water-quality-results
                 
@@ -86,16 +101,16 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
     email %>%
         smtp_send(
             # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
-            to = "david.altare@waterboards.ca.gov",
-            from = "david.altare@waterboards.ca.gov",
+            to = email_to,
+            from = email_from,
             subject = subject,
             credentials = creds_file("outlook_creds")
             # credentials = creds_key("outlook_key")
         )
     
     ### send email via sendmailR (for use on GIS scripting server) ----
-    # from <- "gisscripts-noreply@waterboards.ca.gov"
-    # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
+    # from <- email_from
+    # to <- email_to
     # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
     
     print('sent automated email')
@@ -106,9 +121,11 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
 tryCatch(
     source('1_FilesList.R'), # get information about the files to be retrieved from the SMARTS interface
     error = function(e) {
-        fn_send_email(error_msg = 'sourcing extra scripts')
-        print('Error: sourcing extra scripts')
-        stop()
+        error_message <- 'sourcing extra scripts'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -194,10 +211,13 @@ tryCatch(
         #### write selenium specifications to batch file ----
         writeLines(selCommand, 
                    'Start_Server.bat')
+        Sys.sleep(5) #### wait a few seconds
         
         #### start server ----
         shell.exec('Start_Server.bat')
         
+        Sys.sleep(10) #### wait a few seconds
+
         # This command starts the server, by entering the output from the line above into a command window
         # shell.exec(file = 'C:/David/Stormwater/_SMARTS_Data_Download_Automation/Start_Server.bat')
         # NOTE: There can be a mismatch between the Chrome browser version and the Chrome driver version - if so, it may 
@@ -208,14 +228,19 @@ tryCatch(
         remDr <- remoteDriver(port = port_use, # 4567L, 
                               browserName = "chrome", 
                               extraCapabilities = eCaps)
+        Sys.sleep(10) #### wait a few seconds
         remDr$open()  
         
     },
     ## Error function
     error = function(e) {
-        fn_send_email(error_msg = 'setting up and connecting to Selenium')
-        print('Error: setting up and connecting to Selenium')
-        stop()
+        error_message <- 'setting up and connecting to Selenium'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        # remDr$close()
+        shell.exec(file = 'Stop.bat')
+        stop(e)
     }
 )
 
@@ -290,11 +315,13 @@ tryCatch(
     },
     ## Error function
     error = function(e) {
-        fn_send_email(error_msg = 'navigating to data download page')
-        print('Error: navigating to data download page')
+        error_message <- 'navigating to data download page'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
         remDr$close()
         shell.exec(file = 'Stop.bat')
-        stop()
+        stop(e)
     }
 )
 
@@ -540,15 +567,17 @@ tryCatch(
                              fields_numeric = dataset_list[[i]]$numeric_fields)
     }, 
     error = function(e) {
-        fn_send_email(error_msg = 'downloading files')
-        print('Error: downloading files')
+        error_message <- 'downloading files'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
         remDr$close()
         shell.exec(file = 'Stop.bat')
-        stop()
+        stop(e)
     }
 )
 
-# close windows
+# close windows (maybe not needed) ----
 tryCatch(
     {
         # remDr$switchToWindow(noiWindow[[1]])
@@ -558,11 +587,13 @@ tryCatch(
         myswitch(remDr = remDr, windowId = homeWindow[[1]])
     },
     error = function(e) {
-        fn_send_email(error_msg = 'navigating after downloads')
-        print('Error: navigating after downloads')
+        error_message <- 'navigating after downloads'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
         remDr$close()
         shell.exec(file = 'Stop.bat')
-        stop()
+        stop(e)
     }
 )
 
@@ -747,16 +778,18 @@ tryCatch(
 tryCatch(
     {
         remDr$close()
-        # rsD$server$stop() # from the old method
+        # rsD$server$stop(e) # from the old method
         rm(list = c('remDr'))#'eCaps', , 'SMARTS_url', 'rsD'))
         gc()
         
         shell.exec(file = 'Stop.bat') # this closes the java window
     },
     error = function(e) {
-        fn_send_email(error_msg = 'closing Selenium connection/server')
-        print('Error: closing Selenium connection/server')
-        stop()
+        error_message <- 'closing Selenium connection/server'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -775,9 +808,11 @@ tryCatch(
         ckanr::ckanr_setup(url = 'https://data.ca.gov/', key = portal_key) 
     },
     error = function(e) {
-        fn_send_email(error_msg = 'uploading data (getting API key and setting up ckan defaults)')
-        print('Error: uploading data (getting API key and setting up ckan defaults)')
-        stop()
+        error_message <- 'uploading data (getting API key and setting up ckan defaults)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -814,10 +849,10 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'uploading data (sending data to portal)')
-        print('Error: uploading data (sending data to portal)')
-        stop()
+        error_message <- 'uploading data (sending data to portal)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     } 
 )
-
-
