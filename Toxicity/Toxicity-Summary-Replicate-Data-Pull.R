@@ -24,6 +24,10 @@ library(sendmailR)
 resourceID_summary <- '674474eb-e093-42de-aef3-da84fd2ff2d8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
 resourceID_replicate <- '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
 
+## get data portal API key ----
+#### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+portal_key <- Sys.getenv('data_portal_key')
+
 ## define location where files will be saved
 file_save_location <- 'C:\\David\\_CA_data_portal\\Toxicity\\'
 
@@ -43,6 +47,8 @@ email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboard
 ## enter the email address (or addresses) to send warning emails to
 email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
 
+## define location of python script to upload chunked data (relative path)
+python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
 
 
 
@@ -727,28 +733,63 @@ tryCatch(
 # load to CA Data Portal --------------------------------------------------
 
 ## summary data ----
-gc()
-tryCatch(
-    {
-        reticulate::py_run_file('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Toxicity\\portal-upload-ckan-chunked_Tox\\main_Tox_Summary.py')
-    },
-    error = function(e) {
-        error_message <- 'loading summary data to data.ca.gov portal'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
-)
+# gc()
+# tryCatch(
+#     {
+#         reticulate::py_run_file('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Toxicity\\portal-upload-ckan-chunked_Tox\\main_Tox_Summary.py')
+#     },
+#     error = function(e) {
+#         error_message <- 'loading summary data to data.ca.gov portal'
+#         error_message_r <- capture.output(cat(as.character(e)))
+#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+#         print(glue('Error: {error_message}'))
+#         stop(e)
+#     }
+# )
 
 ## replicate data ----
-gc()
+# gc()
+# tryCatch(
+#     {
+#         reticulate::py_run_file('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Toxicity\\portal-upload-ckan-chunked_Tox\\main_Tox_Replicate.py')
+#     },
+#     error = function(e) {
+#         error_message <- 'loading replicate data to data.ca.gov portal'
+#         error_message_r <- capture.output(cat(as.character(e)))
+#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+#         print(glue('Error: {error_message}'))
+#         stop(e)
+#     }
+# )
+
+
+## python - function ----
 tryCatch(
     {
-        reticulate::py_run_file('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Toxicity\\portal-upload-ckan-chunked_Tox\\main_Tox_Replicate.py')
+        gc()
+        
+        ### get the python function ----
+        source_python(python_upload_script)
+        
+        ### summary data ----
+        file_type <- 'Summary'
+        print(glue('Updating {file_type} Data'))
+        ckanUploadFile(resourceID_summary,
+                       out_file_summary,
+                       portal_key)
+        print(glue('Finished Updating {file_type} Data'))
+        gc()
+        
+        ### replicate data ----
+        file_type <- 'Replicate'
+        print(glue('Updating {file_type} Data'))
+        ckanUploadFile(resourceID_replicate,
+                       out_file_replicate,
+                       portal_key)
+        print(glue('Finished Updating {file_type} Data'))
     },
     error = function(e) {
-        error_message <- 'loading replicate data to data.ca.gov portal'
+        error_message <- glue('Uploading data to portal (error occured in uploading the {file_type} Data)')
         error_message_r <- capture.output(cat(as.character(e)))
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))

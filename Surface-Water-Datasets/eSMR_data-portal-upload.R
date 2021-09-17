@@ -24,11 +24,6 @@ file_name <- 'esmr_analytical_export_'
 ## data source ----
 esmr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=esmr_analytical_export.txt'
 
-# define which years to extract from the dataset and write to the data.ca.gov portal
-## per discussion with Jarma, typically just update the current and previous years - for other years, update ~ once per year
-# years_write <- 2006:year(Sys.Date())
-years_write <- (year(Sys.Date())-3):year(Sys.Date())
-
 ## delete old files
 delete_old_versions <- TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
 # NOTE: currently set to keep the versions from the current day if TRUE
@@ -43,6 +38,34 @@ email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.g
 ## get data portal API key ----
 #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
 portal_key <- Sys.getenv('data_portal_key')
+
+# define which years to extract from the dataset and write to the data.ca.gov portal
+## per discussion with Jarma, typically just update the current and previous years - for other years, update ~ once per year
+# years_write <- 2006:year(Sys.Date())
+years_write <- (year(Sys.Date())-3):year(Sys.Date())
+
+## define data portal resource IDs for all years in the dataset
+data_resource_id_list <-  list(
+            '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
+            '2020' = '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
+            '2019' = '2eaa2d55-9024-431e-b902-9676db949174',
+            '2018' = 'bb3b3d85-44eb-4813-bbf9-ea3a0e623bb7',
+            '2017' = '44d1f39c-f21b-4060-8225-c175eaea129d',
+            '2016' = 'aacfe728-f063-452c-9dca-63482cc994ad',
+            '2015' = '81c399d4-f661-4808-8e6b-8e543281f1c9',
+            '2014' = 'c0f64b3f-d921-4eb9-aa95-af1827e5033e',
+            '2013' = '8fefc243-9131-457f-b180-144654c1f481',
+            '2012' = '67fe1c01-1c1c-416a-92e1-ee8437db615a',
+            '2011' = 'c495ca93-6dbe-4b23-9d17-797127c28914',
+            '2010' = '4eb833b3-f8e9-42e0-800e-2b1fe1e25b9c',
+            '2009' = '3607ae5c-d479-4520-a2d6-3112cf92f32f',
+            '2008' = 'c0e3c8be-1494-4833-b56d-f87707c9492c',
+            '2007' = '7b99f591-23ac-4345-b645-9adfaf5873f9',
+            '2006' = '763e2c90-7b7d-412e-bbb5-1f5327a5f84e'
+        )
+
+## define location of python script to upload chunked data (relative path)
+python_upload_script <- 'portal-upload-ckan-chunked_eSMR\\main_eSMR_function.py'
 
 
 # 2 - setup automated email ---------------------------------------------------
@@ -397,26 +420,7 @@ tryCatch(
 tryCatch(
     {
         last_year <- NA
-        data_resource_id_list <-  list(
-            '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
-            '2020' = '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
-            '2019' = '2eaa2d55-9024-431e-b902-9676db949174',
-            '2018' = 'bb3b3d85-44eb-4813-bbf9-ea3a0e623bb7',
-            '2017' = '44d1f39c-f21b-4060-8225-c175eaea129d',
-            '2016' = 'aacfe728-f063-452c-9dca-63482cc994ad',
-            '2015' = '81c399d4-f661-4808-8e6b-8e543281f1c9',
-            '2014' = 'c0f64b3f-d921-4eb9-aa95-af1827e5033e',
-            '2013' = '8fefc243-9131-457f-b180-144654c1f481',
-            '2012' = '67fe1c01-1c1c-416a-92e1-ee8437db615a',
-            '2011' = 'c495ca93-6dbe-4b23-9d17-797127c28914',
-            '2010' = '4eb833b3-f8e9-42e0-800e-2b1fe1e25b9c',
-            '2009' = '3607ae5c-d479-4520-a2d6-3112cf92f32f',
-            '2008' = 'c0e3c8be-1494-4833-b56d-f87707c9492c',
-            '2007' = '7b99f591-23ac-4345-b645-9adfaf5873f9',
-            '2006' = '763e2c90-7b7d-412e-bbb5-1f5327a5f84e'
-        )
-        # data_resource_id_list[[as.character(years_write)]]
-        source_python('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Surface-Water-Datasets\\portal-upload-ckan-chunked_eSMR\\main_eSMR_function.py')
+        source_python(python_upload_script)
         files_date <- Sys.Date()
         for (i in as.character(years_write)) {
             print(glue('Updating Year: {i}'))
