@@ -2,67 +2,152 @@
 # the file that calls this script ("C:\\David\\Open_Data_Project\\__CA_DataPortal\\_Call_Scripts\\Call_UrbanSupplierConservation.R")
 # and set the time/date option (make sure the date format is %m/%d/%Y)
 
-# ENTER THESE VARIABLES #####################################################################################################
-    # url where the data is retrieved from
-    base_url <- 'https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/' # the location where the conservation datasets are posted
-    
-    # PWSID_Lookup_File <- 'Supplier_PWSID_Lookup_FINAL_revised_2019-10-01.xlsx' # change this if there are corrections to the file
-    ckan_resource_id <- '0c231d4c-1ea7-43c5-a041-a3a6b02bac5e' # https://data.ca.gov/dataset/drinking-water-public-water-system-operations-monthly-water-production-and-conservation-information/resource/0c231d4c-1ea7-43c5-a041-a3a6b02bac5e
-    
-    # define location where files will be saved
-    file_save_location <- 'C:\\David\\_CA_data_portal\\Urban_Water_Supplier_Monitoring'
-    
-#############################################################################################################################
-    
 
-# Load packages ####
-    library(tidyverse)
-    library(readxl)
-    library(reticulate) # this lets you import packages/functions/etc. from python into R
-    library(lubridate) # for working with dates
-    library(ckanr)
-    library(janitor)
+
+# load packages -----------------------------------------------------------
+library(tidyverse)
+library(readxl)
+library(reticulate) # this lets you import packages/functions/etc. from python into R
+library(lubridate) # for working with dates
+library(ckanr)
+library(janitor)
+library(glue)
+library(blastula)
+library(sendmailR)
+
+
+
+# 1 - user inputs -------------------------------------------------------------
+## url where the data is retrieved from
+base_url <- 'https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/' # the location where the conservation datasets are posted
+
+## portal resource ID
+ckan_resource_id <- '0c231d4c-1ea7-43c5-a041-a3a6b02bac5e' # https://data.ca.gov/dataset/drinking-water-public-water-system-operations-monthly-water-production-and-conservation-information/resource/0c231d4c-1ea7-43c5-a041-a3a6b02bac5e
+
+## define location where files will be saved
+file_save_location <- 'C:\\David\\_CA_data_portal\\Urban_Water_Supplier_Monitoring'
+
+## enter the maximum number of days between portal updates before triggering a warning email to be sent
+max_update_lag <- 40 # number of days
+
+## enter the email address to send warning emails from
+### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+
+## enter the email address (or addresses) to send warning emails to
+email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+
+
+
+# 2 - setup automated email -----------------------------------------------
+## create credentials file (only need to do this once) ----
+# create_smtp_creds_file(file = 'outlook_creds', 
+#                        user = 'david.altare@waterboards.ca.gov',
+#                        provider = 'outlook'
+#                        )   
+
+## create email function ----
+fn_send_email <- function(error_msg, error_msg_r) {
     
-# set the ckanr defaults
-    # get the data portal API key saved in the local environment (it's available on data.ca.gov by going to your user profile)
-        portal_key <- Sys.getenv('data_portal_key')
-    # set defaults
-        ckanr::ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
+    ### create components ----
+    #### date/time ----
+    date_time <- add_readable_time()
+    
+    #### body ----
+    body <- glue(
+        "Hi,
         
+There was an error uploading the SMARTS (stormwater) data to the data.ca.gov portal on {Sys.Date()}.
 
-# OLD STUFF FROM PYTHON VERSION        
-# # Get the variables set in the Windows environment (to change these, search Windows for 'Edit environment variables for your account') ####
-# # Could also use: Sys.getenv() to get the environment variables (e.g., Sys.getenv('DCG_user'))
-#     py.os <- import("os") # import the python library 'os'
-#     user <- py.os$getenv('DCG_user')
-#     password <-  py.os$getenv('DCG_pw')
-#     URI <- py.os$getenv('URI')
-#     # SERVER  <- py.os$getenv('SERVER') # Not used - only for getting data from the CEDEN datamart
-#     # UID <- py.os$getenv('UID') # Not used - only for getting data from the CEDEN datamart
-#     # PWD <- py.os$getenv('PWD') # Not used - only for getting data from the CEDEN datamart
-# 
-# # Import the python library 'dkan.client' and use it to connect to the portal via the REST API, then get some information ####
-# # about a node as a check that the connection is successful
-#     py.dkan.client <- import('dkan.client')
-#     Node <- 1801
-#     api <- py.dkan.client$DatasetAPI(URI, user, password, TRUE)
-#     r <- api$node('retrieve', node_id = Node)
-#     # print(r$json())
-#     node_info <- r$json()
-#     current_dataportal_filename <- node_info$field_upload$und[[1]]$filename
-#     print(current_dataportal_filename) # this is just a test to make sure the API connection is successful
+------
+                
+The process failed at this step: *{error_msg}*
 
-# get information about the resource currently on the data portal
-    ckan_resource_info <- ckanr::resource_show(id = ckan_resource_id, as = 'table')
+Here's the error message from R: *{error_msg_r}*
+
+------
+                
+Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/stormwater-regulatory-including-enforcement-actions-information-and-water-quality-results
+                
+Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/faces/SwSmartsLogin.xhtml"                
+    )
+    
+    #### footer ----
+    footer <- glue("Email sent on {date_time}.")
+    
+    #### subject ----
+    subject <- "Data Portal Upload Error - SMARTS (Stormwater) Data"
+    
+    ### create email ----
+    email <- compose_email(
+        body = md(body),
+        footer = md(footer)
+    )
+    
+    
+    ### send email via blastula (using credentials file) ----
+    email %>%
+        smtp_send(
+            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
+            to = email_to,
+            from = email_from,
+            subject = subject,
+            credentials = creds_file("outlook_creds")
+            # credentials = creds_key("outlook_key")
+        )
+    
+    ### send email via sendmailR (for use on GIS scripting server) ----
+    # from <- email_from
+    # to <- email_to
+    # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
+    
+    print('sent automated email')
+}
+
+
+
+# 3 - check when data portal was last updated ---------------------------------
+tryCatch(
+    {
+        ## get data portal API key ----
+        #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+        portal_key <- Sys.getenv('data_portal_key')
+        
+        ## set ckan defaults ----
+        ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
+        
+        ## get resource info (just as a check)
+        ckan_resource_info <- resource_show(id = ckan_resource_id, as = 'table')
+        
+        ## get date last modified ----
+        last_updated <- as.Date(ckan_resource_info$last_modified)
+        update_lag <- as.numeric(Sys.Date() - last_updated) # number of days
+        max_update_lag_exceeded <- update_lag >= max_update_lag 
+        
+        ## get other information about the resource currently on the data portal
         ckan_resource_file <- str_split(string = ckan_resource_info$url, pattern = '/')[[1]]
         ckan_resource_file <- ckan_resource_file[length(ckan_resource_file)]
         
-# DOWNLOAD THE MOST RECENT DATASET FROM THE WATERBOARDS CONSERVATION PORTAL - THIS IS THE SOURCE DATA ####
-# This loop cycles through each day of the current month until it finds a file posted in the current month.
-# It assumes that the file is formated as 'YYYYmmm/uw_supplier_dataMMDDYY.xlsx' (e.g., for August 2017, 
-# it's: '2017aug/uw_supplier_data080117.xlsx'), where the base URL is: 
-# 'http://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/'.
-# If it finds a file, it then downloads the file locally. 
+    },
+    error = function(e) {
+        error_message <- 'checking how long since last portal update (NOTE: portal was last updated {update_lag} days ago)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+
+
+
+# 4 - get link to source dataset ----------------------------------------------       
+## This loop cycles through each day of the current month until it finds a file posted in the current month.
+## It assumes that the file is formated in a specific way (e.g., as 'YYYYmmm/uw_supplier_dataMMDDYY.xlsx', 
+## so for August 2017, it's: '2017aug/uw_supplier_data080117.xlsx'), where the base URL is: 
+## 'http://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/'.
+tryCatch(
+    {
         status <- 'File does not exist'
         i <- 1
         # Try various versions of the link, and check to see if the file exists
@@ -118,101 +203,243 @@
             if(i > 31) {break} # just to make sure it doesn't go into an endless loop, stops if it goes beyond day 31 in the month
         }
         # print(paste0('Status: ', status)) # just a check, not needed
-        # Download the file, in a newly created directory called 'YYYY.MM'
+    },
+    error = function(e) {
+        error_message <- glue('getting source file link (NOTE: portal was last updated {update_lag} days ago)')
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+
+
+# 5 - download source file ----------------------------------------------------
+tryCatch(
+    {
         if(status == 'File exists') {
             dest_filename <- paste0('uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), 
                                     year(Sys.Date())-2000, '.xlsx')
             # check to see if the downloaded data is the same as the existing data on the CA portal - if so, no update needed
-                check_data <- identical(strsplit(ckan_resource_file, '.csv')[[1]], strsplit(dest_filename, '.xlsx')[[1]])
-                if(check_data == FALSE) { # only do this if there is new data that hasn't already been uploaded to the CA data portal
-                    directory_name <- paste0(year(Sys.Date()), '-', sprintf('%02d',month(Sys.Date())))
-                    dir.create(paste0(file_save_location, '\\', directory_name), showWarnings = FALSE)
-                    download.file(url = test.link, 
-                                  destfile = paste0(file_save_location, '\\', directory_name, '\\', dest_filename), 
-                                  method = 'curl')
-                    # print('File downloaded') # just a check, not needed
-                }
+            check_data <- identical(strsplit(ckan_resource_file, '.csv')[[1]], strsplit(dest_filename, '.xlsx')[[1]])
+            if(check_data == FALSE) { # only do this if there is new data that hasn't already been uploaded to the CA data portal
+                directory_name <- paste0(year(Sys.Date()), '-', sprintf('%02d',month(Sys.Date())))
+                dir.create(paste0(file_save_location, '\\', directory_name), showWarnings = FALSE)
+                download.file(url = test.link, 
+                              destfile = paste0(file_save_location, '\\', directory_name, '\\', dest_filename), 
+                              method = 'curl')
+                # print('File downloaded') # just a check, not needed
+            }
+        } else {
+            check_data <-  TRUE
         }
+    },
+    error = function(e) {
+        error_message <- glue('downloading source file (NOTE: portal was last updated {update_lag} days ago)')
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
 
 
-# FORMAT THE DATA FOR THE CA DATA PORTAL ####
-    if(check_data == FALSE) { # only do this if there is new data that hasn't already been uploaded to the CA data portal
-        # read in the new data to R
-        dataset <- read_excel(paste0(file_save_location, '\\', directory_name, '\\', dest_filename), guess_max = 50000)
-        dataset <- as.data.frame(dataset)
-        dataset_original <- dataset # create a copy of the original for comparison
-        
-    # clean names
-        dataset <- dataset %>% clean_names()
-        
-    # Replace various "Not Available" codes with NAs
-        dataset <- dataset %>% mutate_if(is.character, list(~case_when(. == 'N/A' ~ NA_character_, 
-                                                                       . == 'NA' ~ NA_character_,
-                                                                       . == 'na' ~ NA_character_,
-                                                                       . == 'n/a' ~ NA_character_,
-                                                                       . == 'not avail.' ~ NA_character_,
-                                                                       . == 'uk' ~ NA_character_,
-                                                                       . == 'Null' ~ NA_character_,
-                                                                       # . == 'No' ~ NA_character_,
-                                                                       TRUE ~ .)))
-        
-    # Convert columns that should be numeric from character to numeric (for compatibility with the data portal)
-        dataset <- dataset %>% 
-            mutate(total_population_served = as.numeric(total_population_served),
-                   reported_preliminary_total_potable_water_production = as.numeric(reported_preliminary_total_potable_water_production),
-                   reported_final_total_potable_water_production = as.numeric(reported_final_total_potable_water_production),
-                   preliminary_percent_residential_use = as.numeric(preliminary_percent_residential_use),
-                   final_percent_residential_use = as.numeric(final_percent_residential_use),
-                   reported_preliminary_commercial_agricultural_water = as.numeric(reported_preliminary_commercial_agricultural_water),
-                   reported_final_commercial_agricultural_water = as.numeric(reported_final_commercial_agricultural_water),
-                   reported_preliminary_commercial_industrial_and_institutional_water = as.numeric(reported_preliminary_commercial_industrial_and_institutional_water),
-                   reported_final_commercial_industrial_and_institutional_water = as.numeric(reported_final_commercial_industrial_and_institutional_water),
-                   calculated_total_potable_water_production_gallons_ag_excluded = as.numeric(calculated_total_potable_water_production_gallons_ag_excluded),
-                   calculated_total_potable_water_production_gallons_2013_ag_excluded = as.numeric(calculated_total_potable_water_production_gallons_2013_ag_excluded),
-                   calculated_commercial_agricultural_water_gallons = as.numeric(calculated_commercial_agricultural_water_gallons),
-                   calculated_commercial_agricultural_water_gallons_2013 = as.numeric(calculated_commercial_agricultural_water_gallons_2013),
-                   calculated_r_gpcd = as.numeric(calculated_r_gpcd))
+
+# 6 - format data for portal --------------------------------------------------
+if(check_data == FALSE) { # only do this if there is new data that hasn't already been uploaded to the CA data portal
+    
+    ## read in the new data to R ----
+    tryCatch(
+        {
+            dataset <- read_excel(paste0(file_save_location, '\\', directory_name, '\\', dest_filename), guess_max = 50000)
+            dataset <- as.data.frame(dataset)
+            dataset_original <- dataset # create a copy of the original for comparison
+        },
+        error = function(e) {
+            error_message <- glue('reading data into R (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
+    ## clean field names and codes ----
+    tryCatch(
+        {
+            # clean names
+            dataset <- dataset %>% clean_names()
+            
+            # Replace various "Not Available" codes with NAs
+            dataset <- dataset %>% mutate_if(is.character, list(~case_when(. == 'N/A' ~ NA_character_, 
+                                                                           . == 'NA' ~ NA_character_,
+                                                                           . == 'na' ~ NA_character_,
+                                                                           . == 'n/a' ~ NA_character_,
+                                                                           . == 'not avail.' ~ NA_character_,
+                                                                           . == 'uk' ~ NA_character_,
+                                                                           . == 'Null' ~ NA_character_,
+                                                                           # . == 'No' ~ NA_character_,
+                                                                           TRUE ~ .))) 
+        },
+        error = function(e) {
+            error_message <- glue('cleaning field names and codes (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
+    ## numeric fields ----
+    tryCatch(
+        {
+            # Convert columns that should be numeric from character to numeric (for compatibility with the data portal)
+            dataset <- dataset %>% 
+                mutate(total_population_served = as.numeric(total_population_served),
+                       reported_preliminary_total_potable_water_production = as.numeric(reported_preliminary_total_potable_water_production),
+                       reported_final_total_potable_water_production = as.numeric(reported_final_total_potable_water_production),
+                       preliminary_percent_residential_use = as.numeric(preliminary_percent_residential_use),
+                       final_percent_residential_use = as.numeric(final_percent_residential_use),
+                       reported_preliminary_commercial_agricultural_water = as.numeric(reported_preliminary_commercial_agricultural_water),
+                       reported_final_commercial_agricultural_water = as.numeric(reported_final_commercial_agricultural_water),
+                       reported_preliminary_commercial_industrial_and_institutional_water = as.numeric(reported_preliminary_commercial_industrial_and_institutional_water),
+                       reported_final_commercial_industrial_and_institutional_water = as.numeric(reported_final_commercial_industrial_and_institutional_water),
+                       calculated_total_potable_water_production_gallons_ag_excluded = as.numeric(calculated_total_potable_water_production_gallons_ag_excluded),
+                       calculated_total_potable_water_production_gallons_2013_ag_excluded = as.numeric(calculated_total_potable_water_production_gallons_2013_ag_excluded),
+                       calculated_commercial_agricultural_water_gallons = as.numeric(calculated_commercial_agricultural_water_gallons),
+                       calculated_commercial_agricultural_water_gallons_2013 = as.numeric(calculated_commercial_agricultural_water_gallons_2013),
+                       calculated_r_gpcd = as.numeric(calculated_r_gpcd))
             # use to check a field for non-numeric values
-                # field_values <- dataset$reported_final_commercial_industrial_and_institutional_water
-                # field_values_numeric <- as.numeric(field_values)
-                # field_values[!is.na(field_values) & is.na(field_values_numeric)]
-
-        # replace blanks with NAs in character fields (use NaN when writing to csv to take care of missing values in numeric fields, to work with requirements of the CA data portal for numeric values)
-        # tf <- is.na(dataset)
-        # dataset[tf] <- 'NA'
-        dataset <- dataset %>% 
-            mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+            # field_values <- dataset$reported_final_commercial_industrial_and_institutional_water
+            # field_values_numeric <- as.numeric(field_values)
+            # field_values[!is.na(field_values) & is.na(field_values_numeric)]
+        },
+        error = function(e) {
+            error_message <- glue('formatting numeric fields (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
+    ## character fields ----
+    tryCatch(
+        {
+            # replace blanks with NAs in character fields (use NaN when writing to csv to take care of missing values in numeric fields, to work with requirements of the CA data portal for numeric values)
+            # tf <- is.na(dataset)
+            # dataset[tf] <- 'NA'
+            dataset <- dataset %>% 
+                mutate_if(is.character, ~replace(., is.na(.), 'NA'))
             # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
-        
-        # convert the Reporting_Month field into a date 
+        },
+        error = function(e) {
+            error_message <- glue('formatting character fields (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
+    
+    ## date fields ----
+    tryCatch(
+        {
+            # convert the Reporting_Month field into a date 
             # dataset$Reporting_Month <- as.Date(dataset$Reporting_Month, origin = "1899-12-30")
             dataset$reporting_month <- suppressWarnings(tryCatch(as.Date(dataset$reporting_month, origin = "1899-12-30"), # check to see if a file with the given date exists
-                                                    error=function(e) return(lubridate::myd(paste0(dataset$reporting_month,'-15')))))
-        
+                                                                 error=function(e) return(lubridate::myd(paste0(dataset$reporting_month,'-15')))))
             # if there are records in this field that can't be converted to Date format, convert the NAs to '' (empty text string) - needed to comply with requirements of CA data portal
-                sum(is.na(dataset$reporting_month))
-                dataset$reporting_month <- as.character(dataset$reporting_month)
-                dataset$reporting_month[is.na(dataset$reporting_month)] <- ''
-        
-        # # add a field that can be read as a timestamp - Not needed if the Reporting_Month field will be set as timestamp type on the data portal
-        #     # first check for Reporting_Month records that can't be recognized as a timestamp, and convert them into NAs in the new field
-        #         tf_date <- is.na(ymd(dataset$Reporting_Month))
-        #         dataset <- dataset %>% mutate(Reporting_Month_timestamp = Reporting_Month)
-        #         dataset$Reporting_Month_timestamp[tf_date] <- NA
-        #     # create the timestamps
-        #         dataset <- dataset %>% mutate(Reporting_Month_timestamp = case_when(is.na(Reporting_Month) ~ '',
-        #                                                                             TRUE ~ paste0(Reporting_Month, ' 00:00:00')))
-        # Write out the formatted file as a CSV
+            sum(is.na(dataset$reporting_month))
+            dataset$reporting_month <- as.character(dataset$reporting_month)
+            dataset$reporting_month[is.na(dataset$reporting_month)] <- ''
+            
+            ## add a field that can be read as a timestamp - Not needed if the Reporting_Month field will be set as timestamp type on the data portal
+            #     # first check for Reporting_Month records that can't be recognized as a timestamp, and convert them into NAs in the new field
+            #         tf_date <- is.na(ymd(dataset$Reporting_Month))
+            #         dataset <- dataset %>% mutate(Reporting_Month_timestamp = Reporting_Month)
+            #         dataset$Reporting_Month_timestamp[tf_date] <- NA
+            #     # create the timestamps
+            #         dataset <- dataset %>% mutate(Reporting_Month_timestamp = case_when(is.na(Reporting_Month) ~ '',
+            #                                                                             TRUE ~ paste0(Reporting_Month, ' 00:00:00')))
+            
+        },
+        error = function(e) {
+            error_message <- glue('formatting date fields (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
+    ## write output files to csv ----
+    tryCatch(
+        {
+            # Write out the formatted file as a CSV
             output_path <- paste0(file_save_location, '\\', directory_name, '\\', strsplit(dest_filename, '.xlsx')[[1]], '.csv')
             write.csv(dataset, file = output_path, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+            
+        },
+        error = function(e) {
+            error_message <- glue('writing formatted dataset to csv files (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
 }
 
-# WRITE THE FORMATTED FILE TO THE CA DATA PORTAL, USING THE CKANR PACKAGE
-    if(check_data == FALSE) {
-        # Upload file
+
+
+
+# 7 - write data to data.ca.gov portal ----------------------------------------
+if(check_data == FALSE) {
+    tryCatch(
+        {
+            # Upload file
             resource_update(id = ckan_resource_id,
-                                   path = output_path)
-        # # OLD METHOD - USING PYTHON PACKAGE THAT INTERFACES WITH THE REST API ####
-        #     fileWritten = output_path
-        #     r = api$attach_file_to_node(file = fileWritten, node_id=Node, field = 'field_upload' )
+                            path = output_path)
+        },
+        error = function(e) {
+            error_message <- glue('uploading data to data.ca.gov portal (NOTE: portal was last updated {update_lag} days ago)')
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+}
+
+
+
+
+# 8 - send warning message if no recent updates to portal ---------------------
+tryCatch(
+    {
+        ## get updated resource info
+        ckan_resource_info_new <- resource_show(id = ckan_resource_id, as = 'table')
+        
+        ## get date last modified ----
+        last_updated_new <- as.Date(ckan_resource_info_new$last_modified)
+        update_lag_new <- as.numeric(Sys.Date() - last_updated_new) # number of days
+        max_update_lag_exceeded_new <- update_lag_new > max_update_lag 
+        
+        ## send warning email if last update was too long ago ----
+        if (max_update_lag_exceeded_new == TRUE) {
+            error_message <- glue('WARNING: the portal has not been updated in over {max_update_lag} days (last portal update was {update_lag_new} days ago)')
+            fn_send_email(error_msg = error_message)
+            print(glue('{error_message}'))
+        }
+    },
+    error = function(e) {
+        error_message <- 'checking how long since last portal update (NOTE: portal was last updated {update_lag} days ago)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
+)
