@@ -12,7 +12,7 @@ from datetime import date #, timedelta
 
 ####### CONFIGURE CKAN PARAMETERS #######
 ckan_base = 'https://data.ca.gov'
-ckan_api_key = os.environ.get('data_portal_key')
+# ckan_api_key = os.environ.get('data_portal_key')
 ####### END OF CKAN PARAMTER CONFIGURATION #######
 
 
@@ -41,7 +41,7 @@ chunk_size = 1024 * 1024 * 64 # 64MB
 
 
 # Post request to CKAN action API
-def ckanRequest(action, data_dict):
+def ckanRequest(action, data_dict, ckan_api_key):
     encoder = MultipartEncoder(fields=data_dict)
     callback = getCallback(encoder)
     monitor = MultipartEncoderMonitor(encoder, callback)
@@ -79,7 +79,7 @@ def readInChunks(file_object, chunk_size=chunk_size):
         yield data
 
 
-def ckanUploadFile(resource_id, file_path):
+def ckanUploadFile(resource_id, file_path, ckan_api_key):
     file_name = os.path.basename(file_path)
     file_size = os.path.getsize(file_path)
 
@@ -92,7 +92,7 @@ def ckanUploadFile(resource_id, file_path):
         'name': file_name,
         'size': str(file_size)
     }
-    init_response = ckanRequest('cloudstorage_initiate_multipart', init_dict)
+    init_response = ckanRequest('cloudstorage_initiate_multipart', init_dict, ckan_api_key)
     if init_response.get('success'):
         print('Ready to upload {0}\n{1} chunks\n'.format(file_name, chunk_count))
     else:
@@ -110,7 +110,7 @@ def ckanUploadFile(resource_id, file_path):
                 'upload': (file_name, chunk, 'text/plain')
             }
             print('Uploading chunk {}'.format(part_number))
-            upload_response = ckanRequest('cloudstorage_upload_multipart', upload_dict)
+            upload_response = ckanRequest('cloudstorage_upload_multipart', upload_dict, ckan_api_key)
             if upload_response.get('success'):
                 print('Chunk {} sent to server\n'.format(part_number))
                 part_number += 1
@@ -124,7 +124,7 @@ def ckanUploadFile(resource_id, file_path):
         'id': resource_id,
         'save_action': 'go-metadata'
     }
-    finish_response = ckanRequest('cloudstorage_finish_multipart', finish_dict)
+    finish_response = ckanRequest('cloudstorage_finish_multipart', finish_dict, ckan_api_key)
     if finish_response.get('success'):
         print('All chunks sent to server')
     else:
@@ -139,7 +139,7 @@ def ckanUploadFile(resource_id, file_path):
         'size': str(file_size),
         'url_type': 'upload'
     }
-    res_update_response = ckanRequest('resource_patch', data_dict)
+    res_update_response = ckanRequest('resource_patch', data_dict, ckan_api_key)
     if res_update_response.get('success'):
         print('Resource has been updated.')
         print(res_update_response)

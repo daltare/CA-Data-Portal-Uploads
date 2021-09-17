@@ -32,22 +32,29 @@ delete_old_versions <- TRUE
 filename_summary <- 'Toxicity-Summary-Records_'
 filename_replicate <- 'Toxicity-Replicate-Records_'
 
-# get user ID and Password for CEDEN Data Mart
+## get user ID and Password for CEDEN Data Mart
 dm_user <- Sys.getenv('UID')
 dm_password <- Sys.getenv('PWD')
 
+## enter the email address to send warning emails from
+### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+
+## enter the email address (or addresses) to send warning emails to
+email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
 
 
-# setup error handling ----------------------------------------------------
-## automated email ----
-### create credentials file (only need to do this once) ----
+
+
+# setup automated email -----------------------------------------------
+## create credentials file (only need to do this once) ----
 # create_smtp_creds_file(file = 'outlook_creds', 
 #                        user = 'david.altare@waterboards.ca.gov',
 #                        provider = 'outlook'
 #                        )   
 
-### create email function ----
-fn_send_email <- function(error_msg) {
+## create email function ----
+fn_send_email <- function(error_msg, error_msg_r) {
     
     ### create components ----
     #### date/time ----
@@ -56,22 +63,29 @@ fn_send_email <- function(error_msg) {
     #### body ----
     body <- glue(
         "Hi,
-There was an error uploading the CEDEN Toxicity Summary & Replicate Data to the data.ca.gov portal on {Sys.Date()}.
-                
-The process failed at this step: {error_msg}
-                
-Here's the link to the Summary dataset on the data portal: https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
+        
+There was an error uploading the CEDEN Toxicity Summary / Replicate data to the data.ca.gov portal on {Sys.Date()}.
 
-Here's the link to the Replicate dataset on the data portal: https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
+------
                 
-The source data comes from the CEDEN database"                
+The process failed at this step: *{error_msg}*
+
+Here's the error message from R: *{error_msg_r}*
+
+------
+                
+Here's the link to the summary dataset on the data portal: https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
+
+Here's the link to the replicate dataset on the data portal: https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
+                
+The source data comes from the CEDEN datamart"                
     )
     
     #### footer ----
     footer <- glue("Email sent on {date_time}.")
     
     #### subject ----
-    subject <- "Data Portal Upload Error (Toxicity Summary & Replicate Data)"
+    subject <- "Data Portal Upload Error - CEDEN Toxicity Summary / Replicate"
     
     ### create email ----
     email <- compose_email(
@@ -79,20 +93,21 @@ The source data comes from the CEDEN database"
         footer = md(footer)
     )
     
+    
     ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
             # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
-            to = "david.altare@waterboards.ca.gov",
-            from = "david.altare@waterboards.ca.gov",
+            to = email_to,
+            from = email_from,
             subject = subject,
             credentials = creds_file("outlook_creds")
             # credentials = creds_key("outlook_key")
         )
     
-    ## send email via sendmailR (for use on GIS scripting server) ----
-    # from <- "gisscripts-noreply@waterboards.ca.gov"
-    # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
+    ### send email via sendmailR (for use on GIS scripting server) ----
+    # from <- email_from
+    # to <- email_to
     # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
     
     print('sent automated email')
@@ -118,9 +133,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'deleting old versions of dataset'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -145,9 +161,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'connecting to CEDEN database'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -204,9 +221,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'querying CEDEN database (all records)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -244,9 +262,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'querying CEDEN database (summary records)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -274,9 +293,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'selecting replicate records'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -324,9 +344,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'closing CEDEN database connection'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -414,9 +435,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'adjusting field names'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -432,9 +454,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (defining output data frames)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -460,9 +483,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (selecting fields for output data frames)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -504,9 +528,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (summary records - collection time field)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -530,9 +555,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (summary records - date fields)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -552,9 +578,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (summary records - numeric fields)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -569,9 +596,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (summary records - text fields)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -589,9 +617,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (replicate records - collection time field)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -615,9 +644,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (replicate records - date fields)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -634,9 +664,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (replicate records - numeric fields)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -651,9 +682,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'formatting data (replicate records - text fields)'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -684,9 +716,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'writing output csv files'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -701,9 +734,10 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'loading summary data to data.ca.gov portal'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )
 
@@ -715,8 +749,9 @@ tryCatch(
     },
     error = function(e) {
         error_message <- 'loading replicate data to data.ca.gov portal'
-        fn_send_email(error_msg = error_message)
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
-        stop()
+        stop(e)
     }
 )

@@ -24,6 +24,10 @@ base_url <- 'https://www.waterboards.ca.gov/water_issues/programs/conservation_p
 ## portal resource ID
 ckan_resource_id <- '0c231d4c-1ea7-43c5-a041-a3a6b02bac5e' # https://data.ca.gov/dataset/drinking-water-public-water-system-operations-monthly-water-production-and-conservation-information/resource/0c231d4c-1ea7-43c5-a041-a3a6b02bac5e
 
+## get data portal API key
+#### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+portal_key <- Sys.getenv('data_portal_key')
+
 ## define location where files will be saved
 file_save_location <- 'C:\\David\\_CA_data_portal\\Urban_Water_Supplier_Monitoring'
 
@@ -57,7 +61,7 @@ fn_send_email <- function(error_msg, error_msg_r) {
     body <- glue(
         "Hi,
         
-There was an error uploading the SMARTS (stormwater) data to the data.ca.gov portal on {Sys.Date()}.
+There was an error uploading the Drinking Water Production & Conservation data to the data.ca.gov portal on {Sys.Date()}.
 
 ------
                 
@@ -67,16 +71,16 @@ Here's the error message from R: *{error_msg_r}*
 
 ------
                 
-Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/stormwater-regulatory-including-enforcement-actions-information-and-water-quality-results
+Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/drinking-water-public-water-system-operations-monthly-water-production-and-conservation-information
                 
-Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/faces/SwSmartsLogin.xhtml"                
+Here's the link to the website with the source data (see the link labeled \"Raw Dataset\"): https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/conservation_reporting.html"                
     )
     
     #### footer ----
     footer <- glue("Email sent on {date_time}.")
     
     #### subject ----
-    subject <- "Data Portal Upload Error - SMARTS (Stormwater) Data"
+    subject <- "Data Portal Upload Error - Drinking Water Production & Conservation Data"
     
     ### create email ----
     email <- compose_email(
@@ -109,10 +113,6 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
 # 3 - check when data portal was last updated ---------------------------------
 tryCatch(
     {
-        ## get data portal API key ----
-        #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
-        portal_key <- Sys.getenv('data_portal_key')
-        
         ## set ckan defaults ----
         ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
         

@@ -1,4 +1,4 @@
-# download, format, and load esmr data to the data.ca.gov portal
+# download, format, and load eSMR data to the data.ca.gov portal
 
 
 # load libraries ----------------------------------------------------------
@@ -13,30 +13,47 @@ library(sendmailR)
 library(reticulate)
 
 
-# 1 - USER INPUT --------------------------------------------------------------------------------------------------------------------------------------------
+# 1 - user input --------------------------------------------------------------------------------------------------------------------------------------------
 ## set download directory ----
 ##(i.e., where to save any downloaded files)
 download_dir <- 'C:\\David\\_CA_data_portal\\Surface-Water-Datasets\\esmr\\'
+
+# define file name for output csv files
 file_name <- 'esmr_analytical_export_'
-years_write <- 2006:year(Sys.Date())
+
+## data source ----
+esmr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=esmr_analytical_export.txt'
+
+# define which years to extract from the dataset and write to the data.ca.gov portal
+## per discussion with Jarma, typically just update the current and previous years - for other years, update ~ once per year
+# years_write <- 2006:year(Sys.Date())
+years_write <- (year(Sys.Date())-3):year(Sys.Date())
 
 ## delete old files
 delete_old_versions <- TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
 # NOTE: currently set to keep the versions from the current day if TRUE
-# -------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+## enter the email address to send warning emails from
+### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+
+## enter the email address (or addresses) to send warning emails to
+email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+
+## get data portal API key ----
+#### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+portal_key <- Sys.getenv('data_portal_key')
 
 
-
-# setup error handling ----
-## automated email ----
-### create credentials file (only need to do this once) ----
+# 2 - setup automated email ---------------------------------------------------
+## create credentials file (only need to do this once) ----
 # create_smtp_creds_file(file = 'outlook_creds', 
 #                        user = 'david.altare@waterboards.ca.gov',
 #                        provider = 'outlook'
 #                        )   
 
-### create email function ----
-fn_send_email <- function(error_msg) {
+## create email function ----
+fn_send_email <- function(error_msg, error_msg_r) {
     
     ### create components ----
     #### date/time ----
@@ -47,7 +64,13 @@ fn_send_email <- function(error_msg) {
                 "Hi,
 There was an error uploading the eSMR Analytical Data to the data.ca.gov portal on {Sys.Date()}.
                 
-The process failed at this step: {error_msg}
+------
+                
+The process failed at this step: *{error_msg}*
+
+Here's the error message from R: *{error_msg_r}*
+
+------
                 
 Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/surface-water-electronic-self-monitoring-report-esmr-data
                 
@@ -69,24 +92,24 @@ Here's the link to the flat file with the source data: https://intapps.waterboar
     ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
-            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
-            to = "david.altare@waterboards.ca.gov",
-            from = "david.altare@waterboards.ca.gov",
+            to = email_to,
+            from = email_from,
             subject = subject,
             credentials = creds_file("outlook_creds")
             # credentials = creds_key("outlook_key")
         )
     
-    ## send email via sendmailR (for use on GIS scripting server) ----
-    # from <- "gisscripts-noreply@waterboards.ca.gov"
-    # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
+    ### send email via sendmailR (for use on GIS scripting server) ----
+    # from <- email_from
+    # to <- email_to
     # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
     
     print('sent automated email')
 }
 
 
-# delete old versions of files ----
+
+# delete old versions of files --------------------------------------------
 tryCatch(
     if (delete_old_versions == TRUE) {
         files_list <- grep(pattern = paste0('^', file_name), 
@@ -100,9 +123,11 @@ tryCatch(
         
     },
     error = function(e) {
-        fn_send_email(error_msg = 'deleting old versions of dataset')
-        print('Error: deleting old versions of dataset')
-        stop()
+        error_message <- 'deleting old versions of dataset'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -110,10 +135,6 @@ tryCatch(
 
 
 # download source data ----------------------------------------------------
-## data source ----
-esmr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=esmr_analytical_export.txt'
-
-## download ----
 ### download to temp file, to avoid saving entire esmr dataset
 tryCatch(
     {
@@ -133,9 +154,11 @@ tryCatch(
         (time_download <- (t$toc - t$tic) / 60) # minutes 
     },
     error = function(e) {
-        fn_send_email(error_msg = 'downloading flat file data')
-        print('Error: downloading flat file data')
-        stop()
+        error_message <- 'downloading flat file data'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -160,36 +183,63 @@ tryCatch(
         unlink(temp_file)
     },
     error = function(e) {
-        fn_send_email(error_msg = 'reading flat file data into R')
-        print('Error: reading flat file data into R')
-        stop()
+        error_message <- 'reading flat file data into R'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
-# format data -------------------------------------------------------------
-# df_dates <- df_esmr %>% 
-#     select(sampling_date, analysis_date) %>% 
+
+# investigate data --------------------------------------------------------
+
+## get year of all sampling dates in the dataset ----
+# df_dates <- df_esmr %>%
+#     select(sampling_date, analysis_date, report_name, smr_document_id) %>%
 #     mutate(sampling_date_rev = mdy(sampling_date),
 #            sampling_year = year(sampling_date_rev),
 #            analysis_date_rev = mdy(analysis_date),
 #            analysis_year = year(analysis_date_rev))
-# View(df_dates %>% count(sampling_year))
+# df_dates_summary <- df_dates %>% count(sampling_year)
+# View(df_dates_summary)
+# write_csv(df_dates_summary,
+#           file = paste0(download_dir, 'esmr_sampling-date_summary_', Sys.Date(), '.csv'))
 
-## check dates ----
-# df_esmr <- df_esmr %>% 
-#     mutate(sampling_date_rev = mdy(sampling_date),
-#            sampling_year = year(sampling_date_rev),
-#            analysis_date_rev = mdy(analysis_date),
-#            analysis_year = year(analysis_date_rev))
-## check years
-# View(df_esmr %>% count(sampling_year))
-# glimpse(df_esmr)
+## look at invalid dates (missing, future, far past) ----
+# df_invalid_missing <- df_esmr %>% 
+#     filter(is.na(sampling_date)) %>% 
+#     select(analysis_date, report_name, smr_document_id)
+# View(df_invalid_missing)
+# write_csv(df_invalid_missing,
+#           file = paste0(download_dir, 'esmr_sampling-date_missing_', Sys.Date(), '.csv'))
 
-## check incorrect years
+# df_invalid_future <- df_esmr %>% 
+#     filter(year(mdy(sampling_date)) > year(Sys.Date())) %>% 
+#     select(sampling_date, analysis_date, report_name, smr_document_id)
+# View(df_invalid_future)
+# write_csv(df_invalid_future,
+#           file = paste0(download_dir, 'esmr_sampling-date_invalid_future_', Sys.Date(), '.csv'))
+
+# df_invalid_past <- df_esmr %>% 
+#     filter(year(mdy(sampling_date)) < 2006) %>% 
+#     select(sampling_date, analysis_date, report_name, smr_document_id)
+# View(df_invalid_past)
+# write_csv(df_invalid_past,
+#           file = paste0(download_dir, 'esmr_sampling-date_invalid_past_', Sys.Date(), '.csv'))
+
+# df_year <- df_esmr %>% 
+#     filter(year(mdy(sampling_date)) == 2006) %>% 
+#     select(sampling_date, analysis_date, report_name, smr_document_id)
+# View(df_year)
+
+## check specific dates ----
 # df_esmr %>% filter(sampling_year < 1899) %>% pull(sampling_date)
 # df_esmr %>% filter(sampling_year == 1931) %>% pull(sampling_date)
 
 
+
+# format data -------------------------------------------------------------
 ## format date fields ----
 gc()
 tryCatch(
@@ -214,9 +264,11 @@ tryCatch(
         rm(dates_iso)
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting data (converting date fields)')
-        print('Error: formatting data (converting date fields)')
-        stop()
+        error_message <- 'formatting data (converting date fields)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -232,14 +284,17 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting data (converting numeric fields)')
-        print('Error: formatting data (converting numeric fields)')
-        stop()
+        error_message <- 'formatting data (converting numeric fields)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
 
 ## rename fields ----
+gc()
 tryCatch(
     {
         ### fix the latitude field (was named lattitude)
@@ -247,9 +302,11 @@ tryCatch(
             rename(latitude = lattitude)
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting data (rename fields)')
-        print('Error: formatting data (rename fields)')
-        stop()
+        error_message <- 'formatting data (rename fields)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -270,9 +327,11 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting data (text fields)')
-        print('Error: formatting data (text fields)')
-        stop()
+        error_message <- 'formatting data (text fields)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -302,9 +361,11 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'writing output data files')
-        print('Error: writing output data files')
-        stop()
+        error_message <- 'writing output data files'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -323,10 +384,11 @@ tryCatch(
 ## python (all years) ----
 # tryCatch(py_run_file("C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Surface-Water-Datasets\\portal-upload-ckan-chunked_eSMR\\main_eSMR.py"),
 #          error = function(e) {
-#              fn_send_email(error_msg = 'sending data to portal (uploading data file)')
-#              # tracker <<- 'Error: uploading data file to portal'
-#              print('Error: uploading data file to portal')
-#              stop()
+#              error_message <- 'Uploading data to portal'
+#              error_message_r <- capture.output(cat(as.character(e)))
+#              fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+#              print(glue('Error: {error_message}'))
+#              stop(e)
 #          }
 # )
 
@@ -353,23 +415,23 @@ tryCatch(
             '2007' = '7b99f591-23ac-4345-b645-9adfaf5873f9',
             '2006' = '763e2c90-7b7d-412e-bbb5-1f5327a5f84e'
         )
+        # data_resource_id_list[[as.character(years_write)]]
         source_python('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Surface-Water-Datasets\\portal-upload-ckan-chunked_eSMR\\main_eSMR_function.py')
         files_date <- Sys.Date()
-        for (i in names(data_resource_id_list)) {
+        for (i in as.character(years_write)) {
             print(glue('Updating Year: {i}'))
             ckanUploadFile(data_resource_id_list[[as.character(i)]],
-                           
-                           paste0(download_dir, file_name, 'year-', as.character(i), '_', files_date, '.csv')
-            )
+                           paste0(download_dir, file_name, 'year-', as.character(i), '_', files_date, '.csv'),
+                           portal_key)
             last_year <- i
             print(glue('Finished Updating Year: {i}'))
         }
-    }
+    },
     error = function(e) {
-        fn_send_email(
-            error_msg = glue('Sending data to portal (uploading data file) | last successful year uploaded: {last_year}')
-        )
-        print('Error: uploading data file to portal')
-        stop()
+        error_message <- glue('Uploading data to portal | last successful year uploaded: {last_year}')
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )

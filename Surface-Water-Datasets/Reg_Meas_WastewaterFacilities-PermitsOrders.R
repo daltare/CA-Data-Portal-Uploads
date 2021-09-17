@@ -25,24 +25,34 @@ file_save_location <- 'C:\\David\\_CA_data_portal\\Surface-Water-Datasets\\'
 # define data portal resource ID
 resourceID <- '2446e10e-8682-4d7a-952e-07ffe20d4950' # https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950
 
+## get data portal API key ----
+#### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+portal_key <- Sys.getenv('data_portal_key')
+
 ## define data file name
 filename_dataset <- 'reg_meas_export_WastewaterPermitsOrders_'
 
 ## delete old versions of the dataset? (the ones saved locally) - TRUE or FALSE
 delete_old_versions <- TRUE
 
+## enter the email address to send warning emails from
+### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+
+## enter the email address (or addresses) to send warning emails to
+email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
 
 
-# setup error handling ----------------------------------------------------
-## automated email ----
-### create credentials file (only need to do this once) ----
+
+# setup automated email ---------------------------------------------------
+## create credentials file (only need to do this once) ----
 # create_smtp_creds_file(file = 'outlook_creds', 
 #                        user = 'david.altare@waterboards.ca.gov',
 #                        provider = 'outlook'
 #                        )   
 
-### create email function ----
-fn_send_email <- function(error_msg) {
+## create email function ----
+fn_send_email <- function(error_msg, error_msg_r) {
     
     ### create components ----
     #### date/time ----
@@ -53,8 +63,14 @@ fn_send_email <- function(error_msg) {
                 "Hi,
 There was an error uploading the Wastewater Facilities Permits & Orders regulatory data (from CIWQS) to the data.ca.gov portal on {Sys.Date()}.
                 
-The process failed at this step: {error_msg}
+------
                 
+The process failed at this step: *{error_msg}*
+
+Here's the error message from R: *{error_msg_r}*
+
+------
+
 Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950
                 
 Here's the link to the flat file with the source data: https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml  (Export Type = Regulatory Measures)"                
@@ -75,17 +91,16 @@ Here's the link to the flat file with the source data: https://intapps.waterboar
     ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
-            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
-            to = "david.altare@waterboards.ca.gov",
-            from = "david.altare@waterboards.ca.gov",
+            to = email_to,
+            from = email_from,
             subject = subject,
             credentials = creds_file("outlook_creds")
             # credentials = creds_key("outlook_key")
         )
     
-    ## send email via sendmailR (for use on GIS scripting server) ----
-    # from <- "gisscripts-noreply@waterboards.ca.gov"
-    # to <- c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov")
+    ### send email via sendmailR (for use on GIS scripting server) ----
+    # from <- email_from
+    # to <- email_to
     # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
     
     print('sent automated email')
@@ -108,9 +123,11 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'deleting old versions of dataset')
-        print('Error: deleting old versions of dataset')
-        stop()
+        error_message <- 'deleting old versions of dataset'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
     
@@ -123,12 +140,14 @@ tryCatch(
         download.file(url = file_link, destfile = temp, method = 'curl')
     },
     error = function(e) {
-        fn_send_email(error_msg = 'downloading flat file data')
-        print('Error: downloading flat file data')
-        stop()
+        error_message <- 'downloading flat file data'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
-    
+
     
 
 # read data into R --------------------------------------------------------
@@ -141,9 +160,11 @@ tryCatch(
             {.}
     },
     error = function(e) {
-        fn_send_email(error_msg = 'reading flat file data into R')
-        print('Error: reading flat file data into R')
-        stop()
+        error_message <- 'reading flat file data into R'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
     
@@ -171,9 +192,11 @@ tryCatch(
         dataset_revised <- df_data %>% select(all_of(fields_keep))
     },
     error = function(e) {
-        fn_send_email(error_msg = 'selecting fields from flat file data')
-        print('Error: selecting fields from flat file data')
-        stop()
+        error_message <- 'selecting fields from flat file data'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -185,9 +208,11 @@ tryCatch(
         dataset_revised <- dataset_revised %>% filter(STATUS == 'Active' | STATUS == 'Historical')
     },
     error = function(e) {
-        fn_send_email(error_msg = 'filtering flat file data')
-        print('Error: filtering flat file data')
-        stop()
+        error_message <- 'filtering flat file data'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -221,9 +246,11 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting date fields')
-        print('Error: formatting date fields')
-        stop()
+        error_message <- 'formatting date fields'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -241,9 +268,11 @@ tryCatch(
         }
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting numeric fields')
-        print('Error: formatting numeric fields')
-        stop()
+        error_message <- 'formatting numeric fields'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -258,9 +287,11 @@ tryCatch(
         # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
     },
     error = function(e) {
-        fn_send_email(error_msg = 'formatting text fields')
-        print('Error: formatting text fields')
-        stop()
+        error_message <- 'formatting text fields'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
 
@@ -273,9 +304,11 @@ tryCatch(
         write_csv(x = dataset_revised, file = out_file, na = 'NaN')
     },
     error = function(e) {
-        fn_send_email(error_msg = 'writing output csv file')
-        print('Error: writing output csv file')
-        stop()
+        error_message <- 'writing output csv file'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )
   
@@ -284,10 +317,6 @@ tryCatch(
 # write to open data portal -----------------------------------------------
 tryCatch(
     {
-        ## get data portal API key ----
-        #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
-        portal_key <- Sys.getenv('data_portal_key')
-        
         ## set ckan defaults ----   
         ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
         
@@ -298,8 +327,10 @@ tryCatch(
         file_upload <- ckanr::resource_update(id = resourceID, path = out_file)
     },
     error = function(e) {
-        fn_send_email(error_msg = 'writing dataset to data.ca.gov portal')
-        print('Error: writing dataset to data.ca.gov portal')
-        stop()
+        error_message <- 'writing dataset to data.ca.gov portal'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
     }
 )

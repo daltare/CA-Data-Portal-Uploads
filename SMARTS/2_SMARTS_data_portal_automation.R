@@ -30,6 +30,8 @@ library(binman)
 library(stringr)
 library(magrittr)
 library(pingr)
+library(ckanr)
+
 
 
 
@@ -49,6 +51,9 @@ email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboard
 ## enter the email address (or addresses) to send warning emails to
 email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
 
+## get data portal API key (saved in the local environment)
+### (it's available on data.ca.gov by going to your user profile)
+portal_key <- Sys.getenv('data_portal_key')
 
 
 # 2 - setup automated email -----------------------------------------------
@@ -100,7 +105,6 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
     ### send email via blastula (using credentials file) ----
     email %>%
         smtp_send(
-            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
             to = email_to,
             from = email_from,
             subject = subject,
@@ -152,7 +156,7 @@ tryCatch(
         ## Open the connection ----
         ### setup ----
         #### OLD METHOD (for some reason it doesn't work when running as an automated task with the task scheduler, but does work when just running from a normal RStudio session) 
-        # rsD <- RSelenium::rsDriver(port = 4444L, browser = 'chrome', extraCapabilities = eCaps) #, chromever = "75.0.3770.90")
+        # rsD <- rsDriver(port = 4444L, browser = 'chrome', extraCapabilities = eCaps) #, chromever = "75.0.3770.90")
         # remDr <- rsD$client
         # probably don't need these lines anymore:
         # remDr <- remoteDriver(browserName="chrome", port = 4444L, extraCapabilities = eCaps)
@@ -183,7 +187,7 @@ tryCatch(
             str_replace_all(pattern = "\\.",
                                      replacement = "\\\\.") %>%
             paste0("^",  .) %>%
-            str_subset(string = dplyr::last(chrome_driver_versions)) %>%
+            str_subset(string = last(chrome_driver_versions)) %>%
             as.numeric_version() %>%
             max() %>%
             as.character()
@@ -348,7 +352,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # Rename the file, and append with the date for easier identification (may want to add in the time too?)
     file.rename(from = paste0(download_dir, '\\', 'file.txt'), to = paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'))
     # to add the time to the filename
-    # file.rename(from = 'file.txt', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', lubridate::hour(Sys.time()),'.', lubridate::minute(Sys.time()), '.', if(lubridate::am(Sys.time())) {'AM'} else {'PM'}))
+    # file.rename(from = 'file.txt', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', hour(Sys.time()),'.', minute(Sys.time()), '.', if(am(Sys.time())) {'AM'} else {'PM'}))
     # Delete old versions of the files (if desired)
     if (delete_old_versions == TRUE) {
         files_list <- grep(pattern = paste0('^', filename, '_'), x = list.files(download_dir), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
@@ -371,17 +375,17 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         dataset_lines[problems[i]] <- gsub(pattern = '\"*\"', replacement = '', x = dataset_lines[problems[i]]) # this removes the quotes (but keeps the text within the quotes)
     }
     # Make sure all encoding is in UTF-8
-    dataset_lines <- iconv(x = dataset_lines, to = 'UTF-8') # encoding options available with: stringi::stri_enc_list(simplify = TRUE)
-    dataset_lines <- stringr::str_conv(string = dataset_lines, encoding = 'UTF-8')
+    dataset_lines <- iconv(x = dataset_lines, to = 'UTF-8') # encoding options available with: stri_enc_list(simplify = TRUE)
+    dataset_lines <- str_conv(string = dataset_lines, encoding = 'UTF-8')
     # trying different methods
     # dataset_lines <- iconv(dataset_lines, from = 'ASCII', to = 'UTF-8')
-    # dataset_lines <- stringi::stri_conv(str = dataset_lines, to = 'ASCII')
-    # dataset_lines <- stringi::stri_conv(str = dataset_lines, to = 'UTF-8')
-    # dataset_lines <- stringi::stri_conv(str = dataset_lines, from = 'ASCII', to = 'UTF-8')
+    # dataset_lines <- stri_conv(str = dataset_lines, to = 'ASCII')
+    # dataset_lines <- stri_conv(str = dataset_lines, to = 'UTF-8')
+    # dataset_lines <- stri_conv(str = dataset_lines, from = 'ASCII', to = 'UTF-8')
     # # check
     #     table(Encoding(dataset_lines))
-    #     table(stringi::stri_enc_mark(dataset_lines))
-    #     table(stringi::stri_enc_isutf8(dataset_lines))
+    #     table(stri_enc_mark(dataset_lines))
+    #     table(stri_enc_isutf8(dataset_lines))
     # write the corrected dataset to a temporary file
     t <- tempfile()
     writeLines(text = dataset_lines, con = file(t, encoding = 'UTF-8'), sep = '\n')
@@ -390,12 +394,12 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     #     filename == 'Industrial_Application_Specific_Data' |
     #     filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' |
     #     filename == 'Construction_Application_Specific_Data') {
-    dataset <- suppressMessages(readr::read_tsv(file = t, col_types = cols(.default = 'c'))) # guess_max = 900000))
+    dataset <- suppressMessages(read_tsv(file = t, col_types = cols(.default = 'c'))) # guess_max = 900000))
     # }
     # if (filename == 'Inspections' | 
     #     filename == 'Violations' |
     #     filename == 'Enforcement_Actions') {
-    #    dataset <- suppressMessages(readr::read_tsv(file = t, col_types = cols(.default = 'c')))
+    #    dataset <- suppressMessages(read_tsv(file = t, col_types = cols(.default = 'c')))
     #}
     unlink(t)
     
@@ -403,8 +407,8 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # dataset <- dataset %>% distinct()
     
     # # FOR TESTING
-    #     readr::write_csv(x = dataset, path = 'TEST_Dataset.csv')
-    #     dataset <- readr::read_csv('TEST_Dataset.csv')
+    #     write_csv(x = dataset, path = 'TEST_Dataset.csv')
+    #     dataset <- read_csv('TEST_Dataset.csv')
     
     
     # NEW STUFF - 2019-09-18
@@ -549,7 +553,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     
     
     # write the revised dataset to a csv file
-    readr::write_csv(x = dataset, 
+    write_csv(x = dataset, 
                      path = paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv'), na = 'NaN')
     rm(dataset_lines, problems, dataset, t)
 }
@@ -601,10 +605,10 @@ tryCatch(
 
 # # create combined files - NOTE: Might want to first use facility info from active facilities, then use info from inactive facilities for those that don't get a match (some sites are listed twice in the facilities info files, one active and one inactive)
 #     # Facilities
-#         ind.facilities <- readr::read_csv(paste0(dataset_list$dataset2$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
-#         ind.results <- readr::read_csv(paste0(dataset_list$dataset1$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
-#         con.facilities <- readr::read_csv(paste0(dataset_list$dataset4$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
-#         con.results <- readr::read_csv(paste0(dataset_list$dataset3$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
+#         ind.facilities <- read_csv(paste0(dataset_list$dataset2$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
+#         ind.results <- read_csv(paste0(dataset_list$dataset1$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
+#         con.facilities <- read_csv(paste0(dataset_list$dataset4$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
+#         con.results <- read_csv(paste0(dataset_list$dataset3$filename, '_', Sys.Date(), '.csv'), guess_max = 50000)
 # 
 # 
 #         ind.facilities <- ind.facilities %>% select(WDID, REGION_BOARD, COUNTY, FACILITY_LATITUDE, FACILITY_LONGITUDE, PERMIT_TYPE, APP_ID, STATUS)
@@ -612,30 +616,30 @@ tryCatch(
 #         names(ind.facilities) <- gsub(pattern = 'FACILITY_', replacement = '', x = names(ind.facilities))
 #         names(ind.facilities) <- gsub(pattern = '_BOARD', replacement = '', x = names(ind.facilities))
 #         names(con.facilities) <- gsub(pattern = 'SITE_', replacement = '', x = names(con.facilities))
-#         all.facilities <- dplyr::bind_rows(ind.facilities, con.facilities)
-#         readr::write_csv(x = all.facilities, path = paste0('All_Facilities_', Sys.Date(), '.csv'))
+#         all.facilities <- bind_rows(ind.facilities, con.facilities)
+#         write_csv(x = all.facilities, path = paste0('All_Facilities_', Sys.Date(), '.csv'))
 #         rm(list = c('ind.facilities', 'con.facilities'))
 # 
 #     # Industrial
 #         # first join just the active facility info
 #         ind.active <- ind.facilities %>% filter(STATUS == 'Active')
 #         ind.terminated <- ind.facilities %>% filter(STATUS == 'Terminated')
-#         ind.combined <- dplyr::left_join(x = ind.results, y = ind.active)
+#         ind.combined <- left_join(x = ind.results, y = ind.active)
 #         ind.combined.matched <- ind.combined %>% filter(!is.na(ind.combined$STATUS))
 #         ind.notMatched <- ind.results[is.na(ind.combined$STATUS),]
-#         ind.combined.notMatched <- dplyr::left_join(x = ind.notMatched, y = ind.facilities)
-#         ind.combined.final <- dplyr::bind_rows(ind.combined.matched, ind.combined.notMatched)
-#         readr::write_csv(x = ind.combined.final, path = paste0('Industrial_Combined_', Sys.Date(), '.csv'))
+#         ind.combined.notMatched <- left_join(x = ind.notMatched, y = ind.facilities)
+#         ind.combined.final <- bind_rows(ind.combined.matched, ind.combined.notMatched)
+#         write_csv(x = ind.combined.final, path = paste0('Industrial_Combined_', Sys.Date(), '.csv'))
 #         # simple join
-#             z <- dplyr::left_join(ind.results %>% distinct(), ind.facilities %>% group_by(WDID) %>% select(-PERMIT_TYPE, -APP_ID) %>% distinct())
+#             z <- left_join(ind.results %>% distinct(), ind.facilities %>% group_by(WDID) %>% select(-PERMIT_TYPE, -APP_ID) %>% distinct())
 #         # compare
 #             identical(ind.combined.final, z)
 #             nrow(z)
 #             nrow(ind.combined.final)
 # 
 #     # Construction
-#         con.combined <- dplyr::left_join(x = con.results, y = con.facilities, by = c('WDID'))
-#         readr::write_csv(x = con.combined, path = paste0('Construction_Combined_', Sys.Date(), '.csv'))
+#         con.combined <- left_join(x = con.results, y = con.facilities, by = c('WDID'))
+#         write_csv(x = con.combined, path = paste0('Construction_Combined_', Sys.Date(), '.csv'))
 
 
 # # STEP 4: Download Report data (datasets available by clicking on a 'Export to Excel' button)
@@ -686,7 +690,7 @@ tryCatch(
 #             # Rename the file, and append with the date for easier identification (may want to add in the time too?)
 #                 file.rename(from = smarts_file_name, to = paste0(filename, '-', Sys.Date(), '.', smarts_file_type))
 #             # to add the time to the filename
-#                 # file.rename(from = 'file.txt', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', lubridate::hour(Sys.time()),'.', lubridate::minute(Sys.time()), '.', if(lubridate::am(Sys.time())) {'AM'} else {'PM'}))
+#                 # file.rename(from = 'file.txt', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', hour(Sys.time()),'.', minute(Sys.time()), '.', if(am(Sys.time())) {'AM'} else {'PM'}))
 #             # Delete old versions of the files (if desired)
 #             if (delete_old_versions == TRUE) {
 #                 files.list <- grep(pattern = paste0('^', filename), x = list.files(), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
@@ -712,11 +716,11 @@ tryCatch(
 #                     report.result <- as_tibble(report.result)
 #                     report.result <- clean_names(report.result)
 #                 # Write File
-#                     readr::write_csv(x = report.result, path = paste0(filename, '_', Sys.Date(), '.csv'))
+#                     write_csv(x = report.result, path = paste0(filename, '_', Sys.Date(), '.csv'))
 #                     
 #             # # NOTE - DOESN'T LOOK LIKE THIS PART IS NEEDED
 #             # # Read the data as text strings into R (so that it can be checked for special characters, etc)
-#             #     readr::write_tsv(x = report.result, path = paste0(filename, '_', Sys.Date(), '_Raw.txt'))
+#             #     write_tsv(x = report.result, path = paste0(filename, '_', Sys.Date(), '_Raw.txt'))
 #             #     dataset_lines <- readLines(paste0(filename, '_', Sys.Date(), '_Raw.txt'))
 #             # # Check for quotes, and remove them (to avoid problems with special characters)    
 #             #     problems <- grep(pattern = '\"*\"', x = dataset_lines) # this finds lines with quoted text - used below to remove the quotes ("t" is especially problematic, because it can get confused with a tab delimiter)
@@ -724,24 +728,24 @@ tryCatch(
 #             #         dataset_lines[problems[i]] <- gsub(pattern = '\"*\"', replacement = '', x = dataset_lines[problems[i]]) # this removes the quotes (but keeps the text within the quotes)
 #             #     }
 #             # # Make sure all encoding is in UTF-8
-#             #     dataset_lines <- iconv(x = dataset_lines, to = 'UTF-8') # encoding options available with: stringi::stri_enc_list(simplify = TRUE)
-#             #     dataset_lines <- stringr::str_conv(string = dataset_lines, encoding = 'UTF-8')
+#             #     dataset_lines <- iconv(x = dataset_lines, to = 'UTF-8') # encoding options available with: stri_enc_list(simplify = TRUE)
+#             #     dataset_lines <- str_conv(string = dataset_lines, encoding = 'UTF-8')
 #             # # # check
 #             # #     table(Encoding(dataset_lines))
-#             # #     table(stringi::stri_enc_mark(dataset_lines))
-#             # #     table(stringi::stri_enc_isutf8(dataset_lines))
+#             # #     table(stri_enc_mark(dataset_lines))
+#             # #     table(stri_enc_isutf8(dataset_lines))
 #             # # write the corrected dataset to a temporary file
 #             #     t <- tempfile()
 #             #     writeLines(text = dataset_lines, con = file(t, encoding = 'UTF-8'), sep = '\n')
 #             # # read the new dataset, then close the temporary file
-#             #     dataset <- suppressMessages(readr::read_tsv(file = t, guess_max = 10000))
+#             #     dataset <- suppressMessages(read_tsv(file = t, guess_max = 10000))
 #             #     unlink(t)
 #             # # write the corrected dataset to a pipe delimited txt file
-#             #     readr::write_csv(x = dataset, path = paste0(filename, '_', Sys.Date(), '_2.csv'))
+#             #     write_csv(x = dataset, path = paste0(filename, '_', Sys.Date(), '_2.csv'))
 #             #     rm(dataset_lines, problems, dataset, t)
 #             # # check
-#             #     # z_check_1 <- readr::read_csv(paste0(filename, '_', Sys.Date(), '.csv'), guess_max = 10000)
-#             #     # z_check_2 <- readr::read_csv(paste0(filename, '_', Sys.Date(), '_2.csv'), guess_max = 10000)
+#             #     # z_check_1 <- read_csv(paste0(filename, '_', Sys.Date(), '.csv'), guess_max = 10000)
+#             #     # z_check_2 <- read_csv(paste0(filename, '_', Sys.Date(), '_2.csv'), guess_max = 10000)
 #             #     # identical(z_check_1, z_check_2)
 #             
 #                 
@@ -798,38 +802,22 @@ tryCatch(
 
 # 7 - load data to portal -----------------------------------------------------
 
-tryCatch(
-    {
-        ## get portal API key (saved in the local environment) ----
-        ### (it's available on data.ca.gov by going to your user profile)
-        portal_key <- Sys.getenv('data_portal_key')
-        
-        ### set the ckan defaults ----
-        ckanr::ckanr_setup(url = 'https://data.ca.gov/', key = portal_key) 
-    },
-    error = function(e) {
-        error_message <- 'uploading data (getting API key and setting up ckan defaults)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
-)
-
-
 ## run function to upload the formatted data from SMARTS to the data.ca.gov portal ----
 ### loops through all of the datasets defined in the 'dataset_list' variable in the script: 1_FilesList.R
 tryCatch(
     {
+        ### set the ckan defaults ----
+        ckanr_setup(url = 'https://data.ca.gov/', key = portal_key) 
+        
         for (i in seq(length(dataset_list))) {
             resourceID <- dataset_list[[i]]$resource_id
             filename <- dataset_list[[i]]$filename
-            ckan_resource_info <- ckanr::resource_show(id = resourceID, as = 'table') # resource
+            ckan_resource_info <- resource_show(id = resourceID, as = 'table') # resource
             # check the connection
             # current_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = ckan_resource_info$url)
             # print(current_dataportal_filename) # this is just a test to make sure the API connection is successful
             fileToUpload <- paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv')
-            file_upload <- ckanr::resource_update(id = resourceID, path = fileToUpload)
+            file_upload <- resource_update(id = resourceID, path = fileToUpload)
             
             # # output the result of the upload process to a log file called: _DataPortalUpload-Log.txt
             # # check to see if the log file exists - if not, create it
