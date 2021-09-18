@@ -22,6 +22,7 @@ library(binman)
 library(wdman)
 library(stringr)
 library(magrittr)
+library(pingr)
 
 
 
@@ -106,25 +107,39 @@ chrome_driver_current <- chrome_browser_version %>%
     max() %>%
     as.character()
 
+## check for open port ----
+for (port_check in 4567L:4577L) {
+    port_test <- ping_port(destination = 'localhost', port = port_check)
+    # print(all(is.na(port_test)))
+    if (all(is.na(port_test)) == TRUE) {
+        port_use <- port_check
+        break
+    }
+}
+
 ## set up selenium with the current chrome version ----
 selCommand <- selenium(jvmargs = 
                            c("-Dwebdriver.chrome.verboseLogging=true"), 
                        retcommand = TRUE,
-                       chromever = chrome_driver_current)
+                       chromever = chrome_driver_current,
+                       port = port_use)
 
 ## write selenium specifications to batch file ----
 writeLines(selCommand, 
            'Start_Server.bat')
+Sys.sleep(5) #### wait a few seconds
 
 ## start server ----
 shell.exec('Start_Server.bat')
+Sys.sleep(10) #### wait a few seconds
     
 ## open connection ----
-remDr <- remoteDriver(port = 4567L, 
+remDr <- remoteDriver(port = port_use, # 4567L, 
                       browserName = "chrome", 
                       extraCapabilities = eCaps)
+Sys.sleep(10) #### wait a few seconds
 remDr$open()
-        
+
         
 
 # 3 - enter dictionary data to portal -----------------------------------------

@@ -192,7 +192,7 @@ tryCatch(
             max() %>%
             as.character()
         
-        #### check for open port
+        #### check for open port ----
         for (port_check in 4567L:4577L) {
             port_test <- ping_port(destination = 'localhost', port = port_check)
             # print(all(is.na(port_test)))
