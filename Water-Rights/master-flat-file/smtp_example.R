@@ -7,16 +7,25 @@ library(blastula)
 ## in to the computer when starting it up)
 
 ## credentials file ----
-create_smtp_creds_file(file = 'outlook_creds', 
-                       user = 'david.altare@waterboards.ca.gov',
-                       provider = 'outlook'
-                       )
+### outlook credentials ----
+# create_smtp_creds_file(file = 'outlook_creds', 
+#                        user = 'david.altare@waterboards.ca.gov',
+#                        provider = 'outlook'
+#                        )
+
+### gmail credentials ----
+### !!! NOTE - for gmail, you also have to enable 'less secure apps'  within your 
+### gmail account settings - see: https://github.com/rstudio/blastula/issues/228
+# create_smtp_creds_file(file = 'gmail_creds', 
+#                        user = 'daltare.work@gmail.com',
+#                        provider = 'gmail'
+#                        )
 
 ## credentials key ----
 ### Note: the 'keyring' package has to be installed for this to work
-create_smtp_creds_key(id = 'outlook_key',
-                      user = 'david.altare@waterboards.ca.gov',
-                      provider = 'outlook')
+# create_smtp_creds_key(id = 'outlook_key',
+#                       user = 'david.altare@waterboards.ca.gov',
+#                       provider = 'outlook')
 
 
 
@@ -56,11 +65,25 @@ email
 
 
 ## Step 4 - send email by SMTP using credentials file ----
+### send from outlook ----
 email %>%
   smtp_send(
     to = "david.altare@waterboards.ca.gov",
     from = "david.altare@waterboards.ca.gov",
     subject = "Testing the `smtp_send()` function",
-    # credentials = creds_file("outlook_creds")
-    credentials = creds_key("outlook_key")
+    credentials = creds_file("outlook_creds"),
+    verbose = TRUE
+    # credentials = creds_key("outlook_key")
+  )
+
+
+### send from gmail ----
+email %>%
+  smtp_send(
+    to = "david.altare@waterboards.ca.gov",
+    from = "daltare.work@gmail.com",
+    subject = "Testing the `smtp_send()` function",
+    credentials = creds_file("gmail_creds"),
+    verbose = TRUE
+    # credentials = creds_key("outlook_key")
   )

@@ -30,7 +30,8 @@ delete_old_versions <- TRUE # whether or not to delete previous versions of each
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
 
 ## enter the email address (or addresses) to send warning emails to
 email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
@@ -70,9 +71,17 @@ python_upload_script <- 'portal-upload-ckan-chunked_eSMR\\main_eSMR_function.py'
 
 # 2 - setup automated email ---------------------------------------------------
 ## create credentials file (only need to do this once) ----
+### outlook credentials ----
 # create_smtp_creds_file(file = 'outlook_creds', 
 #                        user = 'david.altare@waterboards.ca.gov',
 #                        provider = 'outlook'
+#                        ) 
+### gmail credentials ----
+#### !!! NOTE - for gmail, you also have to enable 'less secure apps'  within your 
+#### gmail account settings - see: https://github.com/rstudio/blastula/issues/228
+# create_smtp_creds_file(file = 'gmail_creds', 
+#                        user = 'daltare.work@gmail.com',
+#                        provider = 'gmail'
 #                        )   
 
 ## create email function ----
@@ -91,7 +100,7 @@ There was an error uploading the eSMR Analytical Data to the data.ca.gov portal 
                 
 The process failed at this step: *{error_msg}*
 
-Here's the error message from R: *{error_msg_r}*
+Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
 
 ------
                 
@@ -118,14 +127,14 @@ Here's the link to the flat file with the source data: https://intapps.waterboar
             to = email_to,
             from = email_from,
             subject = subject,
-            credentials = creds_file("outlook_creds")
+            credentials = creds_file(credentials_file)
             # credentials = creds_key("outlook_key")
         )
     
     ### send email via sendmailR (for use on GIS scripting server) ----
     # from <- email_from
     # to <- email_to
-    # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
+    # sendmail(from,to,subject,body,control=list(smtpServer= ""))
     
     print('sent automated email')
 }

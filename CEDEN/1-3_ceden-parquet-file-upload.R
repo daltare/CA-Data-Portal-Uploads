@@ -24,15 +24,48 @@ library(tictoc)
 
 
 # enter variables ---------------------------------------------------------
-## dataset names ----
-dataset_name <- 'surface-water-toxicity-results'
+## data portal username and password ----
+# portal_username <- Sys.getenv('portal_username') 
+# portal_password <- Sys.getenv('portal_password')
 
-## list files / resources ----
-data_resource_id_list <- list('toxicity' = 'ac8bf4c8-0675-4764-92f1-b67bdb187ba1')
+### path to data files ----
+# data_files_date <- Sys.Date()
+# data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\{data_files_date}\\')
+# data_dictionaries_path <- here('data_dictionaries', 'data_dictionary_conversion')
+# parquet_file_save_location <- paste0(data_files_path, 'parquet_datasets')
+
+## list files / resources
+# parquet_resource_id_list <- list(
+#     'WaterChemistryData_parquet' = list(file_name = 'WaterChemistryData',
+#                                         data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx',
+#                                         dataset_name = 'surface-water-chemistry-results',
+#                                         dataset_id = 'f4aa224d-4a59-403d-aad8-187955aa2e38',
+#                                         data_file = glue('{parquet_file_save_location}\\WaterChemistryData_parquet_{data_files_date}.zip')),
+#     'TissueData_parquet' = list(file_name = 'TissueData',
+#                                 data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx',
+#                                 dataset_name = 'surface-water-aquatic-organism-tissue-sample-results',
+#                                 dataset_id = 'dea5e450-4196-4a8a-afbb-e5eb89119516',
+#                                 data_file = glue('{parquet_file_save_location}\\TissueData_parquet_{data_files_date}.zip')),
+#     'HabitatData_parquet' = list(file_name = 'HabitatData',
+#                                  data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
+#                                  dataset_name = 'surface-water-habitat-results',
+#                                  dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
+#                                  data_file = glue('{parquet_file_save_location}\\HabitatData_parquet_{data_files_date}.zip')),
+#     'BenthicData_parquet' = list(file_name = 'BenthicData',
+#                                  data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx',
+#                                  dataset_name = 'surface-water-benthic-macroinvertebrate-results',
+#                                  dataset_id = 'eb61f9a1-b1c6-4840-99c7-420a2c494a43',
+#                                  data_file = glue('{parquet_file_save_location}\\BenthicData_parquet_{data_files_date}.zip')),
+#     'ToxicityData_parquet' = list(file_name = 'ToxicityData',
+#                                   data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx',
+#                                   dataset_name = 'surface-water-toxicity-results',
+#                                   dataset_id = 'a6c91662-d324-43c2-8166-a94dddd22982',
+#                                   data_file = glue('{parquet_file_save_location}\\ToxicityData_parquet_{data_files_date}.zip'))
+# )
 
 
 
-# set up selenium (automated browser) ---------------------------------
+# set up selenium (automated browser) -------------------------------------
 ## Note - for more information / examples on how the RSelenium package works, see:
     # https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
     # https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
@@ -106,13 +139,9 @@ remDr <- remoteDriver(port = port_use, # 4567L,
 Sys.sleep(10) #### wait a few seconds
 remDr$open()
 
-        
 
 
-# load files to portal -----------------------------------------
-## get portal username and password ----
-portal_username <- Sys.getenv('portal_username') 
-portal_password <- Sys.getenv('portal_password')
+# load files to portal ----------------------------------------------------
 
 ## navigate to data.ca.gov log in page and log in ----
 login_url <- 'https://data.ca.gov/user/login'
@@ -126,13 +155,16 @@ webElem$clickElement()
 
 
 ## loop through all resources and enter data ----
-for (id_number in seq_along(names(data_resource_id_list))) {
-    # id_number <- 1
-    data_resource_id <- data_resource_id_list[[id_number]]
-    
+for (id_number in seq_along(names(parquet_resource_id_list))) {
+    # id_number <- 4
+    data_resource_id <- parquet_resource_id_list[[id_number]][['dataset_id']]
+    dataset_name <- parquet_resource_id_list[[id_number]][['dataset_name']]
+    data_file <- parquet_resource_id_list[[id_number]][['data_file']]
+
     ### navigate to resource editor page ----
     edit_url <- paste0('https://data.ca.gov/dataset/', dataset_name, '/resource_edit/', data_resource_id)
     remDr$navigate(edit_url)
+    Sys.sleep(3)
     
     # click the 'Remove' button (to remove the old version of the file)
     webElem <- remDr$findElement(using = 'css selector', value = paste0('.btn-remove-url'))
@@ -142,7 +174,7 @@ for (id_number in seq_along(names(data_resource_id_list))) {
     # enter the path of the new file to be uploaded
     webElem <- remDr$findElement(using = 'css selector', value = paste0('#field-image-upload'))
     # webElem$clickElement()
-    webElem$sendKeysToElement(list('C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\2021-09-01\\ToxicityData_2021-09-01.zip'))
+    webElem$sendKeysToElement(list(data_file))
     Sys.sleep(3)
     
     # click the 'Update Resource' button to upload the new file
@@ -169,7 +201,6 @@ for (id_number in seq_along(names(data_resource_id_list))) {
     # go to the next file
     
 }
-        
 
 
 

@@ -12,7 +12,6 @@
 # and set the time/date option (make sure the date format is %m/%d/%Y)
 
 
-# STEP 1: Set up the methodology to automate data download from the SMARTS interface, using RSelenium (use the Chrome browser in this script) ----
 
 # load packages -----------------------------------------------------------
 library(RSelenium)
@@ -34,7 +33,6 @@ library(ckanr)
 
 
 
-
 # 1 - user input --------------------------------------------------------------
 ## set download directory ----
 ##(i.e., where to save any downloaded files)
@@ -46,7 +44,8 @@ delete_old_versions = TRUE # whether or not to delete previous versions of each 
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
 
 ## enter the email address (or addresses) to send warning emails to
 email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
@@ -58,10 +57,18 @@ portal_key <- Sys.getenv('data_portal_key')
 
 # 2 - setup automated email -----------------------------------------------
 ## create credentials file (only need to do this once) ----
+### outlook credentials ----
 # create_smtp_creds_file(file = 'outlook_creds', 
 #                        user = 'david.altare@waterboards.ca.gov',
 #                        provider = 'outlook'
-#                        )   
+#                        ) 
+### gmail credentials ----
+#### !!! NOTE - for gmail, you also have to enable 'less secure apps'  within your 
+#### gmail account settings - see: https://github.com/rstudio/blastula/issues/228
+# create_smtp_creds_file(file = 'gmail_creds', 
+#                        user = 'daltare.work@gmail.com',
+#                        provider = 'gmail'
+#                        )
 
 ## create email function ----
 fn_send_email <- function(error_msg, error_msg_r) {
@@ -80,7 +87,7 @@ There was an error uploading the SMARTS (stormwater) data to the data.ca.gov por
                 
 The process failed at this step: *{error_msg}*
 
-Here's the error message from R: *{error_msg_r}*
+Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
 
 ------
                 
@@ -108,14 +115,14 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
             to = email_to,
             from = email_from,
             subject = subject,
-            credentials = creds_file("outlook_creds")
+            credentials = creds_file(credentials_file)
             # credentials = creds_key("outlook_key")
         )
     
     ### send email via sendmailR (for use on GIS scripting server) ----
     # from <- email_from
     # to <- email_to
-    # sendmail(from,to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
+    # sendmail(from,to,subject,body,control=list(smtpServer= ""))
     
     print('sent automated email')
 }
@@ -642,7 +649,7 @@ tryCatch(
 #         write_csv(x = con.combined, path = paste0('Construction_Combined_', Sys.Date(), '.csv'))
 
 
-# # STEP 4: Download Report data (datasets available by clicking on a 'Export to Excel' button)
+# # Download Report data (datasets available by clicking on a 'Export to Excel' button)
 #     # define a function to download a given dataset from the reports pages
 #         SMARTS_form_download <- function(reports_page_id, report_id, run_report_id, export_excel_id, smarts_file_name, smarts_file_type,
 #                                          filename, portal_node, delete_old_versions = FALSE) { # NOTE: To find the html identifiers of the button/link in the html code use the 'developer' tool in the browser

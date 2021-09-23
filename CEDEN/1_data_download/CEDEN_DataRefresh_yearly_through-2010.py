@@ -42,30 +42,35 @@ import os
 import csv
 import re
 from datetime import datetime
+from datetime import date #, timedelta
 import string
 # import getpass
 # from dkan.client import DatasetAPI
 import zipfile
 
 ################################################################# Controls #################################################################
-
-### DAA - ADD CURRENT DATE TO FILENAMES
-from datetime import date #, timedelta
 today = str(date.today())
 now = datetime.now()
 cur_year = now.year
-#yesterday = str(date.today() - timedelta(1))
 
-### DAA - Set the file location
-# first = 'C:\\Users\\%s\\Documents' % getpass.getuser()
-# first = 'C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\CEDEN\\1_data_download'
+### Set the file location
 first = 'C:\\David\\_CA_data_portal\\CEDEN'
 # All output files will be saved in this folder
 saveLocation = os.path.join(first, 'CEDEN_Datasets', today)
 
-### DAA - Define the datasets to be retrieved
-	# This is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of
-	#  the list. The FIRST key in this dictionary MUST be WQX_Stations. 
+### Get CEDEN datamart connection info
+# This is the SWRCB internal server set as a local environmental variable for the user.
+# Save the server address to the SERVER1 environmental variable for your account.
+SERVER1 = os.environ.get('SERVER1')
+# Save the data.ca.gov user information to the UID environmental variable for your account.
+UID = os.environ.get('UID')
+# Save the data.ca.gov password associated with your UserID information to the PWD environmental variable for your
+# account.
+PWD = os.environ.get('PWD')
+
+### Define the datasets to be retrieved
+	# # This is a Python dictionary of filenames and their Datamart names. This can be expanded by adding to the end of
+	# #  the list. The FIRST key in this dictionary MUST be WQX_Stations. 
 tables = {}  # initializes tables variable
 tables = {
 "WQX_Stations": "DM_WQX_Stations_MV", 
@@ -75,15 +80,6 @@ tables = {
 "BenthicData": "BenthicDMart_MV", 
 "HabitatData": "HabitatDMart_MV", 
 }
-For_SafeToSwim = False # if True, create the SafeToSwim file - NOTE: in order to create this file, the WaterChemistryData element needs to be included in the tables variable
-For_Pesticides = False # if True, create the pesticides file - NOTE: in order to create this file, the WaterChemistryData element needs to be included in the tables variable
-
-# if you want to use an existing water quality file rather than creating a new one, set UseExistingWqFile to True, and enter the name of the Water Chemistry data file in the FILES object below
-UseExistingWqFile = False
-# UseExistingWqFile = True
-if (For_SafeToSwim == True or For_Pesticides == True) and UseExistingWqFile == True:
-    FILES = {'WQX_Stations': 'C:\\Users\\daltare\\Documents\\CEDEN_Datasets\\WQX_Stations_2018-07-06.csv',
-             'WaterChemistryData': 'C:\\Users\\daltare\\Documents\\CEDEN_Datasets\\WaterChemistryData_2018-07-06.csv'}
 
 ################################################################# End of Controls #################################################################
 
@@ -889,16 +885,14 @@ if __name__ == "__main__":
 	sep = ','
 	extension = '.csv'
 	print('\n\n\n\n')
-	# This is the SWRCB internal server set as a local environmental variable for the user.
-	# Save the server address to the SERVER1 environmental variable for your account.
-	SERVER1 = os.environ.get('SERVER1')
-	# SERVER1 = '172.22.33.39, 2866'
-	# Save the data.ca.gov user information to the UID environmental variable for your account.
-	UID = os.environ.get('UID')
-	# Save the data.ca.gov password associated with your UserID information to the PWD environmental variable for your
-	# account.
-	# PWD = 'OIMAP@ssw0rd'
-	PWD = os.environ.get('PWD')
+	# # This is the SWRCB internal server set as a local environmental variable for the user.
+	# # Save the server address to the SERVER1 environmental variable for your account.
+	# SERVER1 = os.environ.get('SERVER1')
+	# # Save the data.ca.gov user information to the UID environmental variable for your account.
+	# UID = os.environ.get('UID')
+	# # Save the data.ca.gov password associated with your UserID information to the PWD environmental variable for your
+	# # account.
+	# PWD = os.environ.get('PWD')
 	# Choose a location to write files locally.
 	### you can change this to point to a different location but it does automatically get your user information.
 	# first = 'C:\\Users\\%s\\Documents' % getpass.getuser()
@@ -1011,96 +1005,6 @@ if __name__ == "__main__":
 	# FILES["HabitatData"]
 	# use FILES["TableKey"] to subset future datasets, as in example below...
 
-	############## Subsets of WQ dataset for Cyanotoxins  ###
-	if For_SafeToSwim:
-		############## Subsets of WQ dataset for Safe To Swim  ###
-		print("\nStarting data subset for Safe to Swim...")
-		WaterChem = FILES['WaterChemistryData']
-		path, fileName = os.path.split(WaterChem)
-		analytes = ['E. coli', 'Enterococcus', 'Coliform, Total', 'Coliform, Fecal', ]
-		newFileName = 'SafeToSwim' + "_" + today + extension
-		column_filter = 'Analyte'
-		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
-		                field_filter=column_filter, sep=sep)
-		FILES[name] = location
-		FILES[sitesname] = siteslocation
-		#SafeToSwim_Sites = 'SafeToSwim_Sites' + extension
-		print("\t\tFinished writing data subset for Safe to Swim\n\n")
-		############## Subsets of WQ dataset for Safe To Swim  ###
-
-	if For_Pesticides:
-		############## Subsets of WQ dataset for Pesticides
-		print("\nStarting data subset for Pesticides....")
-		analytes = ["Acetamiprid", "Acibenzolar-S-methyl", "Aldicarb", "Aldicarb ", "Aldicarb Sulfone",
-		            "Aldicarb Sulfoxide", "Aldrin", "Aldrin, Particulate", "Allethrin", "Ametryn", "Aminocarb", "AMPA",
-		            "Anilazine", "Aspon", "Atraton", "Atrazine", "Azinphos Ethyl", "Azinphos Methyl", "Azoxystrobin",
-		            "Barban", "Bendiocarb", "Benfluralin", "Benomyl", "Bensulfuron Methyl", "Bentazon", "Bifenox",
-		            "Bifenthrin", "Bispyribac Sodium", "Bolstar", "Bromacil", "Captafol", "Captan", "Carbaryl",
-		            "Carbendazim", "Carbofuran", "Carbophenothion", "Carfentrazone Ethyl", "Chlorantraniliprole",
-		            "Chlordane", "Chlordane, cis-", "Chlordane, cis-, Particulate", "Chlordane, Technical",
-		            "Chlordane, trans-", "Chlordane, trans-, Particulate", "Chlordene, cis-", "Chlordene, trans-",
-		            "Chlorfenapyr", "Chlorfenvinphos", "Chlorobenzilate", "Chlorothalonil", "Chlorpropham",
-		            "Chlorpyrifos", "Chlorpyrifos Methyl", "Chlorpyrifos Methyl, Particulate",
-		            "Chlorpyrifos Methyl/Fenchlorphos", "Chlorpyrifos, Particulate", "Cinerin-2", "Ciodrin",
-		            "Clomazone", "Clothianidin", "Coumaphos", "Cyanazine", "Cyantraniliprole", "Cycloate", "Cyfluthrin",
-		            "Cyfluthrin, beta-", "Cyfluthrin-1", "Cyfluthrin-2", "Cyfluthrin-3", "Cyfluthrin-4",
-		            "Cyhalofop-butyl", "Cyhalothrin", "Cyhalothrin lambda-", "Cyhalothrin, gamma-",
-		            "Cyhalothrin, lambda-1", "Cyhalothrin, lambda-2", "Cypermethrin", "Cypermethrin-1",
-		            "Cypermethrin-2", "Cypermethrin-3", "Cypermethrin-4", "Cyprodinil", "Dacthal",
-		            "Dacthal, Particulate", "DCBP(p,p')", "DDD(o,p')", "DDD(o,p'), Particulate", "DDD(p,p')",
-		            "DDD(p,p'), Particulate", "DDE(o,p')", "DDE(o,p'), Particulate", "DDE(p,p')",
-		            "DDE(p,p'), Particulate", "DDMU(p,p')", "DDMU(p,p'), Particulate", "DDT(o,p')",
-		            "DDT(o,p'), Particulate", "DDT(p,p')", "DDT(p,p'), Particulate", "Deltamethrin",
-		            "Deltamethrin/Tralomethrin", "Demeton", "Demeton-O", "Demeton-s", "Desethyl-Atrazine",
-		            "Desisopropyl-Atrazine", "Diazinon", "Diazinon, Particulate", "Dichlofenthion", "Dichlone",
-		            "Dichloroaniline, 3,5-", "Dichlorobenzenamine, 3,4-", "Dichlorophenyl Urea, 3,4-",
-		            "Dichlorophenyl-3-methyl Urea, 3,4-", "Dichlorvos", "Dichrotophos", "Dicofol", "Dicrotophos",
-		            "Dieldrin", "Dieldrin, Particulate", "Diflubenzuron", "Dimethoate", "Dioxathion", "Diphenamid",
-		            "Diphenylamine", "Diquat", "Disulfoton", "Dithiopyr", "Diuron", "Endosulfan I",
-		            "Endosulfan I, Particulate", "Endosulfan II", "Endosulfan II, Particulate", "Endosulfan Sulfate",
-		            "Endosulfan Sulfate, Particulate", "Endrin", "Endrin Aldehyde", "Endrin Ketone",
-		            "Endrin, Particulate", "EPN", "EPTC", "Esfenvalerate", "Esfenvalerate/Fenvalerate",
-		            "Esfenvalerate/Fenvalerate-1", "Esfenvalerate/Fenvalerate-2", "Ethafluralin", "Ethion", "Ethoprop",
-		            "Famphur", "Fenamiphos", "Fenchlorphos", "Fenhexamid", "Fenitrothion", "Fenpropathrin",
-		            "Fensulfothion", "Fenthion", "Fenuron", "Fenvalerate", "Fipronil", "Fipronil Amide",
-		            "Fipronil Desulfinyl", "Fipronil Desulfinyl Amide", "Fipronil Sulfide", "Fipronil Sulfone",
-		            "Flonicamid", "Fluometuron", "Fluridone", "Flusilazole", "Fluvalinate", "Fluxapyroxad", "Folpet",
-		            "Fonofos", "Glyphosate", "Halosulfuron Methyl", "HCH, alpha-", "HCH, alpha-, Particulate",
-		            "HCH, beta-", "HCH, beta-, Particulate", "HCH, delta-", "HCH, delta-, Particulate", "HCH, gamma-",
-		            "HCH, gamma-, Particulate", "Heptachlor", "Heptachlor Epoxide", "Heptachlor Epoxide, Particulate",
-		            "Heptachlor Epoxide/Oxychlordane", "Heptachlor Epoxide/Oxychlordane, Particulate",
-		            "Heptachlor, Particulate", "Hexachlorobenzene", "Hexachlorobenzene, Particulate", "Hexazinone",
-		            "Hydroxyatrazine, 2-", "Hydroxycarbofuran, 3- ", "Hydroxypropanal, 3-", "Imazalil", "Indoxacarb",
-		            "Isofenphos", "Isoxaben", "Jasmolin-2", "Kepone", "Ketocarbofuran, 3-", "Leptophos", "Linuron",
-		            "Malathion", "Merphos", "Methamidophos", "Methidathion", "Methiocarb", "Methomyl", "Methoprene",
-		            "Methoxychlor", "Methoxychlor, Particulate", "Methoxyfenozide",
-		            "Methyl (3,4-dichlorophenyl)carbamate", "Mevinphos", "Mexacarbate", "Mirex", "Mirex, Particulate",
-		            "Molinate", "Monocrotophos", "Monuron", "Naled", "Neburon", "Nonachlor, cis-",
-		            "Nonachlor, cis-, Particulate", "Nonachlor, trans-", "Nonachlor, trans-, Particulate",
-		            "Norflurazon", "Oxadiazon", "Oxadiazon, Particulate", "Oxamyl", "Oxychlordane",
-		            "Oxychlordane, Particulate", "Oxyfluorfen", "Paraquat", "Parathion, Ethyl", "Parathion, Methyl",
-		            "PCNB", "Pebulate", "Pendimethalin", "Penoxsulam", "Permethrin", "Permethrin, cis-",
-		            "Permethrin, trans-", "Perthane", "Phenothrin", "Phorate", "Phosalone", "Phosmet", "Phosphamidon",
-		            "Piperonyl Butoxide", "Pirimiphos Methyl", "PrAllethrin", "Procymidone", "Profenofos",
-		            "Profluralin", "Prometon", "Prometryn", "Propachlor", "Propanil", "Propargite", "Propazine",
-		            "Propham", "Propoxur", "Pymetrozin", "Pyrethrin-2", "Pyrimethanil", "Quinoxyfen", "Resmethrin",
-		            "Safrotin", "Secbumeton", "Siduron", "Simazine", "Simetryn", "Sulfallate", "Sulfotep",
-		            "Tebuthiuron", "Tedion", "Terbufos", "Terbuthylazine", "Terbutryn", "Tetrachloro-m-xylene",
-		            "Tetrachlorvinphos", "Tetraethyl Pyrophosphate", "Tetramethrin", "T-Fluvalinate", "Thiamethoxam",
-		            "Thiobencarb", "Thionazin", "Tokuthion", "Total DDDs", "Total DDEs", "Total DDTs", "Total HCHs",
-		            "Total Pyrethrins", "Toxaphene", "Tralomethrin", "Tributyl Phosphorotrithioate, S,S,S-",
-		            "Trichlorfon", "Trichloronate", "Triclopyr", "Tridimephon", "Vinclozolin", ]
-		WaterChem = FILES["WaterChemistryData"]
-		path, fileName = os.path.split(WaterChem)
-		newFileName = 'Pesticides' + "_" + today + extension
-		column_filter = 'DW_AnalyteName'
-		name, location, sitesname, siteslocation = selectByAnalyte(path=path, fileName=fileName, newFileName=newFileName, analytes=analytes,
-		                field_filter=column_filter, sep=sep)
-		FILES[name] = location
-		FILES[sitesname] = siteslocation
-		print("\t\tFinished writing data subset for Pesticides\n\n")
-	############## ^^^^^^^^^^^^  Subsets of datasets for Pesticides
-
 
 ##########################################################################################################
 ##########################################################################################################
@@ -1134,102 +1038,3 @@ for fname in files_delete:
 		# remove the csv file
 		os.remove(csv_file)
 		print("Deleted: " + csv_file )
-
-
-##########################################################################################################
-##########################################################################################################
-############### ####       Upload to Data.ca.gov section            ######################################
-##########################################################################################################
-##########################################################################################################
-
-##### upload dataset to data.ca.gov
-#print("Starting to upload files to Data.ca.gov")
-#user = os.environ.get('DCG_user')
-#password = os.environ.get('DCG_pw')
-#URI = os.environ.get('URI')
-#api = DatasetAPI(URI, user, password, debug=False)
-## the uploads variable is a dictionary that needs a file path and the Node # from data.ca.gov
-## The FILES object has the file path information and we use it as a key for the Node # in the for loop below.
-#uploads = {FILES['BenthicData']: 431, FILES['ToxicityData']: 541, FILES['All_CEDEN_Sites']: 2331,
-#           FILES['TissueData_prior_to_1999']: 2366, FILES['TissueData_2000-2009']: 2361,
-#           FILES['TissueData_2010-present']: 2086, FILES['HabitatData_prior_to_1999']: 2376,
-#           FILES['HabitatData_2000-2009']: 2371, # FILES['HabitatData_2010-present']: 2036,
-#           FILES['WaterChemistryData_prior_to_1999']: 2386, FILES['SafeToSwim' + '_' + today + '.csv']: 2396,
-#           FILES['Sites_for_SafeToSwim' + '_' + today + '.csv']: 2401, }
-#uploads_names = {'BenthicData': 431, 'ToxicityData': 541, 'All_CEDEN_Sites': 2331,
-#                 'TissueData_prior_to_1999': 2366, 'TissueData_2000-2009': 2361,
-#                 'TissueData_2010-present': 2086, 'HabitatData_prior_to_1999': 2376,
-#                 'HabitatData_2000-2009': 2371, # 'HabitatData_2010-present': 2036,
-#                 'WaterChemistryData_prior_to_1999': 2386, 'SafeToSwim' + '_' + today + '.csv': 2396,
-#                 'Sites_for_SafeToSwim' + '_' + today + '.csv': 2401, }
-#  
-## create a text file to act as a log
-#saveLocation = os.path.join(first, 'Upload_Logs')		
-#log_file = saveLocation + '\\' + today + '.txt'
-#outF = open(log_file, "w")
-#outF.write('MESSAGES FROM THE API UPLOAD SCRIPT:\n')
-## Run the script to upload the csv files via the API
-#for file in uploads:
-#    print("Starting to upload %s to Data.ca.gov" % os.path.basename(file))
-#    outF.write("Starting to upload %s to Data.ca.gov" % os.path.basename(file))
-#    r = api.attach_file_to_node(file=file, node_id=uploads[file], field='field_upload', update=0)
-#    if r.ok:
-#        print("Completed uploading %s to data.ca.gov" % os.path.split(file)[1])
-#        outF.write("\nCompleted uploading %s to data.ca.gov\n\n" % os.path.split(file)[1])
-#        r.close()
-#        del r
-#    else:
-#        print("Error with %s. Here is the response error code: %s " % (os.path.split(file)[1], r.status_code))
-#        print("  - Here is the response text:")
-#        print(r.text)
-#        print(r.reason)
-#        outF.write("\nError with %s. Here is the response error code: %s " % (os.path.split(file)[1], r.status_code))
-#        outF.write("  - Here is the response text:")
-#        outF.write(r.text)
-#        outF.write(r.reason)
-#        outF.write('\n\n')
-#        r.close()
-#        del r
-## check the files on the data portal and write the names to the log file
-#outF.write('\n\n\n================================================================================================\n')
-#outF.write('CHECK: Retrieve the filename of the file on the data portal for each dataset updated via the API\n')
-#for file_name in uploads_names:
-#    node_id=uploads_names[file_name]
-#    r = api.node('retrieve', node_id = node_id)
-#    node_info = r.json()
-#    current_dataportal_filename = node_info['field_upload']['und'][0]['filename']
-#    outF.write('Dataset: ' + file_name)
-#    outF.write('\n' + 'File on Data Portal: ' + current_dataportal_filename)
-#    outF.write('\n\n')
-#    # close the log file
-#outF.close()
-
-
-
-## for reference, here is the files object
-#FILES = {'All_CEDEN_Sites': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\All_CEDEN_Sites_2019-07-08.csv',
-#'BenthicData': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\BenthicData_2019-07-08.csv',
-#'BenthicData_2000-2009': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\BenthicData_2000-2009_2019-07-08.csv',
-#'BenthicData_2010-present': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\BenthicData_2010-present_2019-07-08.csv',
-#'BenthicData_prior_to_1999': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\BenthicData_prior_to_1999_2019-07-08.csv',
-#'HabitatData': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\HabitatData_2019-07-08.csv',
-#'HabitatData_2000-2009': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\HabitatData_2000-2009_2019-07-08.csv',
-#'HabitatData_2010-present': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\HabitatData_2010-present_2019-07-08.csv',
-#'HabitatData_prior_to_1999': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\HabitatData_prior_to_1999_2019-07-08.csv',
-#'Pesticides_2019-07-08.csv': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\Pesticides_2019-07-08.csv',
-#'SafeToSwim_2019-07-08.csv': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\SafeToSwim_2019-07-08.csv',
-#'Sites_for_Pesticides_2019-07-08.csv': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\Sites_for_Pesticides_2019-07-08.csv',
-#'Sites_for_SafeToSwim_2019-07-08.csv': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\Sites_for_SafeToSwim_2019-07-08.csv',
-#'TissueData': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\TissueData_2019-07-08.csv',
-#'TissueData_2000-2009': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\TissueData_2000-2009_2019-07-08.csv',
-#'TissueData_2010-present': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\TissueData_2010-present_2019-07-08.csv',
-#'TissueData_prior_to_1999': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\TissueData_prior_to_1999_2019-07-08.csv',
-#'ToxicityData': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\ToxicityData_2019-07-08.csv',
-#'ToxicityData_2000-2009': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\ToxicityData_2000-2009_2019-07-08.csv',
-#'ToxicityData_2010-present': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\ToxicityData_2010-present_2019-07-08.csv',
-#'ToxicityData_prior_to_1999': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\ToxicityData_prior_to_1999_2019-07-08.csv',
-#'WQX_Stations': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\WQX_Stations_2019-07-08.csv',
-#'WaterChemistryData': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\WaterChemistryData_2019-07-08.csv',
-#'WaterChemistryData_2000-2009': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\WaterChemistryData_2000-2009_2019-07-08.csv',
-#'WaterChemistryData_2010-present': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\WaterChemistryData_2010-present_2019-07-08.csv',
-#'WaterChemistryData_prior_to_1999': r'C:\David\Open_Data_Project\__CA_DataPortal\CEDEN\Python_Script\CEDEN_Datasets\WaterChemistryData_prior_to_1999_2019-07-08.csv'}

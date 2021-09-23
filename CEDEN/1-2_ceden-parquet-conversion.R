@@ -3,8 +3,8 @@
     # https://gist.github.com/jthomasmock/b8a1c6e90a199cf72c6c888bd899e84e
 #####################################################################################
 
-#### SETUP #######################################################################
-# load packages
+
+# load packages -----------------------------------------------------------
 library(arrow)
 library(tidyverse)
 library(tictoc)
@@ -15,35 +15,59 @@ library(readxl)
 library(zip)
 library(lubridate)
 
-# enter some information and create a parent directory
-download_date <- '2021-09-01'
-list_datasets <- list('ceden_chemistry' = c(file_name = 'WaterChemistryData',
-                                            data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx'),
-                      'ceden_tissue' = c(file_name = 'TissueData',
-                                         data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx'),
-                      'ceden_habitat' = c(file_name = 'HabitatData',
-                                          data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx'),
-                      'ceden_benthic' = c(file_name = 'BenthicData',
-                                          data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx'),
-                      'ceden_toxicity' = c(file_name = 'ToxicityData',
-                                           data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx'))
-data_dictionaries_path <- 'C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\CEDEN\\data_dictionaries\\data_dictionary_conversion'
-data_files_path <- 'C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets'
-file_save_location <- 'C:\\David\\_CA_data_portal\\CEDEN\\parquet_datasets\\'
 
+
+# enter variables ---------------------------------------------------------
+### path to data files ----
+# data_files_date <- Sys.Date()
+# data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\{data_files_date}\\')
+# data_dictionaries_path <- here('data_dictionaries', 'data_dictionary_conversion')
+# parquet_file_save_location <- paste0(data_files_path, 'parquet_datasets')
+
+### define parquet files to upload ----
+# parquet_resource_id_list <- list(
+#     'WaterChemistryData_parquet' = list(file_name = 'WaterChemistryData',
+#                                         data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx',
+#                                         dataset_name = 'surface-water-chemistry-results',
+#                                         dataset_id = 'f4aa224d-4a59-403d-aad8-187955aa2e38',
+#                                         data_file = glue('{parquet_file_save_location}\\WaterChemistryData_parquet_{data_files_date}.zip')),
+#     'TissueData_parquet' = list(file_name = 'TissueData',
+#                                 data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx',
+#                                 dataset_name = 'surface-water-aquatic-organism-tissue-sample-results',
+#                                 dataset_id = 'dea5e450-4196-4a8a-afbb-e5eb89119516',
+#                                 data_file = glue('{parquet_file_save_location}\\TissueData_parquet_{data_files_date}.zip')),
+#     'HabitatData_parquet' = list(file_name = 'HabitatData',
+#                                  data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
+#                                  dataset_name = 'surface-water-habitat-results',
+#                                  dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
+#                                  data_file = glue('{parquet_file_save_location}\\HabitatData_parquet_{data_files_date}.zip')),
+#     'BenthicData_parquet' = list(file_name = 'BenthicData',
+#                                  data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx',
+#                                  dataset_name = 'surface-water-benthic-macroinvertebrate-results',
+#                                  dataset_id = 'eb61f9a1-b1c6-4840-99c7-420a2c494a43',
+#                                  data_file = glue('{parquet_file_save_location}\\BenthicData_parquet_{data_files_date}.zip')),
+#     'ToxicityData_parquet' = list(file_name = 'ToxicityData',
+#                                   data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx',
+#                                   dataset_name = 'surface-water-toxicity-results',
+#                                   dataset_id = 'a6c91662-d324-43c2-8166-a94dddd22982',
+#                                   data_file = glue('{parquet_file_save_location}\\ToxicityData_parquet_{data_files_date}.zip'))
+# )
 
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # create function to create a parquet file for data from 2000 - present
 # create parquet file for for a single year, given the year, directory name for the new file, and file name for the source data
 convert_data <- function(year, directory_name, file_name) {
-    source_file <- glue('{data_files_path}\\{download_date}\\{file_name}_year-{year}_{download_date}.csv')
+    source_file <- glue('{data_files_path}{file_name}_year-{year}_{data_files_date}.csv')
     # check to see if source data file exists, if so create a corresponding parquet file
     if (file.exists(source_file)) {
         # create directory for the given year
-        dir.create(paste0(file_save_location, directory_name, '\\', year))
+        dir.create(paste0(parquet_file_save_location, '\\', directory_name, '\\', year))
         
         # read source data file
-        df_ceden <- read_csv(glue('{data_files_path}\\{download_date}\\{file_name}_year-{year}_{download_date}.csv'), 
+        # df_ceden <- read_csv(glue('{data_files_path}\\{data_files_date}\\{file_name}_year-{year}_{data_files_date}.csv'), 
+        #                      col_types = field_types,
+        #                      na = 'NaN')
+        df_ceden <- read_csv(source_file, 
                              col_types = field_types,
                              na = 'NaN')
         
@@ -57,7 +81,7 @@ convert_data <- function(year, directory_name, file_name) {
         
         # create parquet file
         arrow::write_parquet(df_ceden, 
-                             paste0(file_save_location, directory_name, '\\', year, '\\', 'data.parquet'))
+                             paste0(parquet_file_save_location, '\\', directory_name, '\\', year, '\\', 'data.parquet'))
     }
 }
 
@@ -66,7 +90,7 @@ convert_data <- function(year, directory_name, file_name) {
 # create parquet file for for a single year, given the year, directory name for the new file, and data frame with source data
     convert_data_pre2000 <- function(year, directory_name, source_data){
         # create directory for the given year
-        dir.create(paste0(file_save_location, directory_name, '\\', year))
+        dir.create(paste0(parquet_file_save_location, '\\', directory_name, '\\', year))
         
         # filter source data for given year
         df_ceden_year <- source_data %>% 
@@ -75,22 +99,23 @@ convert_data <- function(year, directory_name, file_name) {
         
         # create parquet
         arrow::write_parquet(df_ceden_year, 
-                             paste0(file_save_location, directory_name, '\\', year, '\\', 'data.parquet'))
+                             paste0(parquet_file_save_location, '\\', directory_name, '\\', year, '\\', 'data.parquet'))
     }
 
     
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # loop through all of the datasets and create parquet files
-for (i in seq_along(names(list_datasets))) {
-    directory_name <- names(list_datasets[i])
-    directory_name <- glue('{directory_name}_{download_date}')
+dir.create(parquet_file_save_location)
+for (i in seq_along(names(parquet_resource_id_list))) {
+    directory_name <- names(parquet_resource_id_list[i])
+    directory_name <- glue('{directory_name}_{data_files_date}')
     # create a directory for the given data type
-    dir.create(paste0(file_save_location, directory_name))
-    latest_year <- year(as.Date(download_date))
-    file_name <- list_datasets[[i]][['file_name']]
+    dir.create(paste0(parquet_file_save_location, '\\', directory_name))
+    latest_year <- year(as.Date(data_files_date))
+    file_name <- parquet_resource_id_list[[i]][['file_name']]
     
     # create a list of the column types, to use when reading in the data
-    df_types <- read_xlsx(glue('{data_dictionaries_path}\\{list_datasets[[i]][["data_dictionary"]]}')) #water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx")
+    df_types <- read_xlsx(glue('{data_dictionaries_path}\\{parquet_resource_id_list[[i]][["data_dictionary"]]}')) #water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx")
     field_types <- df_types %>% 
         pull(type) %>% 
         str_replace(pattern = 'text', replacement = 'c') %>% 
@@ -111,7 +136,7 @@ for (i in seq_along(names(list_datasets))) {
 
     #### pre-2000 data ####
     # read file
-    df_ceden_pre2000 <- read_csv(glue('{data_files_path}\\{download_date}\\{file_name}_prior_to_2000_{download_date}.csv'), 
+    df_ceden_pre2000 <- read_csv(glue('{data_files_path}\\{file_name}_prior_to_2000_{data_files_date}.csv'), 
                                       col_types = field_types, 
                                       na = 'NaN') %>% 
         mutate(sample_year = year(SampleDate))
@@ -139,7 +164,7 @@ for (i in seq_along(names(list_datasets))) {
     
     # add all of the files to a zip file, but without compression (this file can be loaded to the data portal)
     zip::zip(zipfile = glue('{directory_name}.zip'), 
-             root = paste0(file_save_location, directory_name),
+             root = paste0(parquet_file_save_location, '\\', directory_name),
              recurse = TRUE,
              #mode = 'cherry-pick',
              # files = glue('{directory_name}/{list.files(directory_name, recursive = TRUE)}'),
@@ -147,25 +172,40 @@ for (i in seq_along(names(list_datasets))) {
              compression_level = 0)
     
     # move the zip file back to the working directory
-    if (file.copy(from = glue('{file_save_location}{directory_name}/{directory_name}.zip'), to = file_save_location)) {
-        unlink(glue('{file_save_location}{directory_name}/{directory_name}.zip'))
+    if (file.copy(from = glue('{parquet_file_save_location}\\{directory_name}/{directory_name}.zip'), 
+                  to = parquet_file_save_location)) {
+        unlink(glue('{parquet_file_save_location}\\{directory_name}/{directory_name}.zip'))
     }
     
     # delete the un-zipped folder
-    unlink(paste0(file_save_location, directory_name), recursive = TRUE)
+    unlink(paste0(parquet_file_save_location, '\\', directory_name), 
+           recursive = TRUE)
 }
     
 
     
 # #### TEST ############################################################################
+## NOTE: Have to unzip the parquet file for this to work
 # # open connection as arrow
-#     directory_name_chem <- names(list_datasets[1])
-#     directory_name_chem <- glue('{directory_name_chem}_{download_date}')
-#     ds_chemistry <- open_dataset(directory_name_chem, partitioning = "year")
-# 
+    # directory_name_test <- names(parquet_resource_id_list[1])
+    # directory_name_test <- glue('{directory_name_test}_{data_files_date}')
+    # directory_path <- glue(parquet_file_save_location, '\\', directory_name_test)
+    # ds_test <- open_dataset(directory_path, partitioning = "year")
+#
+# # pull some data
+    # tic()
+    # df_from_arrow <- ds_test %>%
+    #     select(year, Family) %>%
+    #     # filter(Analyte %in% c("E. coli")) %>%
+    #     collect()
+    # toc()
+    # 
+    # df_from_arrow_all %>% count(Family)
+    # View(df_from_arrow_all %>% count(year))
+#
 # # pull some data
 #     tic()
-#     df_from_arrow_all <- ds_chemistry %>% 
+#     df_from_arrow_all <- ds_test %>% 
 #         select(year, Analyte, Unit, Result, MDL, RL) %>%
 #         filter(Analyte %in% c("E. coli")) %>% 
 #         collect() 
@@ -176,7 +216,7 @@ for (i in seq_along(names(list_datasets))) {
 # 
 # # pull some data then summarize
 #     tic()
-#     df_from_arrow_all_summarize <- ds_chemistry %>% 
+#     df_from_arrow_all_summarize <- ds_test %>% 
 #         select(year, Analyte, Unit, Result, MDL, RL) %>%
 #         filter(Analyte %in% c("E. coli")) %>% 
 #         # collect() %>% 
@@ -193,7 +233,7 @@ for (i in seq_along(names(list_datasets))) {
 # 
 # # get number of records by year
 #     tic()
-#     df_from_arrow_all_counts <- ds_chemistry %>% 
+#     df_from_arrow_all_counts <- ds_test %>% 
 #         select(year, Analyte, Unit, Result, MDL, RL) %>%
 #         # filter(Analyte %in% c("E. coli")) %>% 
 #         collect() %>%
@@ -211,7 +251,7 @@ for (i in seq_along(names(list_datasets))) {
 #     
 # # single year
 #     tic()
-#     df_from_arrow_one_year <- ds_chemistry %>% 
+#     df_from_arrow_one_year <- ds_test %>% 
 #         # select(year, Analyte, Unit, Result, MDL, RL) %>%
 #         filter(Analyte %in% c("E. coli"), 
 #                year == 2018) %>%
