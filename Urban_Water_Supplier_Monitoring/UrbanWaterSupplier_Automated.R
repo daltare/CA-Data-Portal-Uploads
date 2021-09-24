@@ -152,67 +152,111 @@ tryCatch(
 
 
 # 4 - get link to source dataset ----------------------------------------------       
-## This loop cycles through each day of the current month until it finds a file posted in the current month.
-## It assumes that the file is formated in a specific way (e.g., as 'YYYYmmm/uw_supplier_dataMMDDYY.xlsx', 
-## so for August 2017, it's: '2017aug/uw_supplier_data080117.xlsx'), where the base URL is: 
-## 'http://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/'.
+
 tryCatch(
     {
-        status <- 'File does not exist'
-        i <- 1
-        # Try various versions of the link, and check to see if the file exists
-        while((status == 'File does not exist') & (i < 32)) {
-            # link version 1
+        # get the url for the reports page (if not found for current year, try last year)
+        tryCatch(
             {
-                test.link <- paste0(base_url, year(Sys.Date()), tolower(month.abb[month(Sys.Date())]), # build the link for a given date
-                                    '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
-                result <- suppressWarnings(tryCatch(readLines(con = test.link, n = 10), # check to see if a file with the given date exists
-                                                    error=function(e) return("Error")))
-                if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
+                reports_url <- glue('{base_url}{year(Sys.Date())}_reports/')
+                reports_page <- readLines(reports_url)
+            },
+            error = function(e) {
+                reports_url <<- glue('{base_url}{year(Sys.Date())-1}_reports/') # have to use <<- to return the value to the global environment
+                reports_page <<- readLines(reports_url) # have to use <<- to return the value to the global environment
             }
-            # link version 2
-            if (status == 'File does not exist') {
-                test.link <- paste0(base_url, year(Sys.Date()), '_reports', # build the link for a given date
-                                    '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
-                result <- suppressWarnings(tryCatch(readLines(con = test.link, n = 10), # check to see if a file with the given date exists
-                                                    error=function(e) return("Error")))
-                if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
-            }
-            # link version 3 - sometimes the month name uses 4 characters instead of 3 - e.g. July 2018 - if the above didn't work, rebuild the link with the first 4 letters and try that
-            if (status == 'File does not exist') {
-                test.link <- paste0(base_url, year(Sys.Date()), tolower(substr(month.name[month(Sys.Date())],1,4)), # build the link for a given date
-                                    '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
-                result <- suppressWarnings(tryCatch(readLines(con = test.link, n = 10), # check to see if a file with the given date exists
-                                                    error=function(e) return("Error")))
-                if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
-            }
-            # link version 4 - sometimes the month name uses 4 characters instead of 3 - e.g. July 2018 - if the above didn't work, rebuild the link with the first 4 letters and try that
-            if (status == 'File does not exist') {
-                test.link <- paste0(base_url, year(Sys.Date()), '_reports', # build the link for a given date
-                                    '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
-                result <- suppressWarnings(tryCatch(readLines(con = test.link, n = 10), # check to see if a file with the given date exists
-                                                    error=function(e) return("Error")))
-            }
-            #  link version 5 - try again with an underscore before the date
-            if (status == 'File does not exist') {
-                test.link <- paste0(base_url, year(Sys.Date()), tolower(month.abb[month(Sys.Date())]), # build the link for a given date
-                                    '/uw_supplier_data_', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
-                result <- suppressWarnings(tryCatch(readLines(con = test.link, n = 10), # check to see if a file with the given date exists
-                                                    error=function(e) return("Error")))
-                if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
-            }
-            #  link version 6 - try again with an underscore before the date
-            if (status == 'File does not exist') {
-                test.link <- paste0(base_url, year(Sys.Date()), '_reports', # build the link for a given date
-                                    '/uw_supplier_data_', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
-                result <- suppressWarnings(tryCatch(readLines(con = test.link, n = 10), # check to see if a file with the given date exists
-                                                    error=function(e) return("Error")))
-                if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
-            }
-            if(status == 'File does not exist') {i <- i + 1} # increment i if the status is still the same
-            if(i > 31) {break} # just to make sure it doesn't go into an endless loop, stops if it goes beyond day 31 in the month
-        }
-        # print(paste0('Status: ', status)) # just a check, not needed
+        )
+        
+        # extract the lines that contain '.xlsx' and some form of 'uw supplier data'
+        condition_1 <- str_detect(string = reports_page, 
+                                  pattern = '.xlsx')
+        
+        condition_2 <- str_detect(string = str_replace_all(reports_page, '_|-', ''), # remove all '_' and '-' before searching for the 'uwsupplierdata' string
+                                  pattern =  'uwsupplierdata')
+        
+        lines_reports <- reports_page[condition_1 & condition_2]
+        
+        # extract dates from the selected lines
+        lines_dates <- str_extract(string = lines_reports, 
+                                   pattern = '\\d+-\\d+-\\d+')
+        upload_dates <- ymd(lines_dates)
+        most_recent <- max(upload_dates)
+        
+        # get the line with the most recent date
+        line_most_recent <- lines_reports[str_detect(string = lines_reports, 
+                                                     pattern = as.character(most_recent))]
+        
+        # extract the file name from the line with most recent date
+        file_name <- str_extract(string = line_most_recent, 
+                                 pattern = '<a href=(.+).xlsx') # the (.+) part is a wildcard
+        file_name <- str_remove(string = file_name, 
+                                pattern = '<a href=\"')
+        
+        # get the url to the most recent file
+        file_url <-  file.path(glue('{reports_url}{file_name}'))
+        
+        status <- 'File exists'
+        
+        ### OLD METHOD 
+        ## This loop cycles through each day of the current month until it finds a file posted in the current month.
+        ## It assumes that the file is formated in a specific way (e.g., as 'YYYYmmm/uw_supplier_dataMMDDYY.xlsx', 
+        ## so for August 2017, it's: '2017aug/uw_supplier_data080117.xlsx'), where the base URL is: 
+        ## 'http://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/'.
+        # status <- 'File does not exist'
+        # i <- 1
+        # # Try various versions of the link, and check to see if the file exists
+        # while((status == 'File does not exist') & (i < 32)) {
+        #     # link version 1
+        #     {
+        #         test_link <- paste0(base_url, year(Sys.Date()), tolower(month.abb[month(Sys.Date())]), # build the link for a given date
+        #                             '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
+        #         result <- suppressWarnings(tryCatch(readLines(con = test_link, n = 10), # check to see if a file with the given date exists
+        #                                             error=function(e) return("Error")))
+        #         if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
+        #     }
+        #     # link version 2
+        #     if (status == 'File does not exist') {
+        #         test_link <- paste0(base_url, year(Sys.Date()), '_reports', # build the link for a given date
+        #                             '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
+        #         result <- suppressWarnings(tryCatch(readLines(con = test_link, n = 10), # check to see if a file with the given date exists
+        #                                             error=function(e) return("Error")))
+        #         if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
+        #     }
+        #     # link version 3 - sometimes the month name uses 4 characters instead of 3 - e.g. July 2018 - if the above didn't work, rebuild the link with the first 4 letters and try that
+        #     if (status == 'File does not exist') {
+        #         test_link <- paste0(base_url, year(Sys.Date()), tolower(substr(month.name[month(Sys.Date())],1,4)), # build the link for a given date
+        #                             '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
+        #         result <- suppressWarnings(tryCatch(readLines(con = test_link, n = 10), # check to see if a file with the given date exists
+        #                                             error=function(e) return("Error")))
+        #         if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
+        #     }
+        #     # link version 4 - sometimes the month name uses 4 characters instead of 3 - e.g. July 2018 - if the above didn't work, rebuild the link with the first 4 letters and try that
+        #     if (status == 'File does not exist') {
+        #         test_link <- paste0(base_url, year(Sys.Date()), '_reports', # build the link for a given date
+        #                             '/uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
+        #         result <- suppressWarnings(tryCatch(readLines(con = test_link, n = 10), # check to see if a file with the given date exists
+        #                                             error=function(e) return("Error")))
+        #     }
+        #     #  link version 5 - try again with an underscore before the date
+        #     if (status == 'File does not exist') {
+        #         test_link <- paste0(base_url, year(Sys.Date()), tolower(month.abb[month(Sys.Date())]), # build the link for a given date
+        #                             '/uw_supplier_data_', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
+        #         result <- suppressWarnings(tryCatch(readLines(con = test_link, n = 10), # check to see if a file with the given date exists
+        #                                             error=function(e) return("Error")))
+        #         if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
+        #     }
+        #     #  link version 6 - try again with an underscore before the date
+        #     if (status == 'File does not exist') {
+        #         test_link <- paste0(base_url, year(Sys.Date()), '_reports', # build the link for a given date
+        #                             '/uw_supplier_data_', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), year(Sys.Date())-2000, '.xlsx')
+        #         result <- suppressWarnings(tryCatch(readLines(con = test_link, n = 10), # check to see if a file with the given date exists
+        #                                             error=function(e) return("Error")))
+        #         if(result[1] != 'Error' & result[1]!= '<!doctype html>') {status <- 'File exists'}
+        #     }
+        #     if(status == 'File does not exist') {i <- i + 1} # increment i if the status is still the same
+        #     if(i > 31) {break} # just to make sure it doesn't go into an endless loop, stops if it goes beyond day 31 in the month
+        # }
+        # # print(paste0('Status: ', status)) # just a check, not needed
     },
     error = function(e) {
         error_message <- glue('getting source file link (NOTE: portal was last updated {update_lag} days ago)')
@@ -229,14 +273,17 @@ tryCatch(
 tryCatch(
     {
         if(status == 'File exists') {
-            dest_filename <- paste0('uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), 
-                                    year(Sys.Date())-2000, '.xlsx')
+            dest_filename <- file_name
+            test_link <- file_url
+            # dest_filename <- paste0('uw_supplier_data', sprintf('%02d',month(Sys.Date())), sprintf('%02d',i), 
+            #                         year(Sys.Date())-2000, '.xlsx')
             # check to see if the downloaded data is the same as the existing data on the CA portal - if so, no update needed
-            check_data <- identical(strsplit(ckan_resource_file, '.csv')[[1]], strsplit(dest_filename, '.xlsx')[[1]])
+            check_data <- identical(strsplit(ckan_resource_file, '.csv')[[1]], 
+                                    strsplit(dest_filename, '.xlsx')[[1]])
             if(check_data == FALSE) { # only do this if there is new data that hasn't already been uploaded to the CA data portal
                 directory_name <- paste0(year(Sys.Date()), '-', sprintf('%02d',month(Sys.Date())))
                 dir.create(paste0(file_save_location, '\\', directory_name), showWarnings = FALSE)
-                download.file(url = test.link, 
+                download.file(url = test_link, 
                               destfile = paste0(file_save_location, '\\', directory_name, '\\', dest_filename), 
                               method = 'curl')
                 # print('File downloaded') # just a check, not needed
@@ -391,7 +438,6 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
             # Write out the formatted file as a CSV
             output_path <- paste0(file_save_location, '\\', directory_name, '\\', strsplit(dest_filename, '.xlsx')[[1]], '.csv')
             write.csv(dataset, file = output_path, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
-            
         },
         error = function(e) {
             error_message <- glue('writing formatted dataset to csv files (NOTE: portal was last updated {update_lag} days ago)')
