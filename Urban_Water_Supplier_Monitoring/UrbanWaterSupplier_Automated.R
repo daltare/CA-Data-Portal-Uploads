@@ -18,8 +18,17 @@ library(sendmailR)
 
 
 # 1 - user inputs -------------------------------------------------------------
+## homepage of the waterboard's "Water Conservation Portal"
+url_base <- 'https://www.waterboards.ca.gov/water_issues/programs/conservation_portal'
+
+## webpage for the waterboard's "Water Conservation and Production Reports"  that contains the link to the dataset
+url_conservation_portal <- glue('{url_base}/conservation_reporting.html')
+
+## base url where the data file is stored (path to specific dataset is appended to this base url)
+url_resources <- glue('{url_base}/docs') # the actual location where the conservation datasets are stored
+
 ## url where the data is retrieved from
-base_url <- 'https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/' # the location where the conservation datasets are posted
+# base_url <- 'https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/docs/' # the location where the conservation datasets are posted
 
 ## portal resource ID
 ckan_resource_id <- '0c231d4c-1ea7-43c5-a041-a3a6b02bac5e' # https://data.ca.gov/dataset/drinking-water-public-water-system-operations-monthly-water-production-and-conservation-information/resource/0c231d4c-1ea7-43c5-a041-a3a6b02bac5e
@@ -155,49 +164,85 @@ tryCatch(
 
 tryCatch(
     {
-        # get the url for the reports page (if not found for current year, try last year)
-        tryCatch(
-            {
-                reports_url <- glue('{base_url}{year(Sys.Date())}_reports/')
-                reports_page <- readLines(reports_url)
-            },
-            error = function(e) {
-                reports_url <<- glue('{base_url}{year(Sys.Date())-1}_reports/') # have to use <<- to return the value to the global environment
-                reports_page <<- readLines(reports_url) # have to use <<- to return the value to the global environment
-            }
-        )
+        ### METHOD 1 --------------------------------------------------------
+        ### get the link from the main webpage
+            
+        ## read the conservation portal webpage (raw html)
+        reports_page <- readLines(url_conservation_portal)
         
-        # extract the lines that contain '.xlsx' and some form of 'uw supplier data'
+        ## cut out everything after the 'Archived Monthly Report' header
+        reports_page <- reports_page[1:grep('Archived Monthly Report', reports_page)[1]] 
+        
+        ## extract the lines that contain '.xlsx' and some form of 'uw supplier data'
         condition_1 <- str_detect(string = reports_page, 
                                   pattern = '.xlsx')
         
         condition_2 <- str_detect(string = str_replace_all(reports_page, '_|-', ''), # remove all '_' and '-' before searching for the 'uwsupplierdata' string
                                   pattern =  'uwsupplierdata')
+        line_report <- reports_page[condition_1 & condition_2][1] # should only be one, but if not this will return the first/top one on the page
         
-        lines_reports <- reports_page[condition_1 & condition_2]
-        
-        # extract dates from the selected lines
-        lines_dates <- str_extract(string = lines_reports, 
-                                   pattern = '\\d+-\\d+-\\d+')
-        upload_dates <- ymd(lines_dates)
-        most_recent <- max(upload_dates)
-        
-        # get the line with the most recent date
-        line_most_recent <- lines_reports[str_detect(string = lines_reports, 
-                                                     pattern = as.character(most_recent))]
-        
-        # extract the file name from the line with most recent date
-        file_name <- str_extract(string = line_most_recent, 
+        ## extract the file name / path from the line with most recent date (and clean any extraneous information)
+        file_path <- str_extract(string = line_report, 
                                  pattern = '<a href=(.+).xlsx') # the (.+) part is a wildcard
-        file_name <- str_remove(string = file_name, 
+        file_path <- str_remove(string = file_path, 
                                 pattern = '<a href=\"')
+        file_path <- str_remove(string = file_path, 
+                                pattern = 'docs/')
+        file_path <- str_remove(string = file_path, 
+                                pattern = 'https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/')
         
-        # get the url to the most recent file
-        file_url <-  file.path(glue('{reports_url}{file_name}'))
+        ## construct the url for the file
+        file_url <-  file.path(glue('{url_resources}/{file_path}'))
         
         status <- 'File exists'
+        file_name <- basename(file_path)
         
-        ### OLD METHOD 
+        ### METHOD 2 --------------------------------------------------------
+        ### find the most recent file with the supplier dataset on the page where datsets are stored
+        
+        # # get the url for the reports page (if not found for current year, try last year)
+        # tryCatch(
+        #     {
+        #         reports_url <- glue('{base_url}{year(Sys.Date())}_reports/')
+        #         reports_page <- readLines(reports_url)
+        #     },
+        #     error = function(e) {
+        #         reports_url <<- glue('{base_url}{year(Sys.Date())-1}_reports/') # have to use <<- to return the value to the global environment
+        #         reports_page <<- readLines(reports_url) # have to use <<- to return the value to the global environment
+        #     }
+        # )
+        # 
+        # # extract the lines that contain '.xlsx' and some form of 'uw supplier data'
+        # condition_1 <- str_detect(string = reports_page, 
+        #                           pattern = '.xlsx')
+        # 
+        # condition_2 <- str_detect(string = str_replace_all(reports_page, '_|-', ''), # remove all '_' and '-' before searching for the 'uwsupplierdata' string
+        #                           pattern =  'uwsupplierdata')
+        # 
+        # lines_reports <- reports_page[condition_1 & condition_2]
+        # 
+        # # extract dates from the selected lines
+        # lines_dates <- str_extract(string = lines_reports, 
+        #                            pattern = '\\d+-\\d+-\\d+')
+        # upload_dates <- ymd(lines_dates)
+        # most_recent <- max(upload_dates)
+        # 
+        # # get the line with the most recent date
+        # line_most_recent <- lines_reports[str_detect(string = lines_reports, 
+        #                                              pattern = as.character(most_recent))]
+        # 
+        # # extract the file name from the line with most recent date
+        # file_name <- str_extract(string = line_most_recent, 
+        #                          pattern = '<a href=(.+).xlsx') # the (.+) part is a wildcard
+        # file_name <- str_remove(string = file_name, 
+        #                         pattern = '<a href=\"')
+        # 
+        # # get the url to the most recent file
+        # file_url <-  file.path(glue('{reports_url}{file_name}'))
+        # 
+        # status <- 'File exists'
+        
+        ### OLD METHOD ---------------------------------------------------------
         ## This loop cycles through each day of the current month until it finds a file posted in the current month.
         ## It assumes that the file is formated in a specific way (e.g., as 'YYYYmmm/uw_supplier_dataMMDDYY.xlsx', 
         ## so for August 2017, it's: '2017aug/uw_supplier_data080117.xlsx'), where the base URL is: 
