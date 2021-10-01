@@ -10,6 +10,7 @@ library(tidyverse)
 library(janitor)
 library(lubridate)
 library(blastula) # for sending automated email
+library(sendmailR)
 library(glue)
 
 
@@ -161,8 +162,9 @@ tryCatch(
 tryCatch(
     {
         df_data <- read_csv(file = temp, 
-                        col_types = cols(.default = col_character())) %>% #, quote = '') #%>% select(-X264)
-        type_convert()
+                            col_types = cols(.default = col_character())) %>% #, quote = '') #%>% select(-X264)
+            #type_convert() %>% 
+            {.}
     },
     error = function(e) {
         error_message <- 'reading data into R'
@@ -214,6 +216,23 @@ tryCatch(
     }
 )
 
+## ensure all records are in UTF-8 format, convert if not ----
+df_data_filter <- df_data_filter %>%
+    map_df(~iconv(., to = 'UTF-8'))
+
+
+## remove characters for quotes, tabs, returns, pipes, etc ----
+remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+df_data_filter <- df_data_filter %>%
+    map_df(~str_replace_all(., remove_characters, ' '))
+#     ### check - delete this later
+#     tf <- str_detect(replace_na(df_data_filter$record_summary, 'NA'),
+#                     remove_characters)
+#     sum(tf)
+#     check_rows <- df_data_filter$record_summary[tf]
+#     check_rows[1] # view first one
+#     check_rows_fixed <- str_replace_all(check_rows, remove_characters, ' ')
+#     check_rows_fixed[1] # view first one
 
 
 ## format date fields ----
@@ -334,20 +353,21 @@ tryCatch(
 
 
 # write to open data portal -----------------------------------------------
-tryCatch(
-    {
-        ckanr_setup(url = 'https://data.ca.gov/',
-                    key = portal_key)
-        # get resource info (just as a check)
-        # ckan_resource_info <- resource_show(id = resourceID, as = 'table')
-        file_upload <- resource_update(id = resourceID, path = out_file)
-    },
-    error = function(e) {
-        error_message <- 'uploading data to data.ca.gov portal'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
-)
-        
+# tryCatch(
+#     {
+#         ckanr_setup(url = 'https://data.ca.gov/',
+#                     key = portal_key)
+#         # get resource info (just as a check)
+#         # ckan_resource_info <- resource_show(id = resourceID, as = 'table')
+#         file_upload <- resource_update(id = resourceID, path = out_file)
+#     },
+#     error = function(e) {
+#         error_message <- 'uploading data to data.ca.gov portal'
+#         error_message_r <- capture.output(cat(as.character(e)))
+#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+#         print(glue('Error: {error_message}'))
+#         stop(e)
+#     }
+# )
+
+print('Completed Water Rights Data Upload Script')
