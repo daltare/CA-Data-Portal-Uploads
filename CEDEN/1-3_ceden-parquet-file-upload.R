@@ -30,37 +30,37 @@ library(tictoc)
 
 ### path to data files ----
 # data_files_date <- Sys.Date()
-# data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\{data_files_date}\\')
+# data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
 # data_dictionaries_path <- here('data_dictionaries', 'data_dictionary_conversion')
 # parquet_file_save_location <- paste0(data_files_path, 'parquet_datasets')
 
 ## list files / resources
 # parquet_resource_id_list <- list(
-#     'WaterChemistryData_parquet' = list(file_name = 'WaterChemistryData',
-#                                         data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx',
-#                                         dataset_name = 'surface-water-chemistry-results',
-#                                         dataset_id = 'f4aa224d-4a59-403d-aad8-187955aa2e38',
-#                                         data_file = glue('{parquet_file_save_location}\\WaterChemistryData_parquet_{data_files_date}.zip')),
-#     'TissueData_parquet' = list(file_name = 'TissueData',
-#                                 data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx',
-#                                 dataset_name = 'surface-water-aquatic-organism-tissue-sample-results',
-#                                 dataset_id = 'dea5e450-4196-4a8a-afbb-e5eb89119516',
-#                                 data_file = glue('{parquet_file_save_location}\\TissueData_parquet_{data_files_date}.zip')),
-#     'HabitatData_parquet' = list(file_name = 'HabitatData',
-#                                  data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
-#                                  dataset_name = 'surface-water-habitat-results',
-#                                  dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
-#                                  data_file = glue('{parquet_file_save_location}\\HabitatData_parquet_{data_files_date}.zip')),
-#     'BenthicData_parquet' = list(file_name = 'BenthicData',
-#                                  data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx',
-#                                  dataset_name = 'surface-water-benthic-macroinvertebrate-results',
-#                                  dataset_id = 'eb61f9a1-b1c6-4840-99c7-420a2c494a43',
-#                                  data_file = glue('{parquet_file_save_location}\\BenthicData_parquet_{data_files_date}.zip')),
-#     'ToxicityData_parquet' = list(file_name = 'ToxicityData',
-#                                   data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx',
-#                                   dataset_name = 'surface-water-toxicity-results',
-#                                   dataset_id = 'a6c91662-d324-43c2-8166-a94dddd22982',
-#                                   data_file = glue('{parquet_file_save_location}\\ToxicityData_parquet_{data_files_date}.zip'))
+#     'toxicity' = list(source_file_name = 'ToxicityData',
+#                       data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx',
+#                       portal_dataset_name = 'surface-water-toxicity-results',
+#                       portal_dataset_id = 'a6c91662-d324-43c2-8166-a94dddd22982',
+#                       parquet_data_file = glue('ToxicityData_Parquet_{data_files_date}')),
+#     'benthic' = list(source_file_name = 'BenthicData',
+#                      data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx',
+#                      portal_dataset_name = 'surface-water-benthic-macroinvertebrate-results',
+#                      portal_dataset_id = 'eb61f9a1-b1c6-4840-99c7-420a2c494a43',
+#                      parquet_data_file = glue('BenthicData_Parquet_{data_files_date}')),
+#     'chemistry' = list(source_file_name = 'WaterChemistryData',
+#                             data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx',
+#                             portal_dataset_name = 'surface-water-chemistry-results',
+#                             portal_dataset_id = 'f4aa224d-4a59-403d-aad8-187955aa2e38',
+#                             parquet_data_file = glue('WaterChemistryData_Parquet_{data_files_date}')),
+#     'tissue' = list(source_file_name = 'TissueData',
+#                     data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx',
+#                     portal_dataset_name = 'surface-water-aquatic-organism-tissue-sample-results',
+#                     portal_dataset_id = 'dea5e450-4196-4a8a-afbb-e5eb89119516',
+#                     parquet_data_file = glue('TissueData_Parquet_{data_files_date}')),
+#     'habitat' = list(source_file_name = 'HabitatData',
+#                      data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
+#                      portal_dataset_name = 'surface-water-habitat-results',
+#                      portal_dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
+#                      parquet_data_file = glue('HabitatData_Parquet_{data_files_date}'))
 # )
 
 
@@ -152,14 +152,19 @@ webElem <- remDr$findElement(using = 'id', value = 'field-password')
 webElem$sendKeysToElement(list(portal_password))
 webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
 webElem$clickElement()
+Sys.sleep(3)
 
 
-## loop through all resources and enter data ----
+## loop through all resources and upload file ----
 for (id_number in seq_along(names(parquet_resource_id_list))) {
+    gc()
     # id_number <- 4
-    data_resource_id <- parquet_resource_id_list[[id_number]][['dataset_id']]
-    dataset_name <- parquet_resource_id_list[[id_number]][['dataset_name']]
-    data_file <- parquet_resource_id_list[[id_number]][['data_file']]
+    data_resource_id <- parquet_resource_id_list[[id_number]][['portal_dataset_id']]
+    dataset_name <- parquet_resource_id_list[[id_number]][['portal_dataset_name']]
+    data_file <- parquet_resource_id_list[[id_number]][['parquet_data_file']]
+    data_file_path <- glue('{parquet_file_save_location}\\{data_file}.zip')
+    
+    print(glue('Uploading: {data_file}'))
 
     ### navigate to resource editor page ----
     edit_url <- paste0('https://data.ca.gov/dataset/', dataset_name, '/resource_edit/', data_resource_id)
@@ -174,7 +179,7 @@ for (id_number in seq_along(names(parquet_resource_id_list))) {
     # enter the path of the new file to be uploaded
     webElem <- remDr$findElement(using = 'css selector', value = paste0('#field-image-upload'))
     # webElem$clickElement()
-    webElem$sendKeysToElement(list(data_file))
+    webElem$sendKeysToElement(list(data_file_path))
     Sys.sleep(3)
     
     # click the 'Update Resource' button to upload the new file
@@ -195,7 +200,8 @@ for (id_number in seq_along(names(parquet_resource_id_list))) {
         t2 <- Sys.time()
         
         upload_time <- t2 - t1
-        print(glue('upload complete -- upload time: {round(upload_time,1)} {units(upload_time)}'))  
+        print(glue('Upload Complete -- upload time: {round(upload_time,1)} {units(upload_time)}')) 
+        print(glue('File Uploaded: {data_file}'))
     }
     
     # go to the next file

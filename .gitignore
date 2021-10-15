@@ -15,6 +15,10 @@ ignore/
 # *.xlsx
 # *.pdf
 
+.checkpoint
+
+water-rights-master-flat-file_GIS-server.R
+
 */email/
 */Original_Dataset_(From_MarkE)/
 

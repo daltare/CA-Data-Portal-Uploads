@@ -12,6 +12,7 @@ library(blastula)
 library(sendmailR)
 library(reticulate)
 library(here)
+library(checkpoint)
 
 
 
@@ -43,7 +44,7 @@ ceden_pwd <- Sys.getenv('PWD')
 
 ### path to data files ----
 data_files_date <- Sys.Date()
-data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\{data_files_date}\\')
+data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
 
 
 
@@ -71,7 +72,7 @@ fn_send_email <- function(error_msg, error_msg_r) {
     
     #### body ----
     body <- glue(
-                "Hi,
+        "Hi,
 There was an error uploading the CEDEN Data to the data.ca.gov portal on {Sys.Date()}.
                 
 ------
@@ -82,10 +83,16 @@ Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
 
 ------
                 
-Here's the link to the dataset on the data portal: 
-                
+Here's the link to the datasets on the data portal: 
+
+- Chemistry: https://data.ca.gov/dataset/surface-water-chemistry-results
+- Toxicity: https://data.ca.gov/dataset/surface-water-toxicity-results
+- Benthic: https://data.ca.gov/dataset/surface-water-benthic-macroinvertebrate-results
+- Habitat: https://data.ca.gov/dataset/surface-water-habitat-results
+- Tissue: https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-results
+
 The source data comes from the CEDEN data mart"                
-            )
+    )
     
     #### footer ----
     footer <- glue("Email sent on {date_time}.")
@@ -241,30 +248,6 @@ upload_files_list <- list(
         'year-2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
         'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
         'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'),
-    HabitatData = list(
-        'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
-        'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
-        'year-2019' = 'c0f230c5-3f51-4a7a-a3db-5eb8692654aa',
-        'year-2018' = 'd814ca0c-ace1-4cc1-a80f-d63f138e2f61',
-        'year-2017' = 'f7a33584-510f-46f8-a314-625f744ecbdd',
-        'year-2016' = '01e35239-6936-4699-b9db-fda4751be6e9',
-        'year-2015' = '115c55e3-40af-4734-877f-e197fdae6737',
-        'year-2014' = '082a7665-8f54-4e4f-9d24-cc3506bb8f3e',
-        'year-2013' = '3be276c3-9966-48de-b53a-9a98d9006cdb',
-        'year-2012' = '78d44ee3-65af-4c83-b75e-8a82b8a1db88',
-        'year-2011' = '2fa6d874-1d29-478a-a5dc-0c2d31230705',
-        'year-2010' = '2a8b956c-38fa-4a15-aaf9-cb0fcaf915f3',
-        'year-2009' = 'd025552d-de5c-4f8a-b2b5-a9de9e9c86c3',
-        'year-2008' = 'ce211c51-05a2-4a7c-be18-298099a0dcd2',
-        'year-2007' = '1659a2b4-21e5-4fc4-a9a4-a614f0321c05',
-        'year-2006' = '88b33d5b-5428-41e2-b77b-6cb46ca5d1e4',
-        'year-2005' = '1609e7ab-d913-4d24-a582-9ca7e8e82233',
-        'year-2004' = 'e5132397-69a5-46fb-b24a-cd3b7a1fe53a',
-        'year-2003' = '899f3ebc-538b-428e-8f1f-d591445a847c',
-        'year-2002' = 'a9d8302d-0d37-4cf3-bbeb-386f6bd948a6',
-        'year-2001' = 'ea8b0171-e226-4e80-991d-50752abea734',
-        'year-2000' = 'b3dba1ee-6ada-42d5-9679-1a10b44630bc',
-        'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848'),
     TissueData = list(
         #'year-2021' = ,
         'year-2020' = 'a3545e8e-2ab5-46b3-86d5-72a74fcd8261',
@@ -288,7 +271,31 @@ upload_files_list <- list(
         'year-2002' = '6a56b123-9275-4549-a625-e5aa6f2b8b57',
         'year-2001' = '47df34fd-8712-4f72-89ff-091b3e954399',
         'year-2000' = '06b35b3c-6338-44cb-b465-ba4c1863b7c5',
-        'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58')
+        'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'),
+    HabitatData = list(
+        'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
+        'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
+        'year-2019' = 'c0f230c5-3f51-4a7a-a3db-5eb8692654aa',
+        'year-2018' = 'd814ca0c-ace1-4cc1-a80f-d63f138e2f61',
+        'year-2017' = 'f7a33584-510f-46f8-a314-625f744ecbdd',
+        'year-2016' = '01e35239-6936-4699-b9db-fda4751be6e9',
+        'year-2015' = '115c55e3-40af-4734-877f-e197fdae6737',
+        'year-2014' = '082a7665-8f54-4e4f-9d24-cc3506bb8f3e',
+        'year-2013' = '3be276c3-9966-48de-b53a-9a98d9006cdb',
+        'year-2012' = '78d44ee3-65af-4c83-b75e-8a82b8a1db88',
+        'year-2011' = '2fa6d874-1d29-478a-a5dc-0c2d31230705',
+        'year-2010' = '2a8b956c-38fa-4a15-aaf9-cb0fcaf915f3',
+        'year-2009' = 'd025552d-de5c-4f8a-b2b5-a9de9e9c86c3',
+        'year-2008' = 'ce211c51-05a2-4a7c-be18-298099a0dcd2',
+        'year-2007' = '1659a2b4-21e5-4fc4-a9a4-a614f0321c05',
+        'year-2006' = '88b33d5b-5428-41e2-b77b-6cb46ca5d1e4',
+        'year-2005' = '1609e7ab-d913-4d24-a582-9ca7e8e82233',
+        'year-2004' = 'e5132397-69a5-46fb-b24a-cd3b7a1fe53a',
+        'year-2003' = '899f3ebc-538b-428e-8f1f-d591445a847c',
+        'year-2002' = 'a9d8302d-0d37-4cf3-bbeb-386f6bd948a6',
+        'year-2001' = 'ea8b0171-e226-4e80-991d-50752abea734',
+        'year-2000' = 'b3dba1ee-6ada-42d5-9679-1a10b44630bc',
+        'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848')
 )
 
 options(timeout = 3600) # default is 60, units are seconds
@@ -326,7 +333,7 @@ tryCatch(
             {
                 fn_send_email(error_msg = error_message, 
                               error_msg_r = error_message_r
-                              )
+                )
             },
             error = function(ee) {
                 write_lines(x = glue('{Sys.time()} - CEDEN: {error_message} ---- R error message: {glue_collapse(error_message_r, sep = " | ")}'), 
@@ -382,36 +389,46 @@ tryCatch(
 
 # 6 - create and upload parquet files -------------------------------------
 ## enter variables ----
-data_dictionaries_path <- here('data_dictionaries', 'data_dictionary_conversion')
-parquet_file_save_location <- paste0(data_files_path, 'parquet_datasets')
+data_dictionaries_path <- here('data_dictionaries', 
+                               'data_dictionary_conversion')
+parquet_file_save_location <- glue('{data_files_path}parquet_datasets')
+
+## set package versions ----
+### this allows you to use older versions of the arrow package
+### version 5 seems to be unstable (fails unpredictably, causing R to become unresponsive)
+### 2021-07-28 = arrow v4.0.1 (last release of v4)
+### 2021-05-09 = arrow v4.0.0
+### 2021-04-26 = arrow v3.0.0
+### 2021-01-26 = arrow v2.0.0 # this should work
+checkpoint('2021-07-28') # , checkpoint_location = here())
 
 ### define parquet files to create & upload ----
 parquet_resource_id_list <- list(
-    'ToxicityData_Parquet' = list(file_name = 'ToxicityData',
-                                  data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx',
-                                  dataset_name = 'surface-water-toxicity-results',
-                                  dataset_id = 'a6c91662-d324-43c2-8166-a94dddd22982',
-                                  data_file = glue('{parquet_file_save_location}\\ToxicityData_Parquet_{data_files_date}.zip')),
-    'BenthicData_Parquet' = list(file_name = 'BenthicData',
-                                 data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx',
-                                 dataset_name = 'surface-water-benthic-macroinvertebrate-results',
-                                 dataset_id = 'eb61f9a1-b1c6-4840-99c7-420a2c494a43',
-                                 data_file = glue('{parquet_file_save_location}\\BenthicData_Parquet_{data_files_date}.zip')),
-    'WaterChemistryData_Parquet' = list(file_name = 'WaterChemistryData',
-                                        data_dictionary = 'water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx',
-                                        dataset_name = 'surface-water-chemistry-results',
-                                        dataset_id = 'f4aa224d-4a59-403d-aad8-187955aa2e38',
-                                        data_file = glue('{parquet_file_save_location}\\WaterChemistryData_Parquet_{data_files_date}.zip')),
-    'TissueData_Parquet' = list(file_name = 'TissueData',
-                                data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx',
-                                dataset_name = 'surface-water-aquatic-organism-tissue-sample-results',
-                                dataset_id = 'dea5e450-4196-4a8a-afbb-e5eb89119516',
-                                data_file = glue('{parquet_file_save_location}\\TissueData_Parquet_{data_files_date}.zip')),
-    'HabitatData_Parquet' = list(file_name = 'HabitatData',
-                                 data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
-                                 dataset_name = 'surface-water-habitat-results',
-                                 dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
-                                 data_file = glue('{parquet_file_save_location}\\HabitatData_Parquet_{data_files_date}.zip'))
+    'toxicity' = list(source_file_name = 'ToxicityData',
+                      data_dictionary = 'toxicity\\CEDEN_Toxicity_Data_Dictionary.xlsx',
+                      portal_dataset_name = 'surface-water-toxicity-results',
+                      portal_dataset_id = 'a6c91662-d324-43c2-8166-a94dddd22982',
+                      parquet_data_file = glue('ToxicityData_Parquet_{data_files_date}')),
+    'benthic' = list(source_file_name = 'BenthicData',
+                     data_dictionary = 'benthic\\CEDEN_Benthic_Data_Dictionary.xlsx',
+                     portal_dataset_name = 'surface-water-benthic-macroinvertebrate-results',
+                     portal_dataset_id = 'eb61f9a1-b1c6-4840-99c7-420a2c494a43',
+                     parquet_data_file = glue('BenthicData_Parquet_{data_files_date}')),
+    'chemistry' = list(source_file_name = 'WaterChemistryData',
+                       data_dictionary = 'chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx',
+                       portal_dataset_name = 'surface-water-chemistry-results',
+                       portal_dataset_id = 'f4aa224d-4a59-403d-aad8-187955aa2e38',
+                       parquet_data_file = glue('WaterChemistryData_Parquet_{data_files_date}')),
+    'tissue' = list(source_file_name = 'TissueData',
+                    data_dictionary = 'tissue\\CEDEN_Tissue_Data_Dictionary.xlsx',
+                    portal_dataset_name = 'surface-water-aquatic-organism-tissue-sample-results',
+                    portal_dataset_id = 'dea5e450-4196-4a8a-afbb-e5eb89119516',
+                    parquet_data_file = glue('TissueData_Parquet_{data_files_date}')),
+    'habitat' = list(source_file_name = 'HabitatData',
+                     data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
+                     portal_dataset_name = 'surface-water-habitat-results',
+                     portal_dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
+                     parquet_data_file = glue('HabitatData_Parquet_{data_files_date}'))
 )
 
 ## create parquet files ----
@@ -430,6 +447,10 @@ tryCatch(
         stop(e)
     }
 )
+
+### revert back to using up-to-date packages
+uncheckpoint()
+Sys.sleep(15) # pause to make sure it reverts
 
 ## upload parquet files ----
 tryCatch(
