@@ -37,11 +37,13 @@ delete_old_versions <- TRUE
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
 credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+# email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
 
 ## enter the email address (or addresses) to send warning emails to
-email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+email_to <- 'david.altare@waterboards.ca.gov' 
+# email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
 
 
 
@@ -108,9 +110,7 @@ Here's the link to the flat file with the source data: https://intapps.waterboar
         )
     
     ### send email via sendmailR (for use on GIS scripting server) ----
-    # from <- email_from
-    # to <- email_to
-    # sendmail(from,to,subject,body,control=list(smtpServer= ""))
+    # sendmail(email_from, email_to, subject, body, control=list(smtpServer= "")) # insert smtpServer name before use
     
     print('sent automated email')
 }
@@ -198,7 +198,7 @@ tryCatch(
                          'PLACE CITY','PLACE ZIP','PLACE COUNTY','LATITUDE DECIMAL DEGREES',
                          'LONGITUDE DECIMAL DEGREES')
         #### select just the relevant fields
-        dataset_revised <- df_data %>% select(all_of(fields_keep))
+        df_data_filter <- df_data %>% select(all_of(fields_keep))
     },
     error = function(e) {
         error_message <- 'selecting fields from flat file data'
@@ -214,7 +214,7 @@ tryCatch(
 tryCatch(
     {
         ## select the rows where 'STATUS' is either 'Active' or 'Historical
-        dataset_revised <- dataset_revised %>% filter(STATUS == 'Active' | STATUS == 'Historical')
+        df_data_filter <- df_data_filter %>% filter(STATUS == 'Active' | STATUS == 'Historical')
     },
     error = function(e) {
         error_message <- 'filtering flat file data'
@@ -225,13 +225,55 @@ tryCatch(
     }
 )
 
+## ensure all records are in UTF-8 format, convert if not ----
+tryCatch(
+    {
+        df_data_filter <- df_data_filter %>%
+            # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+            mutate(across(everything(), 
+                          ~iconv(., to = 'UTF-8'))) %>% 
+            {.}
+    },
+    error = function(e) {
+        error_message <- 'formatting data (converting to UTF-8)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+## remove characters for quotes, tabs, returns, pipes, etc ----
+tryCatch(
+    {
+        remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+        df_data_filter <- df_data_filter %>%
+            map_df(~str_replace_all(., remove_characters, ' '))
+        #     ### check - delete this later
+        #     tf <- str_detect(replace_na(df_data_filter$record_summary, 'NA'),
+        #                     remove_characters)
+        #     sum(tf)
+        #     check_rows <- df_data_filter$record_summary[tf]
+        #     check_rows[1] # view first one
+        #     check_rows_fixed <- str_replace_all(check_rows, remove_characters, ' ')
+        #     check_rows_fixed[1] # view first one
+    },
+    error = function(e) {
+        error_message <- 'formatting data (removing special characters)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
     
 ## format date fields ----
-# glimpse(dataset_revised)
+# glimpse(df_data_filter)
 tryCatch(
     {
         ### clean the field names ----
-        dataset_revised <- dataset_revised %>% 
+        df_data_filter <- df_data_filter %>% 
             clean_names()
         
         ### define date fields ----
@@ -243,7 +285,7 @@ tryCatch(
         #### convert dates and times (into timestamp field that can be read by the portal) ----
         for (counter in seq(length(fields_dates))) {
             # convert the date field to ISO format
-            dates_iso <- mdy(dataset_revised[[fields_dates[counter]]])
+            dates_iso <- mdy(df_data_filter[[fields_dates[counter]]])
             # check NAs: sum(is.na(dates_iso))
             # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
             dates_iso <- as.character(dates_iso)
@@ -251,7 +293,7 @@ tryCatch(
             dates_iso[is.na(dates_iso)] <- ''
             # check NAs: sum(is.na(dates_iso))
             # Insert the revised date field back into the dataset
-            dataset_revised[,fields_dates[counter]] <- dates_iso
+            df_data_filter[,fields_dates[counter]] <- dates_iso
         }
     },
     error = function(e) {
@@ -273,7 +315,7 @@ tryCatch(
                             'latitude_decimal_degrees', 'longitude_decimal_degrees')
         ### convert ----
         for (counter in seq(length(fields_numeric))) {
-            dataset_revised[,fields_numeric[counter]] <- as.numeric(dataset_revised[[fields_numeric[counter]]])
+            df_data_filter[,fields_numeric[counter]] <- as.numeric(df_data_filter[[fields_numeric[counter]]])
         }
     },
     error = function(e) {
@@ -291,7 +333,7 @@ tryCatch(
 #### from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
 tryCatch(
     {
-        dataset_revised <- dataset_revised %>% 
+        df_data_filter <- df_data_filter %>% 
             mutate_if(is.character, ~replace(., is.na(.), 'NA'))
         # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
     },
@@ -310,7 +352,7 @@ tryCatch(
 tryCatch(
     {
         out_file <- paste0(file_save_location, filename_dataset, Sys.Date(), '.csv')
-        write_csv(x = dataset_revised, file = out_file, na = 'NaN')
+        write_csv(x = df_data_filter, file = out_file, na = 'NaN')
     },
     error = function(e) {
         error_message <- 'writing output csv file'

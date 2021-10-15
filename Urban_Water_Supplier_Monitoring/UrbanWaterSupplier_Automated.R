@@ -45,11 +45,13 @@ max_update_lag <- 40 # number of days
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov'
 credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+# email_from <- 'gisscripts-noreply@waterboards.ca.gov' # for GIS scripting server
 
 ## enter the email address (or addresses) to send warning emails to
-email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+email_to <- 'david.altare@waterboards.ca.gov' 
+# email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
 
 
 
@@ -120,9 +122,7 @@ Here's the link to the website with the source data (see the link labeled \"Raw 
         )
     
     ### send email via sendmailR (for use on GIS scripting server) ----
-    # from <- email_from
-    # to <- email_to
-    # sendmail(from,to,subject,body,control=list(smtpServer= ""))
+    # sendmail(email_from,email_to,subject,body,control=list(smtpServer= ""))
     
     print('sent automated email')
 }
@@ -166,7 +166,7 @@ tryCatch(
     {
         ### METHOD 1 --------------------------------------------------------
         ### get the link from the main webpage
-            
+        
         ## read the conservation portal webpage (raw html)
         reports_page <- readLines(url_conservation_portal)
         
@@ -366,6 +366,49 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
             stop(e)
         }
     )
+    
+    ## ensure all records are in UTF-8 format, convert if not ----
+    tryCatch(
+        {
+            dataset <- dataset %>%
+                # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+                mutate(across(everything(), 
+                              ~iconv(., to = 'UTF-8'))) %>% 
+                {.}
+        },
+        error = function(e) {
+            error_message <- 'formatting data (converting to UTF-8)'
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
+    ## remove characters for quotes, tabs, returns, pipes, etc ----
+    tryCatch(
+        {
+            remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+            dataset <- dataset %>%
+                map_df(~str_replace_all(., remove_characters, ' '))
+            #     ### check - delete this later
+            #     tf <- str_detect(replace_na(dataset$record_summary, 'NA'),
+            #                     remove_characters)
+            #     sum(tf)
+            #     check_rows <- dataset$record_summary[tf]
+            #     check_rows[1] # view first one
+            #     check_rows_fixed <- str_replace_all(check_rows, remove_characters, ' ')
+            #     check_rows_fixed[1] # view first one
+        },
+        error = function(e) {
+            error_message <- 'formatting data (removing special characters)'
+            error_message_r <- capture.output(cat(as.character(e)))
+            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            print(glue('Error: {error_message}'))
+            stop(e)
+        }
+    )
+    
     
     ## clean field names and codes ----
     tryCatch(

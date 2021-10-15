@@ -7,11 +7,9 @@
 # load packages -----------------------------------------------------------
 library(odbc) # for working with databases
 library(DBI) # for working with databases
-library(dplyr)
+library(tidyverse)
 library(lubridate)
-library(stringr)
 library(ckanr) # for working with CKAN data portal
-library(readr)
 library(reticulate)
 library(glue)
 library(blastula)
@@ -39,14 +37,17 @@ filename_replicate <- 'Toxicity-Replicate-Records_'
 ## get user ID and Password for CEDEN Data Mart
 dm_user <- Sys.getenv('UID')
 dm_password <- Sys.getenv('PWD')
+dm_server <- Sys.getenv('SERVER1')
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
 credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+# email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
 
 ## enter the email address (or addresses) to send warning emails to
-email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+email_to <- 'david.altare@waterboards.ca.gov' 
+# email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
 
 ## define location of python script to upload chunked data (relative path)
 python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
@@ -168,7 +169,7 @@ tryCatch(
     {
         con_CEDEN <- dbConnect(odbc(),
                                Driver = "SQL Server",
-                               Server = "172.22.33.38, 1541", # "172.22.33.39, 2866"
+                               Server = dm_server, 
                                Database = "DataMarts",
                                UID = dm_user, 
                                PWD = dm_password, 
@@ -532,7 +533,42 @@ tryCatch(
 ### summary records ----
 #dplyr::glimpse(summary_records_output)
 
-#### fix collection time field
+#### ensure all records are in UTF-8 format, convert if not ----
+tryCatch(
+    {
+        summary_records_output <- summary_records_output %>%
+            # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+            mutate(across(everything(), 
+                          ~iconv(., to = 'UTF-8'))) %>% 
+            {.}
+    },
+    error = function(e) {
+        error_message <- 'formatting data (summary records - converting to UTF-8)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+
+#### remove characters for quotes, tabs, returns, pipes, etc ----
+tryCatch(
+    {
+        remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+        summary_records_output <- summary_records_output %>%
+            map_df(~str_replace_all(., remove_characters, ' '))
+    },
+    error = function(e) {
+        error_message <- 'formatting data (summary records - removing special characters)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+#### fix collection time field ----
 tryCatch(
     {
         summary_records_output <- summary_records_output %>% 
@@ -621,7 +657,41 @@ tryCatch(
 ### replicate records ----
 dplyr::glimpse(replicate_records_output)
 
-#### fix collection time field
+#### ensure all records are in UTF-8 format, convert if not ----
+tryCatch(
+    {
+        replicate_records_output <- replicate_records_output %>%
+            # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+            mutate(across(everything(), 
+                          ~iconv(., to = 'UTF-8'))) %>% 
+            {.}
+    },
+    error = function(e) {
+        error_message <- 'formatting data (replicate records - converting to UTF-8)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+#### remove characters for quotes, tabs, returns, pipes, etc ----
+tryCatch(
+    {
+        remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+        replicate_records_output <- replicate_records_output %>%
+            map_df(~str_replace_all(., remove_characters, ' '))
+    },
+    error = function(e) {
+        error_message <- 'formatting data (replicate records - removing special characters)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+#### fix collection time field ----
 tryCatch(
     {
         replicate_records_output <- replicate_records_output %>% 

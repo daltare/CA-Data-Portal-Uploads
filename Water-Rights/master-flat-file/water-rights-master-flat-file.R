@@ -25,22 +25,26 @@ resourceID <- '151c067a-088b-42a2-b6ad-99d84b48fb36' # https://data.ca.gov/datas
 ## get data portal API key
 #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
 portal_key <- Sys.getenv('data_portal_key')
+# portal_key <- '' # for GIS scripting server, enter key here
 
 ## define location where files will be saved
 file_save_location <- 'C:\\David\\_CA_data_portal\\Water-Rights\\'
+# file_save_location <- 'D:\\Data\\Scripts\\R\\water_rights_update\\' # for GIS scripting server
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov'
 credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+# email_from <- 'gisscripts-noreply@waterboards.ca.gov' # for GIS scripting server
 
 ## enter the email address (or addresses) to send warning emails to
-email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+email_to <- 'david.altare@waterboards.ca.gov' 
+# email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
 
 
 
 # setup automated email -----------------------------------------------
-## create credentials file (only need to do this once) ----
+## create credentials file (only need to do this once, and only if sending from a personal email account) ----
 ### outlook credentials ----
 # create_smtp_creds_file(file = 'outlook_creds', 
 #                        user = 'david.altare@waterboards.ca.gov',
@@ -106,9 +110,7 @@ Here's the link to the flat file with the source data: https://intapps.waterboar
         )
     
     ### send email via sendmailR (for use on GIS scripting server) ----
-    # from <- email_from
-    # to <- email_to
-    # sendmail(from,to,subject,body,control=list(smtpServer= ""))
+    # sendmail(email_from,email_to,subject,body,control=list(smtpServer= "gwgate.waterboards.ca.gov"))
     
     print('sent automated email')
 }
@@ -217,22 +219,47 @@ tryCatch(
 )
 
 ## ensure all records are in UTF-8 format, convert if not ----
-df_data_filter <- df_data_filter %>%
-    map_df(~iconv(., to = 'UTF-8'))
-
+tryCatch(
+    {
+        df_data_filter <- df_data_filter %>%
+            # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+            mutate(across(everything(), 
+                          ~iconv(., to = 'UTF-8'))) %>% 
+            {.}
+    },
+    error = function(e) {
+        error_message <- 'formatting data (converting to UTF-8)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
 
 ## remove characters for quotes, tabs, returns, pipes, etc ----
-remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
-df_data_filter <- df_data_filter %>%
-    map_df(~str_replace_all(., remove_characters, ' '))
-#     ### check - delete this later
-#     tf <- str_detect(replace_na(df_data_filter$record_summary, 'NA'),
-#                     remove_characters)
-#     sum(tf)
-#     check_rows <- df_data_filter$record_summary[tf]
-#     check_rows[1] # view first one
-#     check_rows_fixed <- str_replace_all(check_rows, remove_characters, ' ')
-#     check_rows_fixed[1] # view first one
+tryCatch(
+    {
+        remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+        df_data_filter <- df_data_filter %>%
+            map_df(~str_replace_all(., remove_characters, ' '))
+        #     ### check - delete this later
+        #     tf <- str_detect(replace_na(df_data_filter$record_summary, 'NA'),
+        #                     remove_characters)
+        #     sum(tf)
+        #     check_rows <- df_data_filter$record_summary[tf]
+        #     check_rows[1] # view first one
+        #     check_rows_fixed <- str_replace_all(check_rows, remove_characters, ' ')
+        #     check_rows_fixed[1] # view first one
+    },
+    error = function(e) {
+        error_message <- 'formatting data (removing special characters)'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
 
 
 ## format date fields ----
