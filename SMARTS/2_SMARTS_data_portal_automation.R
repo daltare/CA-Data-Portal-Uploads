@@ -18,16 +18,18 @@ library(RSelenium)
 library(wdman)
 library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
 library(XML)
+# library(tidyverse)
 library(dplyr)
-library(janitor)
+library(stringr)
+library(magrittr)
 library(readr)
+library(purrr)
+library(janitor)
 library(lubridate)
 library(glue)
 library(sendmailR)
 library(blastula)
 library(binman)
-library(stringr)
-library(magrittr)
 library(pingr)
 library(ckanr)
 
@@ -374,41 +376,59 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     }
     
     # convert the file to .csv
-    # Read the data as text strings into R (so that it can be checked for special characters, etc)
-    dataset_lines <- readLines(paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'))
-    # Check for quotes, and remove them (to avoid problems with special characters)    
-    problems <- grep(pattern = '\"*\"', x = dataset_lines) # this finds lines with quoted text - used below to remove the quotes ("t" is especially problematic, because it can get confused with a tab delimiter)
-    for (i in seq_along(problems)) {
-        dataset_lines[problems[i]] <- gsub(pattern = '\"*\"', replacement = '', x = dataset_lines[problems[i]]) # this removes the quotes (but keeps the text within the quotes)
-    }
-    # Make sure all encoding is in UTF-8
-    dataset_lines <- iconv(x = dataset_lines, to = 'UTF-8') # encoding options available with: stri_enc_list(simplify = TRUE)
-    dataset_lines <- str_conv(string = dataset_lines, encoding = 'UTF-8')
-    # trying different methods
-    # dataset_lines <- iconv(dataset_lines, from = 'ASCII', to = 'UTF-8')
-    # dataset_lines <- stri_conv(str = dataset_lines, to = 'ASCII')
-    # dataset_lines <- stri_conv(str = dataset_lines, to = 'UTF-8')
-    # dataset_lines <- stri_conv(str = dataset_lines, from = 'ASCII', to = 'UTF-8')
-    # # check
-    #     table(Encoding(dataset_lines))
-    #     table(stri_enc_mark(dataset_lines))
-    #     table(stri_enc_isutf8(dataset_lines))
-    # write the corrected dataset to a temporary file
-    t <- tempfile()
-    writeLines(text = dataset_lines, con = file(t, encoding = 'UTF-8'), sep = '\n')
-    # read the new dataset, then close the temporary file
-    # if (filename == 'Industrial_Ad_Hoc_Reports_-_Parameter_Data' | 
-    #     filename == 'Industrial_Application_Specific_Data' |
-    #     filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' |
-    #     filename == 'Construction_Application_Specific_Data') {
-    dataset <- suppressMessages(read_tsv(file = t, col_types = cols(.default = 'c'))) # guess_max = 900000))
+    ## NEW (MORE SIMPLE) METHOD (2021-10-05) ----
+    dataset <- read_tsv(paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'),
+                        col_types = cols(.default = col_character()))
+    ### ensure all records are in UTF-8 format, convert if not ----
+    dataset <- dataset %>%
+        # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+        mutate(across(everything(), 
+                      ~iconv(., to = 'UTF-8'))) %>% 
+        {.}
+    
+    ### remove characters for quotes, tabs, returns, pipes, etc ----
+    remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+    dataset <- dataset %>%
+        map_df(~str_replace_all(., remove_characters, ' '))
+
+    
+    
+    ## OLD METHOD ----
+    # # Read the data as text strings into R (so that it can be checked for special characters, etc)
+    # dataset_lines <- readLines(paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'))
+    # # Check for quotes, and remove them (to avoid problems with special characters)    
+    # problems <- grep(pattern = '\"*\"', x = dataset_lines) # this finds lines with quoted text - used below to remove the quotes ("t" is especially problematic, because it can get confused with a tab delimiter)
+    # for (i in seq_along(problems)) {
+    #     dataset_lines[problems[i]] <- gsub(pattern = '\"*\"', replacement = '', x = dataset_lines[problems[i]]) # this removes the quotes (but keeps the text within the quotes)
+    # }
+    # # Make sure all encoding is in UTF-8
+    # dataset_lines <- iconv(x = dataset_lines, to = 'UTF-8') # encoding options available with: stri_enc_list(simplify = TRUE)
+    # dataset_lines <- str_conv(string = dataset_lines, encoding = 'UTF-8')
+    # # trying different methods
+    # # dataset_lines <- iconv(dataset_lines, from = 'ASCII', to = 'UTF-8')
+    # # dataset_lines <- stri_conv(str = dataset_lines, to = 'ASCII')
+    # # dataset_lines <- stri_conv(str = dataset_lines, to = 'UTF-8')
+    # # dataset_lines <- stri_conv(str = dataset_lines, from = 'ASCII', to = 'UTF-8')
+    # # # check
+    # #     table(Encoding(dataset_lines))
+    # #     table(stri_enc_mark(dataset_lines))
+    # #     table(stri_enc_isutf8(dataset_lines))
+    # # write the corrected dataset to a temporary file
+    # t <- tempfile()
+    # writeLines(text = dataset_lines, con = file(t, encoding = 'UTF-8'), sep = '\n')
+    # # read the new dataset, then close the temporary file
+    # # if (filename == 'Industrial_Ad_Hoc_Reports_-_Parameter_Data' | 
+    # #     filename == 'Industrial_Application_Specific_Data' |
+    # #     filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' |
+    # #     filename == 'Construction_Application_Specific_Data') {
+    # dataset <- suppressMessages(read_tsv(file = t, col_types = cols(.default = 'c'))) # guess_max = 900000))
     # }
     # if (filename == 'Inspections' | 
     #     filename == 'Violations' |
     #     filename == 'Enforcement_Actions') {
     #    dataset <- suppressMessages(read_tsv(file = t, col_types = cols(.default = 'c')))
     #}
-    unlink(t)
+    # unlink(t)
     
     # make sure the results are distinct (for consistency with the original dataset leave this part out)  
     # dataset <- dataset %>% distinct()
