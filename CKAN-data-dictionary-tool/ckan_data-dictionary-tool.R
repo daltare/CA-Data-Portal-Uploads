@@ -1,11 +1,11 @@
 # Notes:
-    # 1. The dictionary file should be an excel file with the header names 'column', 'label', 'type', and eithter 'description' or 'description_combined' (it may also have other colums as well - doesn't matter)
-    # 2. The order of the fields listed in the dictionary MUST match the order of the columns in the dataset
-    # 3. Make sure the fields defined as numeric or timestamp in the dictionary are correctly formatted in the dataset (missing numeric values must be 'NaN', dates must be in ISO format and missing dates should be an empty text string i.e. '')
-    # 4. Put the dictionary file in the same location as this script file
-    # 5. Enter your data.ca.gov portal username in the environment variables for you account, in a variable called 'portal_username'
-    # 6. Enter your data.ca.gov portal password in the environment variables for you account, in a variable called 'portal_password'
-    # 7. Note that the 'type' field in the portal doesn't update until the datastore is updated (go to 'Manage', 'Data Store', click 'Upload to DataStore')
+# 1. The dictionary file should be an excel file with the header names 'column', 'label', 'type', and eithter 'description' or 'description_combined' (it may also have other colums as well - doesn't matter)
+# 2. The order of the fields listed in the dictionary MUST match the order of the columns in the dataset
+# 3. Make sure the fields defined as numeric or timestamp in the dictionary are correctly formatted in the dataset (missing numeric values must be 'NaN', dates must be in ISO format and missing dates should be an empty text string i.e. '')
+# 4. Put the dictionary file in the same location as this script file
+# 5. Enter your data.ca.gov portal username in the environment variables for you account, in a variable called 'portal_username'
+# 6. Enter your data.ca.gov portal password in the environment variables for you account, in a variable called 'portal_password'
+# 7. Note that the 'type' field in the portal doesn't update until the datastore is updated (go to 'Manage', 'Data Store', click 'Upload to DataStore')
 
 
 # load packages -----------------------------------------------------------
@@ -68,10 +68,10 @@ df_dictionary <- read_excel(dictionary_filename) %>%
 
 # 2 - set up selenium (automated browser) ---------------------------------
 ## Note - for more information / examples on how the RSelenium package works, see:
-    # https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
-    # https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
-    # https://stackoverflow.com/questions/32123248/submitting-form-from-r-to-mixed-html-and-javascript
-    # https://github.com/ropensci/RSelenium/issues/121
+# https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
+# https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
+# https://stackoverflow.com/questions/32123248/submitting-form-from-r-to-mixed-html-and-javascript
+# https://github.com/ropensci/RSelenium/issues/121
 
 
 ## define chrome browser options for the Selenium session ----
@@ -85,6 +85,23 @@ eCaps <- list(
         )
 )
 
+## check for open port ----
+for (port_check in 4567L:4577L) {
+    port_test <- ping_port(destination = 'localhost', port = port_check)
+    # print(all(is.na(port_test)))
+    if (all(is.na(port_test)) == TRUE) {
+        port_use <- port_check
+        break
+    }
+}
+
+## get drivers ----
+selenium(jvmargs = 
+             c("-Dwebdriver.chrome.verboseLogging=true"), 
+         retcommand = TRUE,
+         port = port_use)
+Sys.sleep(5)
+
 ## get current version of chrome browser ----
 chrome_browser_version <-
     system2(command = "wmic",
@@ -95,7 +112,7 @@ chrome_browser_version <-
 
 ## get available chrome drivers ----
 chrome_driver_versions <- list_versions("chromedriver")
-        
+
 ## match driver / version ----
 chrome_driver_current <- chrome_browser_version %>%
     extract(!is.na(.)) %>%
@@ -107,7 +124,7 @@ chrome_driver_current <- chrome_browser_version %>%
     max() %>%
     as.character()
 
-## check for open port ----
+## re-check for open port ----
 for (port_check in 4567L:4577L) {
     port_test <- ping_port(destination = 'localhost', port = port_check)
     # print(all(is.na(port_test)))
@@ -132,7 +149,7 @@ Sys.sleep(5) #### wait a few seconds
 ## start server ----
 shell.exec('Start_Server.bat')
 Sys.sleep(10) #### wait a few seconds
-    
+
 ## open connection ----
 remDr <- remoteDriver(port = port_use, # 4567L, 
                       browserName = "chrome", 
@@ -140,7 +157,7 @@ remDr <- remoteDriver(port = port_use, # 4567L,
 Sys.sleep(10) #### wait a few seconds
 remDr$open()
 
-        
+
 
 # 3 - enter dictionary data to portal -----------------------------------------
 ## get portal username and password ----
@@ -184,7 +201,7 @@ for (id_number in seq_along(names(data_resource_id_list))) {
     webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
     webElem$clickElement()
 }
-        
+
 
 
 # 4 - close server ------------------------------------------------------------

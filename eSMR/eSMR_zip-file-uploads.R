@@ -68,6 +68,23 @@ eCaps <- list(
         )
 )
 
+## check for open port ----
+for (port_check in 4567L:4577L) {
+    port_test <- ping_port(destination = 'localhost', port = port_check)
+    # print(all(is.na(port_test)))
+    if (all(is.na(port_test)) == TRUE) {
+        port_use <- port_check
+        break
+    }
+}
+
+## get drivers ----
+selenium(jvmargs = 
+             c("-Dwebdriver.chrome.verboseLogging=true"), 
+         retcommand = TRUE,
+         port = port_use)
+Sys.sleep(5)
+
 ## get current version of chrome browser ----
 chrome_browser_version <-
     system2(command = "wmic",
@@ -90,7 +107,7 @@ chrome_driver_current <- chrome_browser_version %>%
     max() %>%
     as.character()
 
-## check for open port ----
+## re-check for open port ----
 for (port_check in 4567L:4577L) {
     port_test <- ping_port(destination = 'localhost', port = port_check)
     # print(all(is.na(port_test)))

@@ -5,6 +5,6 @@
 
 # shell.exec(file = 'C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\SMARTS\\Start_Server.bat') # this sets up the selenium server - see the R script for more info on how this was created
 # source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\SMARTS\\1_FilesList.R') # get information about the files to be retrieved from the SMARTS interface
-source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\SMARTS\\2_SMARTS_data_portal_automation.R', 
+source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\SMARTS\\SMARTS_data_portal_automation.R', 
        chdir = TRUE) # downloads the data from SMARTS to a local csv file
 # shell.exec(file = 'C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\SMARTS\\Stop.bat') # this closes the java window
