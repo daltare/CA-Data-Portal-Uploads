@@ -1,0 +1,1 @@
+Rscript -e "source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Surface-Water-Datasets\\Reg_Meas_WastewaterFacilities-PermitsOrders.R', chdir = TRUE)"

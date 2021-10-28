@@ -1,0 +1,1 @@
+Rscript -e "source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Urban_Water_Supplier_Monitoring\\UrbanWaterSupplier_Automated.R', chdir = TRUE)"

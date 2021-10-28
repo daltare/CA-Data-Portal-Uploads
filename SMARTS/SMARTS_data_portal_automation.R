@@ -215,6 +215,7 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
 
 tryCatch(
     {
+        print('Setting up Selenium server')
         ## define chrome browser options for the Selenium session ----
         eCaps <- list( 
             chromeOptions = 
@@ -347,6 +348,8 @@ tryCatch(
     {
         ## Define an amount of time to wait for pages to load
         # remDr$setImplicitWaitTimeout(milliseconds = 10000)
+        
+        print('Downloading data from SMARTS')
         
         ## Navigate to SMARTS homepage ----
         SMARTS_url <- "https://smarts.waterboards.ca.gov/smarts/SwPublicUserMenu.xhtml"
@@ -740,6 +743,8 @@ tryCatch(
 ### loops through all of the datasets defined in the 'dataset_list' variable in the script: 1_FilesList.R
 tryCatch(
     {
+        print('Uploading datasets to the CA open data portal (data.ca.gov)')
+        
         ### set the ckan defaults ----
         ckanr_setup(url = 'https://data.ca.gov/', key = portal_key) 
         

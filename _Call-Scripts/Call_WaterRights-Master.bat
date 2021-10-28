@@ -1,0 +1,1 @@
+Rscript -e "source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Water-Rights\\master-flat-file\\water-rights-master-flat-file.R', chdir = TRUE)"
