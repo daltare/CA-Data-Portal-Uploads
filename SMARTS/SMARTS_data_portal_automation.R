@@ -350,10 +350,12 @@ tryCatch(
         # remDr$setImplicitWaitTimeout(milliseconds = 10000)
         
         print('Downloading data from SMARTS')
+        Sys.sleep(10)
         
         ## Navigate to SMARTS homepage ----
         SMARTS_url <- "https://smarts.waterboards.ca.gov/smarts/SwPublicUserMenu.xhtml"
         remDr$navigate(SMARTS_url)
+        Sys.sleep(10)
         homeWindow <- remDr$getCurrentWindowHandle()
         
         # # define a function to convert dates and times into a timestamp field that can be read by the portal - ADDED 2019-09-18
@@ -378,9 +380,13 @@ tryCatch(
         
         ### open link to the "Download NOI Data By Regional Board" page ----
         webElem <- remDr$findElement(using = 'id', value = 'publicMenuForm:noiDataLink')
+        Sys.sleep(2)
         webElem$clickElement()
+        Sys.sleep(10)
         allWins <- unlist(remDr$getWindowHandles())
+        Sys.sleep(2)
         noiWindow <- allWins[!allWins %in% homeWindow[[1]]]
+        Sys.sleep(2)
         
         ### Switch to the "Download NOI Data..." page ----
         # remDr$switchToWindow(noiWindow) # this no longer works... need to use the custom function below, from: https://github.com/ropensci/RSelenium/issues/143
@@ -391,12 +397,15 @@ tryCatch(
             remDr$queryRD(qpath, "POST", qdata = list(handle = windowId))
         }
         myswitch(remDr = remDr, windowId = noiWindow[[1]])
+        Sys.sleep(2)
         
         ### find and select the 'Select Regional Board' dropdown box ----
         webElem <- remDr$findElement(using = 'id', value = 'intDataFileDowloaddataFileForm:intDataDumpSelectOne')
+        Sys.sleep(2)
         
         ### Set the dropdown value to 'State Board'
         webElem$sendKeysToElement(list('State Board', key = 'enter'))
+        Sys.sleep(2)
         # NOTE: It's also possible to do this 'manually' (i.e., by recreating the mouse actions and button clicks), like this:
         # loc <- webElem$getElementLocation()
         # remDr$mouseMoveToLocation(webElement = webElem)
