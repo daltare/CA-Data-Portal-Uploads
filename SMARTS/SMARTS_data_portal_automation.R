@@ -452,6 +452,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         Sys.sleep(time = 1) # if the file doesn't exist yet, wait 1 second then check again
         i <- i + 1 # to keep track of how many times the loop runs, to prevent an infinite loop
     }
+    Sys.sleep(2)
     # Rename the file, and append with the date for easier identification (may want to add in the time too?)
     file.rename(from = paste0(download_dir, '\\', 'file.txt'), to = paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'))
     # to add the time to the filename
@@ -466,7 +467,6 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         if (length(files_list_old) > 0) {
             file.remove(paste0(download_dir, '\\', files_list_old))
         }
-        
     }
     
     # convert the file to .csv
@@ -690,6 +690,7 @@ tryCatch(
                              fields_times = dataset_list[[i]]$time_fields, 
                              fields_timestamps = dataset_list[[i]]$timestamp_names,
                              fields_numeric = dataset_list[[i]]$numeric_fields)
+        Sys.sleep(5)
     }, 
     error = function(e) {
         error_message <- 'downloading files'

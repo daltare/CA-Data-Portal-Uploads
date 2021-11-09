@@ -218,13 +218,13 @@ tryCatch(
     }
 )
 
-## ensure all records are in UTF-8 format, convert if not ----
+# ensure all records are in UTF-8 format, convert if not ----
 tryCatch(
     {
         df_data_filter <- df_data_filter %>%
             # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
-            mutate(across(everything(), 
-                          ~iconv(., to = 'UTF-8'))) %>% 
+            mutate(across(everything(),
+                          ~iconv(., to = 'UTF-8'))) %>%
             {.}
     },
     error = function(e) {

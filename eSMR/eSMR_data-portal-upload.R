@@ -15,6 +15,7 @@ library(checkpoint)
 library(readxl)
 library(zip)
 library(arrow)
+library(data.table)
 library(here)
 
 
@@ -24,10 +25,13 @@ library(here)
 download_dir <- 'C:\\David\\_CA_data_portal\\eSMR\\'
 
 # define file name for output csv files
-file_name <- 'esmr_analytical_export'
+file_name <- 'esmr-analytical-export'
+file_date <- Sys.Date()
+file_name_smr <- 'smr-export'
 
-## data source ----
+## data sources ----
 esmr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=esmr_analytical_export.txt'
+smr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=smr_export.txt'
 
 # define which years to extract from the dataset and write to the data.ca.gov portal
 ## years to download and write to local data files 
@@ -80,15 +84,15 @@ data_resource_id_list <-  list(
 ## define data portal resource IDs for zipped files
 zip_resource_id_list <- list(
     'ziped_csv' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-                      dataset_id = '5901c092-20e9-4614-b22b-37ee1e5c29a5',
-                      data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{Sys.Date()}.zip')),
+                       dataset_id = '5901c092-20e9-4614-b22b-37ee1e5c29a5',
+                       data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{file_date}.zip')),
     'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
                      dataset_id = '8d567d61-6c07-4cd8-a2f0-3b57a9edae43',
-                     data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{Sys.Date()}.zip'))
+                     data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{file_date}.zip'))
 )
 
 ## name of the parquet directory / zipped file
-parquet_directory <- glue('{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{Sys.Date()}')
+parquet_directory <- glue('{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{file_date}')
 
 ## define location of python script to upload chunked data (relative path)
 python_upload_script <- here('portal-upload-ckan-chunked_eSMR', 'main_eSMR_function.py')
@@ -173,7 +177,7 @@ tryCatch(
         files_list <- grep(pattern = paste0('^', file_name), 
                            x = list.files(download_dir), 
                            value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
-        files_to_keep <- c(paste0(file_name, '_year-', years_write, '_', Sys.Date(), '.csv'))
+        files_to_keep <- c(paste0(file_name, '_year-', years_write, '_', file_date, '.csv'))
         files_list_old <- files_list[!(files_list %in% files_to_keep)] # exclude the new file from the list of files to be deleted
         if (length(files_list_old) > 0) {
             file.remove(paste0(download_dir, files_list_old))
@@ -191,25 +195,24 @@ tryCatch(
 
 
 
-
-# download source data ----------------------------------------------------
+# get raw eSMR data  ------------------------------------------------------
+## eSMR download ----
 ### download to temp file, to avoid saving entire esmr dataset
 tryCatch(
     {
         opt_timeout <- getOption('timeout')
         options(timeout = 3600)
-        temp_file <- tempfile()
-        tic()
+        # temp_file <- tempfile()
+        # tic()
+        file_download <- glue('{download_dir}{file_name}_{file_date}_raw.txt')
         download.file(url = esmr_url, 
-                      # destfile = paste0(download_dir, 
-                      #                   'esmr_analytical_export_', 
-                      #                   Sys.Date(), 
-                      #                   '.txt'),
-                      destfile = temp_file,
+                      destfile = file_download,
+                      # destfile = temp_file,
                       method = 'curl')
         options(timeout = opt_timeout)
-        t <- toc()
-        (time_download <- (t$toc - t$tic) / 60) # minutes 
+        # t <- toc()
+        # (time_download <- (t$toc - t$tic) / 60) # minutes 
+        gc()
     },
     error = function(e) {
         error_message <- 'downloading flat file data'
@@ -220,25 +223,54 @@ tryCatch(
     }
 )
 
-
-
-# read data ---------------------------------------------------------------
+## read eSMR data ----
 tryCatch(
     {
-        tic()
-        df_esmr <- read_tsv(file = temp_file,
+        df_esmr <- read_tsv(file = file_download,
                             col_types = cols(.default = col_character()),
-                            quote = '') %>%
+                            quote = '',
+                            lazy = FALSE) %>%
             clean_names() %>%
-            select(-matches('^x[123456789]')) %>% 
+            # select(-matches('^x[123456789]')) %>% 
             # type_convert() %>% 
             {.}
-        t2 <- toc()
+        gc()
         
-        names_original <- names(df_esmr)
-        (time_read <- (t2$toc - t2$tic) / 60) # minutes
-        # glimpse(df_esmr)
-        unlink(temp_file)
+        # df_esmr <- fread(file_download, 
+        #                    colClasses = 'character', 
+        #                    quote = '', 
+        #                    na.strings = c('', 'NA')) %>% 
+        #     clean_names() %>% 
+        #     as_tibble()
+    },
+    error = function(e) {
+        error_message <- 'reading flat file data into R'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+## save raw eSMR data to compressed file / delete uncompressed file ----
+tryCatch(
+    {
+        gc()
+        write_csv(x = df_esmr,
+                  progress = TRUE,
+                  file = glue('{download_dir}{file_name}_all-data_raw_{file_date}.csv.gz'))
+        
+        # ## data.table
+        # fwrite(df_esmr, 
+        #        file = glue('{download_dir}{file_name}_datatable-test_{file_date}.csv.gz'))
+        
+        ## parquet
+        # write_parquet(df_esmr,
+        #               glue('{download_dir}{file_name}_raw_{file_date}.parquet'))
+        
+        ## delete uncompressed file ----
+        unlink(file_download)
+        gc()
     },
     error = function(e) {
         error_message <- 'reading flat file data into R'
@@ -250,7 +282,89 @@ tryCatch(
 )
 
 
+
+# read eSMR data (if raw data already saved) ------------------------------
+# df_esmr <- read_csv(glue('{download_dir}{file_name}_all-data_raw_{file_date}.csv.gz'), 
+#                     col_types = cols(.default = col_character()))
+# if (!exists('df_esmr')) {
+#     df_esmr <- read_parquet(glue('{download_dir}{file_name}_raw_{file_date}.parquet'), )
+# }
+# gc()
+
+
+
+
+# get supplemental data ---------------------------------------------------
+## supplemental data download ----
+### get data for additional fields from the smr_export file
+tryCatch(
+    {
+        gc()
+        opt_timeout <- getOption('timeout')
+        options(timeout = 3600)
+        file_download_smr <- glue('{download_dir}{file_name_smr}_{file_date}_raw.txt')
+        download.file(url = smr_url, 
+                      destfile = file_download_smr,
+                      method = 'curl')
+        options(timeout = opt_timeout)
+    },
+    error = function(e) {
+        error_message <- 'downloading supplemental flat file data'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+## read supplemental data ----
+tryCatch(
+    {
+        gc()
+        df_smr <- read_tsv(file = file_download_smr,
+                           col_types = cols(.default = col_character()),
+                           quote = '') %>%
+            clean_names() %>%
+            select(-matches('^x[123456789]')) %>% 
+            # type_convert() %>% 
+            {.}
+    },
+    error = function(e) {
+        error_message <- 'reading supplemental flat file data into R'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+## save raw SMR (supplemental) data to compressed file / delete uncompressed file ----
+tryCatch(
+    {
+        gc()
+        write_csv(x = df_smr,
+                  progress = TRUE,
+                  file = glue('{download_dir}{file_name_smr}_raw_{file_date}.csv.gz'))
+        
+        ## delete uncompressed file ----
+        unlink(file_download_smr)
+        gc()
+    },
+    error = function(e) {
+        error_message <- 'reading flat file data into R'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+
+
 # investigate data --------------------------------------------------------
+## regions
+# df_esmr %>% count(region) %>% collect() %>% arrange(region)
+# gc()
 
 ## get year of all sampling dates in the dataset ----
 # df_dates <- df_esmr %>%
@@ -262,7 +376,7 @@ tryCatch(
 # df_dates_summary <- df_dates %>% count(sampling_year)
 # View(df_dates_summary)
 # write_csv(df_dates_summary,
-#           file = paste0(download_dir, 'esmr_sampling-date_summary_', Sys.Date(), '.csv'))
+#           file = paste0(download_dir, 'esmr_sampling-date_summary_', file_date, '.csv'))
 
 ## look at invalid dates (missing, future, far past) ----
 # df_invalid_missing <- df_esmr %>% 
@@ -270,21 +384,21 @@ tryCatch(
 #     select(analysis_date, report_name, smr_document_id)
 # View(df_invalid_missing)
 # write_csv(df_invalid_missing,
-#           file = paste0(download_dir, 'esmr_sampling-date_missing_', Sys.Date(), '.csv'))
+#           file = paste0(download_dir, 'esmr_sampling-date_missing_', file_date, '.csv'))
 
 # df_invalid_future <- df_esmr %>% 
-#     filter(year(mdy(sampling_date)) > year(Sys.Date())) %>% 
+#     filter(year(mdy(sampling_date)) > year(file_date)) %>% 
 #     select(sampling_date, analysis_date, report_name, smr_document_id)
 # View(df_invalid_future)
 # write_csv(df_invalid_future,
-#           file = paste0(download_dir, 'esmr_sampling-date_invalid_future_', Sys.Date(), '.csv'))
+#           file = paste0(download_dir, 'esmr_sampling-date_invalid_future_', file_date, '.csv'))
 
 # df_invalid_past <- df_esmr %>% 
 #     filter(year(mdy(sampling_date)) < 2006) %>% 
 #     select(sampling_date, analysis_date, report_name, smr_document_id)
 # View(df_invalid_past)
 # write_csv(df_invalid_past,
-#           file = paste0(download_dir, 'esmr_sampling-date_invalid_past_', Sys.Date(), '.csv'))
+#           file = paste0(download_dir, 'esmr_sampling-date_invalid_past_', file_date, '.csv'))
 
 # df_year <- df_esmr %>% 
 #     filter(year(mdy(sampling_date)) == 2006) %>% 
@@ -297,16 +411,71 @@ tryCatch(
 
 
 
+# add supplemental data ---------------------------------------------------
+### add additiona fields from the smr_export file (NPDES #, WDID #, county, facility lat/lon, etc.)
+tryCatch(
+    {
+        gc()
+        nrow_1 <- nrow(df_esmr) # save original # rows as check to make sure join doesn't add extra rows
+        
+        ## select desired supplemental fields
+        df_supplemental <- df_smr %>% 
+            select(smr_id, regulated_facility_id, npdes_num, wdid, 
+                   design_flow, place_address, place_city, place_county, 
+                   place_zip, place_latitude, place_longitude) %>% 
+            distinct()
+        ## remove the smr data
+        rm(df_smr)
+        gc()
+        ## rename fields
+        df_supplemental <- df_supplemental %>% 
+            rename(facility_place_address = place_address, 
+                   facility_place_city = place_city, 
+                   facility_place_county = place_county, 
+                   facility_place_zip = place_zip, 
+                   facility_place_latitude = place_latitude, 
+                   facility_place_longitude = place_longitude)
+        ## join supplemental data to esmr dataset
+        df_esmr <- df_esmr %>% 
+            left_join(df_supplemental,
+                      by = c('smr_document_id' = 'smr_id', 
+                             'facility_place_id' = 'regulated_facility_id')) 
+        gc()
+        ## check to make sure no new rows were added
+        nrow_2 <- nrow(df_esmr)
+        if (!(nrow_1 == nrow_2)) { # nrow_1 should equal nrow_2, if not generate an error
+            stop('new rows added to eSMR dataset')
+        }
+        rm(df_supplemental)
+        gc()
+    },
+    error = function(e) {
+        error_message <- 'adding supplemental data'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+
+
 # format data -------------------------------------------------------------
 ## ensure all records are in UTF-8 format, convert if not ----
 tryCatch(
     {
-        gc()
+        # for (col_i in names(df_esmr)) {
+        # # for (col_i in names(df_esmr)[1]) {
+        #     df_esmr[[col_i]] <- iconv(df_esmr[[col_i]], to = 'UTF-8')
+        #     gc()
+        # }
         df_esmr <- df_esmr %>%
             # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
-            mutate(across(everything(), 
-                          ~iconv(., to = 'UTF-8'))) %>% 
+            mutate(across(everything(),
+                          ~iconv(., to = 'UTF-8'))) %>%
+            # compute() %>% 
             {.}
+        gc()
     },
     error = function(e) {
         error_message <- 'formatting data (converting to UTF-8)'
@@ -332,6 +501,7 @@ tryCatch(
         #     check_rows[1] # view first one
         #     check_rows_fixed <- str_replace_all(check_rows, remove_characters, ' ')
         #     check_rows_fixed[1] # view first one
+        gc()
     },
     error = function(e) {
         error_message <- 'formatting data (removing special characters)'
@@ -364,6 +534,7 @@ tryCatch(
         }
         # View(df_esmr %>% count(year(ymd(sampling_date))))
         rm(dates_iso)
+        gc()
     },
     error = function(e) {
         error_message <- 'formatting data (converting date fields)'
@@ -379,11 +550,13 @@ tryCatch(
 tryCatch(
     {
         gc()
-        fields_numeric <- c('result', 'mdl', 'ml', 'rl', 'lattitude', 'longitude')
+        fields_numeric <- c('result', 'mdl', 'ml', 'rl', 'lattitude', 'longitude', 
+                            'facility_place_latitude', 'facility_place_longitude')
         ### convert to numeric
         for (counter in seq(length(fields_numeric))) {
             df_esmr[,fields_numeric[counter]] <- as.numeric(df_esmr[[fields_numeric[counter]]])
         }
+        gc()
     },
     error = function(e) {
         error_message <- 'formatting data (converting numeric fields)'
@@ -396,13 +569,13 @@ tryCatch(
 
 
 ## rename fields ----
-
 tryCatch(
     {
         gc()
         ### fix the latitude field (was named lattitude)
         df_esmr <- df_esmr %>% 
             rename(latitude = lattitude)
+        gc()
     },
     error = function(e) {
         error_message <- 'formatting data (rename fields)'
@@ -428,6 +601,7 @@ tryCatch(
                 df_esmr[[i]][is.na(df_esmr[[i]])] <- 'NA'
             }
         }
+        gc()
     },
     error = function(e) {
         error_message <- 'formatting data (text fields)'
@@ -456,21 +630,23 @@ tryCatch(
                       file = paste0(download_dir, 
                                     file_name,
                                     '_year-', i_year,
-                                    '_', Sys.Date(),
+                                    '_', file_date,
                                     '.csv'), 
                       na = 'NaN')
         }
         
+        gc()
         ## optionally, write the full dataset to a zip file
         write_csv(x = df_esmr %>% 
                       select(-sampling_year) %>% 
                       {.}, 
                   file = paste0(download_dir, 
                                 file_name,
-                                '_all_data',
-                                '_', Sys.Date(),
+                                '_all-data',
+                                '_', file_date,
                                 '.csv.gz'), 
                   na = 'NaN')
+        gc()
     },
     error = function(e) {
         error_message <- 'writing output data files (individual year csv files)'
@@ -483,7 +659,7 @@ tryCatch(
 
 # test (read output files) --------------------------------------------------------------------
 # df_test <- read_csv(paste0(download_dir, 'esmr_analytical_export_year-2016_',
-#                            Sys.Date(), '.csv'),
+#                            file_date, '.csv'),
 #                     col_types = cols(.default = col_character()),
 #                     na = c('NA', 'NaN', '')
 #                     ) %>%
@@ -494,6 +670,7 @@ tryCatch(
 # write zip file (all years) ---------------------------------
 tryCatch(
     {
+        gc()
         ### write csv ----
         write_csv(x = df_esmr %>% 
                       filter(sampling_year %in% years_download) %>% 
@@ -505,24 +682,24 @@ tryCatch(
                   file = paste0(download_dir, 
                                 file_name,
                                 '_years-', min(years_download), 
-                                '-', year(Sys.Date()),
-                                '_', Sys.Date(),
+                                '-', year(file_date),
+                                '_', file_date,
                                 '.csv'), 
                   na = 'NaN')
         
         ### convert to zip file ----
         zip::zip(zipfile = paste0(file_name,
                                   '_years-', min(years_download), 
-                                  '-', year(Sys.Date()),
-                                  '_', Sys.Date(),
+                                  '-', year(file_date),
+                                  '_', file_date,
                                   '.zip'), 
                  root = paste0(download_dir),
                  # recurse = TRUE,
                  # mode = 'cherry-pick',
                  files = paste0(file_name,
                                 '_years-', min(years_download),
-                                '_', year(Sys.Date()),
-                                '_', Sys.Date(),
+                                '-', year(file_date),
+                                '_', file_date,
                                 '.csv')
         )
         gc()
@@ -531,8 +708,8 @@ tryCatch(
         # delete the un-zipped file
         unlink(paste0(download_dir, file_name,
                       '_years-', min(years_download),
-                      '_', year(Sys.Date()),
-                      '_', Sys.Date(),
+                      '-', year(file_date),
+                      '_', file_date,
                       '.csv'))
         gc() 
     },
@@ -576,21 +753,18 @@ tryCatch(
             str_replace(pattern = 'text', replacement = 'c') %>% 
             str_replace(pattern = 'numeric', replacement = 'n') %>% 
             str_replace(pattern = 'timestamp', replacement = 'T') %>% 
-            glue_collapse() %>%  
+            glue_collapse() %>% 
+            as.character() %>% 
             {.}
         Sys.sleep(5)
         
         options(warn = 2) # this converts warnings into errors, so that the function below will stop if there is a problem reading in the data
         
-        
-        ## enter date data files were dowloaded (typically just today's date) ----
-        data_files_date <- Sys.Date()
-        
         ## create function to create a parquet file for data partitioned by year ----
         convert_data <- function(year) {
             print(glue('Creating parquet file for: Year {year} ({Sys.time()})'))
             
-            source_file <- glue('{download_dir}{file_name}_year-{year}_{data_files_date}.csv')
+            source_file <- glue('{download_dir}{file_name}_year-{year}_{file_date}.csv')
             
             ### create directory for the given year ----
             dir.create(glue('{download_dir}{parquet_directory}\\{year}'))
@@ -701,11 +875,10 @@ tryCatch(
         gc()
         last_year <- NA
         source_python(python_upload_script)
-        files_date <- Sys.Date()
         for (i in as.character(rev(years_write))) {
             print(glue('Updating Year: {i}'))
             ckanUploadFile(data_resource_id_list[[as.character(i)]],
-                           paste0(download_dir, file_name, '_year-', as.character(i), '_', files_date, '.csv'),
+                           paste0(download_dir, file_name, '_year-', as.character(i), '_', file_date, '.csv'),
                            portal_key)
             last_year <- i
             print(glue('Finished Updating Year: {i}'))
