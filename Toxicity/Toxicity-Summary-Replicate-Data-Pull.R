@@ -5,52 +5,56 @@
 
 
 # load packages -----------------------------------------------------------
-library(odbc) # for working with databases
-library(DBI) # for working with databases
-library(tidyverse)
-library(lubridate)
-library(ckanr) # for working with CKAN data portal
-library(reticulate)
-library(glue)
-library(blastula)
-library(sendmailR)
+{
+  library(odbc) # for working with databases
+  library(DBI) # for working with databases
+  library(tidyverse)
+  library(lubridate)
+  library(ckanr) # for working with CKAN data portal
+  library(reticulate)
+  library(glue)
+  library(blastula)
+  library(sendmailR)
+}
 
 
 
 # user inputs -------------------------------------------------------------
-## define data portal resource IDs for the summary and replicate records
-resourceID_summary <- '674474eb-e093-42de-aef3-da84fd2ff2d8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
-resourceID_replicate <- '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
-
-## get data portal API key ----
-#### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
-portal_key <- Sys.getenv('data_portal_key')
-
-## define location where files will be saved
-file_save_location <- 'C:\\David\\_CA_data_portal\\Toxicity\\'
-
-## delete old versions of the datasets
-delete_old_versions <- TRUE
-filename_summary <- 'Toxicity-Summary-Records_'
-filename_replicate <- 'Toxicity-Replicate-Records_'
-
-## get user ID and Password for CEDEN Data Mart
-dm_user <- Sys.getenv('UID')
-dm_password <- Sys.getenv('PWD')
-dm_server <- Sys.getenv('SERVER1')
-
-## enter the email address to send warning emails from
-### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
-credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
-# email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
-
-## enter the email address (or addresses) to send warning emails to
-email_to <- 'david.altare@waterboards.ca.gov' 
-# email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
-
-## define location of python script to upload chunked data (relative path)
-python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
+{
+  ## define data portal resource IDs for the summary and replicate records
+  resourceID_summary <- '674474eb-e093-42de-aef3-da84fd2ff2d8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8
+  resourceID_replicate <- '6fd7b8d7-f8dd-454f-98bb-07e8cc710db8' # https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
+  
+  ## get data portal API key ----
+  #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+  portal_key <- Sys.getenv('data_portal_key')
+  
+  ## define location where files will be saved
+  file_save_location <- 'C:\\David\\_CA_data_portal\\Toxicity\\'
+  
+  ## delete old versions of the datasets
+  delete_old_versions <- TRUE
+  filename_summary <- 'Toxicity-Summary-Records_'
+  filename_replicate <- 'Toxicity-Replicate-Records_'
+  
+  ## get user ID and Password for CEDEN Data Mart
+  dm_user <- Sys.getenv('UID')
+  dm_password <- Sys.getenv('PWD')
+  dm_server <- Sys.getenv('SERVER1')
+  
+  ## enter the email address to send warning emails from
+  ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+  email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
+  credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+  # email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
+  
+  ## enter the email address (or addresses) to send warning emails to
+  email_to <- 'david.altare@waterboards.ca.gov' 
+  # email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
+  
+  ## define location of python script to upload chunked data (relative path)
+  python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
+}
 
 
 
@@ -71,14 +75,14 @@ python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
 
 ## create email function ----
 fn_send_email <- function(error_msg, error_msg_r) {
-    
-    ### create components ----
-    #### date/time ----
-    date_time <- add_readable_time()
-    
-    #### body ----
-    body <- glue(
-        "Hi,
+  
+  ### create components ----
+  #### date/time ----
+  date_time <- add_readable_time()
+  
+  #### body ----
+  body <- glue(
+    "Hi,
         
 There was an error uploading the CEDEN Toxicity Summary / Replicate data to the data.ca.gov portal on {Sys.Date()}.
 
@@ -95,65 +99,65 @@ Here's the link to the summary dataset on the data portal: https://data.ca.gov/d
 Here's the link to the replicate dataset on the data portal: https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8
                 
 The source data comes from the CEDEN datamart"                
+  )
+  
+  #### footer ----
+  footer <- glue("Email sent on {date_time}.")
+  
+  #### subject ----
+  subject <- "Data Portal Upload Error - CEDEN Toxicity Summary / Replicate"
+  
+  ### create email ----
+  email <- compose_email(
+    body = md(body),
+    footer = md(footer)
+  )
+  
+  
+  ### send email via blastula (using credentials file) ----
+  email %>%
+    smtp_send(
+      # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
+      to = email_to,
+      from = email_from,
+      subject = subject,
+      credentials = creds_file(credentials_file)
+      # credentials = creds_key("outlook_key")
     )
-    
-    #### footer ----
-    footer <- glue("Email sent on {date_time}.")
-    
-    #### subject ----
-    subject <- "Data Portal Upload Error - CEDEN Toxicity Summary / Replicate"
-    
-    ### create email ----
-    email <- compose_email(
-        body = md(body),
-        footer = md(footer)
-    )
-    
-    
-    ### send email via blastula (using credentials file) ----
-    email %>%
-        smtp_send(
-            # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
-            to = email_to,
-            from = email_from,
-            subject = subject,
-            credentials = creds_file(credentials_file)
-            # credentials = creds_key("outlook_key")
-        )
-    
-    ### send email via sendmailR (for use on GIS scripting server) ----
-    # from <- email_from
-    # to <- email_to
-    # sendmail(from,to,subject,body,control=list(smtpServer= ""))
-    
-    print('sent automated email')
+  
+  ### send email via sendmailR (for use on GIS scripting server) ----
+  # from <- email_from
+  # to <- email_to
+  # sendmail(from,to,subject,body,control=list(smtpServer= ""))
+  
+  print('sent automated email')
 }
 
 
 # delete old versions of dataset --------------------------------------
 tryCatch(
-    {
-        if (delete_old_versions == TRUE) {
-            files_list <- grep(pattern = paste0('^', filename_summary), x = list.files(file_save_location), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
-            files_list <- c(files_list,
-                            grep(pattern = paste0('^', filename_replicate), x = list.files(file_save_location), value = TRUE))
-            # files_list_old <- files_list[files_list != paste0(filename, '_', Sys.Date(), '_Raw.txt')] # exclude the new file from the list of files to be deleted
-            files_to_keep <- c(paste0(filename_summary, Sys.Date() - seq(0,7), '.csv'),
-                               paste0(filename_replicate, Sys.Date() - seq(0,7), '.csv')) # keep the files from the previous 7 days
-            files_to_keep <- files_to_keep[files_to_keep %in% files_list]
-            files_list_old <- files_list[!(files_list %in% files_to_keep)] # exclude the new file from the list of files to be deleted
-            if (length(files_list_old) > 0 & length(files_to_keep) > 0) {
-                file.remove(paste0(file_save_location, files_list_old))
-            }
-        }
-    },
-    error = function(e) {
-        error_message <- 'deleting old versions of dataset'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
+  {
+    if (delete_old_versions == TRUE) {
+      files_list <- grep(pattern = paste0('^', filename_summary), x = list.files(file_save_location), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)
+      files_list <- c(files_list,
+                      grep(pattern = paste0('^', filename_replicate), x = list.files(file_save_location), value = TRUE))
+      # files_list_old <- files_list[files_list != paste0(filename, '_', Sys.Date(), '_Raw.txt')] # exclude the new file from the list of files to be deleted
+      files_to_keep <- c(paste0(filename_summary, Sys.Date() - seq(0,7), '.csv'),
+                         paste0(filename_replicate, Sys.Date() - seq(0,7), '.csv')) # keep the files from the previous 7 days
+      files_to_keep <- files_to_keep[files_to_keep %in% files_list]
+      files_list_old <- files_list[!(files_list %in% files_to_keep)] # exclude the new file from the list of files to be deleted
+      if (length(files_list_old) > 0 & length(files_to_keep) > 0) {
+        file.remove(paste0(file_save_location, files_list_old))
+      }
     }
+  },
+  error = function(e) {
+    error_message <- 'deleting old versions of dataset'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
@@ -166,22 +170,22 @@ tryCatch(
 # https://rdrr.io/cran/RODBC/man/odbcClose.html
 # https://cran.r-project.org/web/packages/odbc/odbc.pdf
 tryCatch(
-    {
-        con_CEDEN <- dbConnect(odbc(),
-                               Driver = "SQL Server",
-                               Server = dm_server, 
-                               Database = "DataMarts",
-                               UID = dm_user, 
-                               PWD = dm_password, 
-                               Port = 1433)
-    },
-    error = function(e) {
-        error_message <- 'connecting to CEDEN database'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    con_CEDEN <- dbConnect(odbc(),
+                           Driver = "SQL Server",
+                           Server = dm_server, 
+                           Database = "DataMarts",
+                           UID = dm_user, 
+                           PWD = dm_password, 
+                           Port = 1433)
+  },
+  error = function(e) {
+    error_message <- 'connecting to CEDEN database'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
@@ -226,41 +230,41 @@ tryCatch(
 
 ## Method 3 (fix - 2020-03-10) # https://stackoverflow.com/questions/45001152/r-dbi-odbc-error-nanodbc-nanodbc-cpp3110-07009-microsoftodbc-driver-13-fo
 tryCatch(
-    {
-        index <- dbColumnInfo(dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox"))
-        index$type <- as.integer(index$type)
-        index <- index %>% arrange(desc(type))
-        query_text_all <- paste0("SELECT ", paste(index$name, sep="", collapse=", "), " FROM WebSvc_Tox")
-        query_CEDEN_all <- dbSendQuery(con_CEDEN, query_text_all)
-        all_records <- dbFetch(query_CEDEN_all)
-        all_records_count <- nrow(all_records)
-    },
-    error = function(e) {
-        error_message <- 'querying CEDEN database (all records)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    index <- dbColumnInfo(dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox"))
+    index$type <- as.integer(index$type)
+    index <- index %>% arrange(desc(type))
+    query_text_all <- paste0("SELECT ", paste(index$name, sep="", collapse=", "), " FROM WebSvc_Tox")
+    query_CEDEN_all <- dbSendQuery(con_CEDEN, query_text_all)
+    all_records <- dbFetch(query_CEDEN_all)
+    all_records_count <- nrow(all_records)
+  },
+  error = function(e) {
+    error_message <- 'querying CEDEN database (all records)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
 
 ## summary records ----
 tryCatch(
-    {
-        # query_CEDEN_summary <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox WHERE 
-        #                                     Mean IS NOT NULL AND
-        #                                     StdDev IS NOT NULL AND
-        #                                     StatMethod IS NOT NULL AND
-        #                                     AlphaLevel IS NOT NULL AND
-        #                                     Probability IS NOT NULL AND
-        #                                     CriticalValue IS NOT NULL AND
-        #                                     PctControl IS NOT NULL AND
-        #                                     EvalThreshold IS NOT NULL AND
-        #                                     SigEffectCode IS NOT NULL")
-        # fix 2020-03-10
-        query_text_summary <- paste0("SELECT ", paste(index$name, sep="", collapse=", "), " FROM WebSvc_Tox WHERE
+  {
+    # query_CEDEN_summary <- dbSendQuery(con_CEDEN, "SELECT * FROM WebSvc_Tox WHERE 
+    #                                     Mean IS NOT NULL AND
+    #                                     StdDev IS NOT NULL AND
+    #                                     StatMethod IS NOT NULL AND
+    #                                     AlphaLevel IS NOT NULL AND
+    #                                     Probability IS NOT NULL AND
+    #                                     CriticalValue IS NOT NULL AND
+    #                                     PctControl IS NOT NULL AND
+    #                                     EvalThreshold IS NOT NULL AND
+    #                                     SigEffectCode IS NOT NULL")
+    # fix 2020-03-10
+    query_text_summary <- paste0("SELECT ", paste(index$name, sep="", collapse=", "), " FROM WebSvc_Tox WHERE
                         Mean IS NOT NULL AND
                         StdDev IS NOT NULL AND
                         StatMethod IS NOT NULL AND
@@ -270,19 +274,19 @@ tryCatch(
                         PctControl IS NOT NULL AND
                         EvalThreshold IS NOT NULL AND
                         SigEffectCode IS NOT NULL")
-        query_CEDEN_summary <- dbSendQuery(con_CEDEN, query_text_summary)
-        summary_records <- dbFetch(query_CEDEN_summary)#, n = 1000)
-        summary_records <- summary_records %>% mutate(SampleDate = as.Date(SampleDate))
-        summary_records_distinct <- summary_records %>% select(-c('ToxID', 'LabReplicate', 'Result', 'ResQualCode', 'ToxResultComments', 'OrganismPerRep', 'ToxResultQACode')) %>% distinct()
-        summary_records_distinct_noQA <- summary_records_distinct %>% filter(StationCode != 'LABQA_SWAMP')
-    },
-    error = function(e) {
-        error_message <- 'querying CEDEN database (summary records)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+    query_CEDEN_summary <- dbSendQuery(con_CEDEN, query_text_summary)
+    summary_records <- dbFetch(query_CEDEN_summary)#, n = 1000)
+    summary_records <- summary_records %>% mutate(SampleDate = as.Date(SampleDate))
+    summary_records_distinct <- summary_records %>% select(-c('ToxID', 'LabReplicate', 'Result', 'ResQualCode', 'ToxResultComments', 'OrganismPerRep', 'ToxResultQACode')) %>% distinct()
+    summary_records_distinct_noQA <- summary_records_distinct %>% filter(StationCode != 'LABQA_SWAMP')
+  },
+  error = function(e) {
+    error_message <- 'querying CEDEN database (summary records)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 ## replicate records ----
@@ -296,24 +300,24 @@ tryCatch(
 # drop records where StationCode is"LABQA_SWAMP" to get non-QA records
 # Get the Replicates
 tryCatch(
-    {
-        replicate_records <- all_records %>% 
-            select(-c('Mean', 'StdDev', 'StatMethod', 'AlphaLevel', 'Probability', 
-                      'CriticalValue', 'PctControl', 'EvalThreshold', 'SigEffectCode')) %>% 
-            select(-c('ToxID')) %>% 
-            select(-c('ToxPoint_MatrixName')) %>% 
-            filter(!is.na(LabReplicate))
-        replicate_records_distinct <- replicate_records %>% distinct()
-        replicate_records_noQA <- replicate_records %>% filter(StationCode != 'LABQA_SWAMP')
-        replicate_records_noQA_distinct <- replicate_records_noQA %>% distinct()
-    },
-    error = function(e) {
-        error_message <- 'selecting replicate records'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    replicate_records <- all_records %>% 
+      select(-c('Mean', 'StdDev', 'StatMethod', 'AlphaLevel', 'Probability', 
+                'CriticalValue', 'PctControl', 'EvalThreshold', 'SigEffectCode')) %>% 
+      select(-c('ToxID')) %>% 
+      select(-c('ToxPoint_MatrixName')) %>% 
+      filter(!is.na(LabReplicate))
+    replicate_records_distinct <- replicate_records %>% distinct()
+    replicate_records_noQA <- replicate_records %>% filter(StationCode != 'LABQA_SWAMP')
+    replicate_records_noQA_distinct <- replicate_records_noQA %>% distinct()
+  },
+  error = function(e) {
+    error_message <- 'selecting replicate records'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 # check to see if there are any non-distinct records after the query to get the replicates
@@ -355,16 +359,16 @@ tryCatch(
 
 ## close connection ----
 tryCatch(
-    {
-        dbDisconnect(con_CEDEN)
-    },
-    error = function(e) {
-        error_message <- 'closing CEDEN database connection'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    dbDisconnect(con_CEDEN)
+  },
+  error = function(e) {
+    error_message <- 'closing CEDEN database connection'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 # check -- number of records
@@ -382,80 +386,80 @@ tryCatch(
 ## workbook called: Mapping_Fields_ToxTemplateToWebServices.xls)    
 
 tryCatch(
-    {
-        # summary records - names in the CEDEN database and names in the data entry template
-        summary_records_db_names <- c('StationCode', 'SampleDate', 'Project', 'EventCode', 'ProtocolCode', 
-                                      'SampleAgencyCode', 'SampleComments', 'LocationName', 'GeometryShape', 'CollectionTime', 
-                                      'CollectionMethodName', 'SampleTypeCode', 'CollectionReplicate', 'CollectionDeviceDescr', 'CollectionDepth', 
-                                      'UnitCollectionDepth', 'PositionWaterColumn', 'CollectionComments', 'ToxBatch', 'MatrixName', 
-                                      'MethodName', 'ToxTestDurCode', 'OrganismName', 'TestExposureType', 'QAControlID', 
-                                      'SampleID', 'LabSampleID', 'ToxTestComments', 'Treatment', 'TreatmentConcentration', 
-                                      'UnitTreatment', 'Dilution', 'CoordinateSource', 'ToxPointMethod', 'Analyte', 
-                                      'Fraction', 'Unit', 'TimePointName', 'RepCount', 'Mean', 
-                                      'StdDev', 'StatMethod', 'AlphaLevel', 'bValue', 'CalcValueType', 
-                                      'Probability', 'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 
-                                      'SigEffectCode', 'QACode', 'ComplianceCode', 'ToxPointSummaryComments', 'TIENarrative', 
-                                      'Program', 'ParentProject', 'TargetLatitude', 'TargetLongitude', 'Datum', 
-                                      'PctControl', 'ToxBatch', 'ToxBatchStartDate', 'LabAgency', 'LabSubmissionCode', 
-                                      'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 'SubmittingAgency', 'OrganismSupplier', 
-                                      'ToxBatchComments')
-        tf_duplicated <- duplicated(summary_records_db_names)
-        summary_records_db_names <- summary_records_db_names[!tf_duplicated]
-        summary_records_template_names <- c('StationCode', 'SampleDate', 'ProjectCode', 'EventCode', 'ProtocolCode', # 1-5
-                                            'AgencyCode', 'SampleComments', 'LocationCode', 'GeometryShape', 'CollectionTime', # 6-10
-                                            'CollectionMethodCode', 'SampleTypeCode', 'Replicate', 'CollectionDeviceName', 'CollectionDepth', # 11-15
-                                            'UnitCollectionDepth', 'PositionWaterColumn', 'LabCollectionComments', 'ToxBatch', 'MatrixName', # 16-20
-                                            'MethodName', 'TestDuration', 'OrganismName', 'TestExposureType', 'QAControlID', 
-                                            'SampleID', 'LabSampleID', 'ToxTestComments', 'Treatment', 'Concentration', 
-                                            'UnitTreatment', 'Dilution', 'WQSource', 'ToxPointMethod', 'AnalyteName', 
-                                            'FractionName', 'UnitAnalyte', 'TimePoint', 'RepCount', 'Mean', 
-                                            'StdDev', 'StatisticalMethod', 'AlphaValue', 'bValue', 'CalcValueType', 
-                                            'CalculatedValue', 'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 
-                                            'SigEffect', 'TestQACode', 'ComplianceCode', 'ToxPointSummaryComments', 'TIENarrative', 
-                                            'Program', 'ParentProject', 'Lat', 'Long', 'Datum', 
-                                            'PercentControl', 'ToxBatch', 'StartDate', 'LabAgencyCode', 'LabSubmissionCode', 
-                                            'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 'SubmittingAgencyCode', 'OrganismSupplier', 
-                                            'ToxBatchComments')
-        summary_records_template_names <- summary_records_template_names[!tf_duplicated]
-        
-        # replicate records - names in the CEDEN database and names in the data entry template
-        replicate_records_db_names <- c('StationCode', 'SampleDate', 'Project', 'EventCode', 'ProtocolCode', 
-                                        'SampleAgencyCode', 'SampleComments', 'LocationName', 'GeometryShape', 'CollectionTime', 
-                                        'CollectionMethodName', 'SampleTypeCode', 'CollectionReplicate', 'CollectionDeviceDescr', 
-                                        'CollectionDepth', 'UnitCollectionDepth', 'PositionWaterColumn', 'CollectionComments', 
-                                        'ToxBatch', 'MatrixName', 'MethodName', 'ToxTestDurCode', 'OrganismName', 
-                                        'TestExposureType', 'QAControlID', 'SampleID', 'LabSampleID', 'ToxTestComments', 
-                                        'Treatment', 'TreatmentConcentration', 'UnitTreatment', 'Dilution', 'CoordinateSource', 
-                                        'ToxPointMethod', 'Analyte', 'Fraction', 'Unit', 'TimePointName', 
-                                        'LabReplicate', 'OrganismPerRep', 'Result', 'ResQualCode', 'ToxResultQACode', 
-                                        'ComplianceCode', 'ToxResultComments', 'Program', 'ParentProject', 'TargetLatitude', 
-                                        'TargetLongitude', 'Datum', 'ToxBatch', 'ToxBatchStartDate', 'LabAgency', 
-                                        'LabSubmissionCode', 'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 
-                                        'SubmittingAgency', 'OrganismSupplier', 'ToxBatchComments')
-        tf_duplicated <- duplicated(replicate_records_db_names)
-        replicate_records_db_names <- replicate_records_db_names[!tf_duplicated]
-        replicate_records_template_names <- c('StationCode', 'SampleDate', 'ProjectCode', 'EventCode', 'ProtocolCode', 
-                                              'AgencyCode', 'SampleComments', 'LocationCode', 'GeometryShape', 'CollectionTime', 
-                                              'CollectionMethodCode', 'SampleTypeCode', 'Replicate', 'CollectionDeviceName', 
-                                              'CollectionDepth', 'UnitCollectionDepth', 'PositionWaterColumn', 'LabCollectionComments', 
-                                              'ToxBatch', 'MatrixName', 'MethodName', 'TestDuration', 'OrganismName', 
-                                              'TestExposureType', 'QAControlID', 'SampleID', 'LabSampleID', 'ToxTestComments', 
-                                              'Treatment', 'Concentration', 'UnitTreatment', 'Dilution', 'WQSource', 
-                                              'ToxPointMethod', 'AnalyteName', 'FractionName', 'UnitAnalyte', 'TimePoint', 
-                                              'LabReplicate', 'OrganismPerRep', 'Result', 'ResQualCode', 'ToxResultQACode', 
-                                              'ComplianceCode', 'ToxResultComments', 'Program', 'ParentProject', 'Lat', 
-                                              'Long', 'Datum', 'ToxBatch', 'StartDate', 'LabAgencyCode', 
-                                              'LabSubmissionCode', 'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 
-                                              'SubmittingAgencyCode', 'OrganismSupplier', 'ToxBatchComments')
-        replicate_records_template_names <- replicate_records_template_names[!tf_duplicated]
-    },
-    error = function(e) {
-        error_message <- 'adjusting field names'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    # summary records - names in the CEDEN database and names in the data entry template
+    summary_records_db_names <- c('StationCode', 'SampleDate', 'Project', 'EventCode', 'ProtocolCode', 
+                                  'SampleAgencyCode', 'SampleComments', 'LocationName', 'GeometryShape', 'CollectionTime', 
+                                  'CollectionMethodName', 'SampleTypeCode', 'CollectionReplicate', 'CollectionDeviceDescr', 'CollectionDepth', 
+                                  'UnitCollectionDepth', 'PositionWaterColumn', 'CollectionComments', 'ToxBatch', 'MatrixName', 
+                                  'MethodName', 'ToxTestDurCode', 'OrganismName', 'TestExposureType', 'QAControlID', 
+                                  'SampleID', 'LabSampleID', 'ToxTestComments', 'Treatment', 'TreatmentConcentration', 
+                                  'UnitTreatment', 'Dilution', 'CoordinateSource', 'ToxPointMethod', 'Analyte', 
+                                  'Fraction', 'Unit', 'TimePointName', 'RepCount', 'Mean', 
+                                  'StdDev', 'StatMethod', 'AlphaLevel', 'bValue', 'CalcValueType', 
+                                  'Probability', 'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 
+                                  'SigEffectCode', 'QACode', 'ComplianceCode', 'ToxPointSummaryComments', 'TIENarrative', 
+                                  'Program', 'ParentProject', 'TargetLatitude', 'TargetLongitude', 'Datum', 
+                                  'PctControl', 'ToxBatch', 'ToxBatchStartDate', 'LabAgency', 'LabSubmissionCode', 
+                                  'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 'SubmittingAgency', 'OrganismSupplier', 
+                                  'ToxBatchComments')
+    tf_duplicated <- duplicated(summary_records_db_names)
+    summary_records_db_names <- summary_records_db_names[!tf_duplicated]
+    summary_records_template_names <- c('StationCode', 'SampleDate', 'ProjectCode', 'EventCode', 'ProtocolCode', # 1-5
+                                        'AgencyCode', 'SampleComments', 'LocationCode', 'GeometryShape', 'CollectionTime', # 6-10
+                                        'CollectionMethodCode', 'SampleTypeCode', 'Replicate', 'CollectionDeviceName', 'CollectionDepth', # 11-15
+                                        'UnitCollectionDepth', 'PositionWaterColumn', 'LabCollectionComments', 'ToxBatch', 'MatrixName', # 16-20
+                                        'MethodName', 'TestDuration', 'OrganismName', 'TestExposureType', 'QAControlID', 
+                                        'SampleID', 'LabSampleID', 'ToxTestComments', 'Treatment', 'Concentration', 
+                                        'UnitTreatment', 'Dilution', 'WQSource', 'ToxPointMethod', 'AnalyteName', 
+                                        'FractionName', 'UnitAnalyte', 'TimePoint', 'RepCount', 'Mean', 
+                                        'StdDev', 'StatisticalMethod', 'AlphaValue', 'bValue', 'CalcValueType', 
+                                        'CalculatedValue', 'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 
+                                        'SigEffect', 'TestQACode', 'ComplianceCode', 'ToxPointSummaryComments', 'TIENarrative', 
+                                        'Program', 'ParentProject', 'Lat', 'Long', 'Datum', 
+                                        'PercentControl', 'ToxBatch', 'StartDate', 'LabAgencyCode', 'LabSubmissionCode', 
+                                        'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 'SubmittingAgencyCode', 'OrganismSupplier', 
+                                        'ToxBatchComments')
+    summary_records_template_names <- summary_records_template_names[!tf_duplicated]
+    
+    # replicate records - names in the CEDEN database and names in the data entry template
+    replicate_records_db_names <- c('StationCode', 'SampleDate', 'Project', 'EventCode', 'ProtocolCode', 
+                                    'SampleAgencyCode', 'SampleComments', 'LocationName', 'GeometryShape', 'CollectionTime', 
+                                    'CollectionMethodName', 'SampleTypeCode', 'CollectionReplicate', 'CollectionDeviceDescr', 
+                                    'CollectionDepth', 'UnitCollectionDepth', 'PositionWaterColumn', 'CollectionComments', 
+                                    'ToxBatch', 'MatrixName', 'MethodName', 'ToxTestDurCode', 'OrganismName', 
+                                    'TestExposureType', 'QAControlID', 'SampleID', 'LabSampleID', 'ToxTestComments', 
+                                    'Treatment', 'TreatmentConcentration', 'UnitTreatment', 'Dilution', 'CoordinateSource', 
+                                    'ToxPointMethod', 'Analyte', 'Fraction', 'Unit', 'TimePointName', 
+                                    'LabReplicate', 'OrganismPerRep', 'Result', 'ResQualCode', 'ToxResultQACode', 
+                                    'ComplianceCode', 'ToxResultComments', 'Program', 'ParentProject', 'TargetLatitude', 
+                                    'TargetLongitude', 'Datum', 'ToxBatch', 'ToxBatchStartDate', 'LabAgency', 
+                                    'LabSubmissionCode', 'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 
+                                    'SubmittingAgency', 'OrganismSupplier', 'ToxBatchComments')
+    tf_duplicated <- duplicated(replicate_records_db_names)
+    replicate_records_db_names <- replicate_records_db_names[!tf_duplicated]
+    replicate_records_template_names <- c('StationCode', 'SampleDate', 'ProjectCode', 'EventCode', 'ProtocolCode', 
+                                          'AgencyCode', 'SampleComments', 'LocationCode', 'GeometryShape', 'CollectionTime', 
+                                          'CollectionMethodCode', 'SampleTypeCode', 'Replicate', 'CollectionDeviceName', 
+                                          'CollectionDepth', 'UnitCollectionDepth', 'PositionWaterColumn', 'LabCollectionComments', 
+                                          'ToxBatch', 'MatrixName', 'MethodName', 'TestDuration', 'OrganismName', 
+                                          'TestExposureType', 'QAControlID', 'SampleID', 'LabSampleID', 'ToxTestComments', 
+                                          'Treatment', 'Concentration', 'UnitTreatment', 'Dilution', 'WQSource', 
+                                          'ToxPointMethod', 'AnalyteName', 'FractionName', 'UnitAnalyte', 'TimePoint', 
+                                          'LabReplicate', 'OrganismPerRep', 'Result', 'ResQualCode', 'ToxResultQACode', 
+                                          'ComplianceCode', 'ToxResultComments', 'Program', 'ParentProject', 'Lat', 
+                                          'Long', 'Datum', 'ToxBatch', 'StartDate', 'LabAgencyCode', 
+                                          'LabSubmissionCode', 'BatchVerificationCode', 'RefToxBatch', 'OrganismAgeAtTestStart', 
+                                          'SubmittingAgencyCode', 'OrganismSupplier', 'ToxBatchComments')
+    replicate_records_template_names <- replicate_records_template_names[!tf_duplicated]
+  },
+  error = function(e) {
+    error_message <- 'adjusting field names'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
@@ -464,46 +468,46 @@ tryCatch(
 
 ## define which data frame to use as the output ----
 tryCatch(
-    {
-        summary_records_output <- summary_records_distinct
-        replicate_records_output <- replicate_records_distinct
-    },
-    error = function(e) {
-        error_message <- 'formatting data (defining output data frames)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    summary_records_output <- summary_records_distinct
+    replicate_records_output <- replicate_records_distinct
+  },
+  error = function(e) {
+    error_message <- 'formatting data (defining output data frames)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 ## select just the relevant fields for the output ----
 tryCatch(
-    {
-        ### summary ----
-        summary_records_output <- summary_records_output %>% select(all_of(summary_records_db_names))
-        names(summary_records_output) <- summary_records_template_names
-        
-        ### replicate ----
-        replicate_records_output <- replicate_records_output %>% select(all_of(replicate_records_db_names))
-        names(replicate_records_output) <- replicate_records_template_names
-        
-        ## make sure the output records are still distinct ----
-        ### summary ----
-        summary_records_output_check <- summary_records_output %>% distinct()
-        nrow(summary_records_output) - nrow(summary_records_output_check) # should be zero
-        
-        ### replicate ----
-        replicate_records_output_check <- replicate_records_output %>% distinct()
-        nrow(replicate_records_output) - nrow(replicate_records_output_check) # should be zero
-    },
-    error = function(e) {
-        error_message <- 'formatting data (selecting fields for output data frames)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    ### summary ----
+    summary_records_output <- summary_records_output %>% select(all_of(summary_records_db_names))
+    names(summary_records_output) <- summary_records_template_names
+    
+    ### replicate ----
+    replicate_records_output <- replicate_records_output %>% select(all_of(replicate_records_db_names))
+    names(replicate_records_output) <- replicate_records_template_names
+    
+    ## make sure the output records are still distinct ----
+    ### summary ----
+    summary_records_output_check <- summary_records_output %>% distinct()
+    nrow(summary_records_output) - nrow(summary_records_output_check) # should be zero
+    
+    ### replicate ----
+    replicate_records_output_check <- replicate_records_output %>% distinct()
+    nrow(replicate_records_output) - nrow(replicate_records_output_check) # should be zero
+  },
+  error = function(e) {
+    error_message <- 'formatting data (selecting fields for output data frames)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 # The code below was used to check which fields contain distinct values which are not included in the final output, and would result in duplicates when the un-used fields are dropped
@@ -535,123 +539,123 @@ tryCatch(
 
 #### ensure all records are in UTF-8 format, convert if not ----
 tryCatch(
-    {
-        summary_records_output <- summary_records_output %>%
-            # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
-            mutate(across(everything(), 
-                          ~iconv(., to = 'UTF-8'))) %>% 
-            {.}
-    },
-    error = function(e) {
-        error_message <- 'formatting data (summary records - converting to UTF-8)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    summary_records_output <- summary_records_output %>%
+      # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+      mutate(across(everything(), 
+                    ~iconv(., to = 'UTF-8'))) %>% 
+      {.}
+  },
+  error = function(e) {
+    error_message <- 'formatting data (summary records - converting to UTF-8)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
 #### remove characters for quotes, tabs, returns, pipes, etc ----
 tryCatch(
-    {
-        remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
-        summary_records_output <- summary_records_output %>%
-            map_df(~str_replace_all(., remove_characters, ' '))
-    },
-    error = function(e) {
-        error_message <- 'formatting data (summary records - removing special characters)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+    summary_records_output <- summary_records_output %>%
+      map_df(~str_replace_all(., remove_characters, ' '))
+  },
+  error = function(e) {
+    error_message <- 'formatting data (summary records - removing special characters)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### fix collection time field ----
 tryCatch(
-    {
-        summary_records_output <- summary_records_output %>% 
-            mutate(CollectionTime = paste(sep = ':',
-                                          str_pad(hour(x = summary_records_output$CollectionTime),width = 2, pad = 0),
-                                          str_pad(minute(x = summary_records_output$CollectionTime),width = 2, pad = 0),
-                                          str_pad(second(x = summary_records_output$CollectionTime),width = 2, pad = 0)))
-    },
-    error = function(e) {
-        error_message <- 'formatting data (summary records - collection time field)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    summary_records_output <- summary_records_output %>% 
+      mutate(CollectionTime = paste(sep = ':',
+                                    str_pad(hour(x = summary_records_output$CollectionTime),width = 2, pad = 0),
+                                    str_pad(minute(x = summary_records_output$CollectionTime),width = 2, pad = 0),
+                                    str_pad(second(x = summary_records_output$CollectionTime),width = 2, pad = 0)))
+  },
+  error = function(e) {
+    error_message <- 'formatting data (summary records - collection time field)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### format date fields ----
 ##### convert dates into a timestamp field that can be read by the portal
 tryCatch(
-    {
-        fields_dates <- c('SampleDate', 'StartDate')
-        for (counter in seq(length(fields_dates))) {
-            # convert the date field to ISO format
-            dates_iso <- ymd(as.Date(summary_records_output[[fields_dates[counter]]]))
-            # check NAs: sum(is.na(dates_iso))
-            # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
-            dates_iso <- as.character(dates_iso)
-            # Check: sum(is.na(dates_iso))
-            dates_iso[is.na(dates_iso)] <- ''
-            # check NAs: sum(is.na(dates_iso))
-            # Insert the revised date field back into the dataset
-            summary_records_output[,fields_dates[counter]] <- dates_iso
-        }
-    },
-    error = function(e) {
-        error_message <- 'formatting data (summary records - date fields)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
+  {
+    fields_dates <- c('SampleDate', 'StartDate')
+    for (counter in seq(length(fields_dates))) {
+      # convert the date field to ISO format
+      dates_iso <- ymd(as.Date(summary_records_output[[fields_dates[counter]]]))
+      # check NAs: sum(is.na(dates_iso))
+      # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
+      dates_iso <- as.character(dates_iso)
+      # Check: sum(is.na(dates_iso))
+      dates_iso[is.na(dates_iso)] <- ''
+      # check NAs: sum(is.na(dates_iso))
+      # Insert the revised date field back into the dataset
+      summary_records_output[,fields_dates[counter]] <- dates_iso
     }
+  },
+  error = function(e) {
+    error_message <- 'formatting data (summary records - date fields)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### format numeric fields ----
 ##### ensure all records are compatible with numeric format 
 tryCatch(
-    {
-        ##### define numeric fields
-        fields_numeric <- c('Replicate', 'CollectionDepth', 'Concentration', 'Dilution', 'RepCount', 
-                            'Mean', 'StdDev', 'AlphaValue', 'bValue', 'CalculatedValue',
-                            'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 'Lat',
-                            'Long')
-        ##### convert to numeric
-        for (counter in seq(length(fields_numeric))) {
-            summary_records_output[,fields_numeric[counter]] <- as.numeric(summary_records_output[[fields_numeric[counter]]])
-        }
-    },
-    error = function(e) {
-        error_message <- 'formatting data (summary records - numeric fields)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
+  {
+    ##### define numeric fields
+    fields_numeric <- c('Replicate', 'CollectionDepth', 'Concentration', 'Dilution', 'RepCount', 
+                        'Mean', 'StdDev', 'AlphaValue', 'bValue', 'CalculatedValue',
+                        'CriticalValue', 'PercentEffect', 'MSD', 'EvalThreshold', 'Lat',
+                        'Long')
+    ##### convert to numeric
+    for (counter in seq(length(fields_numeric))) {
+      summary_records_output[,fields_numeric[counter]] <- as.numeric(summary_records_output[[fields_numeric[counter]]])
     }
+  },
+  error = function(e) {
+    error_message <- 'formatting data (summary records - numeric fields)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### format text fields ----
 ##### Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
 ##### from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
 tryCatch(
-    {
-        summary_records_output <- summary_records_output %>% 
-            mutate_if(is.character, ~replace(., is.na(.), 'NA'))
-        # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
-    },
-    error = function(e) {
-        error_message <- 'formatting data (summary records - text fields)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    summary_records_output <- summary_records_output %>% 
+      mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+    # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+  },
+  error = function(e) {
+    error_message <- 'formatting data (summary records - text fields)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 ### replicate records ----
@@ -659,119 +663,119 @@ dplyr::glimpse(replicate_records_output)
 
 #### ensure all records are in UTF-8 format, convert if not ----
 tryCatch(
-    {
-        replicate_records_output <- replicate_records_output %>%
-            # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
-            mutate(across(everything(), 
-                          ~iconv(., to = 'UTF-8'))) %>% 
-            {.}
-    },
-    error = function(e) {
-        error_message <- 'formatting data (replicate records - converting to UTF-8)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    replicate_records_output <- replicate_records_output %>%
+      # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
+      mutate(across(everything(), 
+                    ~iconv(., to = 'UTF-8'))) %>% 
+      {.}
+  },
+  error = function(e) {
+    error_message <- 'formatting data (replicate records - converting to UTF-8)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### remove characters for quotes, tabs, returns, pipes, etc ----
 tryCatch(
-    {
-        remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
-        replicate_records_output <- replicate_records_output %>%
-            map_df(~str_replace_all(., remove_characters, ' '))
-    },
-    error = function(e) {
-        error_message <- 'formatting data (replicate records - removing special characters)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
+    replicate_records_output <- replicate_records_output %>%
+      map_df(~str_replace_all(., remove_characters, ' '))
+  },
+  error = function(e) {
+    error_message <- 'formatting data (replicate records - removing special characters)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### fix collection time field ----
 tryCatch(
-    {
-        replicate_records_output <- replicate_records_output %>% 
-            mutate(CollectionTime = paste(sep = ':',
-                                          str_pad(hour(x = replicate_records_output$CollectionTime),width = 2, pad = 0),
-                                          str_pad(minute(x = replicate_records_output$CollectionTime),width = 2, pad = 0),
-                                          str_pad(second(x = replicate_records_output$CollectionTime),width = 2, pad = 0)))
-    },
-    error = function(e) {
-        error_message <- 'formatting data (replicate records - collection time field)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    replicate_records_output <- replicate_records_output %>% 
+      mutate(CollectionTime = paste(sep = ':',
+                                    str_pad(hour(x = replicate_records_output$CollectionTime),width = 2, pad = 0),
+                                    str_pad(minute(x = replicate_records_output$CollectionTime),width = 2, pad = 0),
+                                    str_pad(second(x = replicate_records_output$CollectionTime),width = 2, pad = 0)))
+  },
+  error = function(e) {
+    error_message <- 'formatting data (replicate records - collection time field)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### format date fields ----
 ##### convert dates into a timestamp field that can be read by the portal
 tryCatch(
-    {
-        fields_dates <- c('SampleDate', 'StartDate')
-        for (counter in seq(length(fields_dates))) {
-            # convert the date field to ISO format
-            dates_iso <- ymd(as.Date(replicate_records_output[[fields_dates[counter]]]))
-            # check NAs: sum(is.na(dates_iso))
-            # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
-            dates_iso <- as.character(dates_iso)
-            # Check: sum(is.na(dates_iso))
-            dates_iso[is.na(dates_iso)] <- ''
-            # check NAs: sum(is.na(dates_iso))
-            # Insert the revised date field back into the dataset
-            replicate_records_output[,fields_dates[counter]] <- dates_iso
-        }
-    },
-    error = function(e) {
-        error_message <- 'formatting data (replicate records - date fields)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
+  {
+    fields_dates <- c('SampleDate', 'StartDate')
+    for (counter in seq(length(fields_dates))) {
+      # convert the date field to ISO format
+      dates_iso <- ymd(as.Date(replicate_records_output[[fields_dates[counter]]]))
+      # check NAs: sum(is.na(dates_iso))
+      # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
+      dates_iso <- as.character(dates_iso)
+      # Check: sum(is.na(dates_iso))
+      dates_iso[is.na(dates_iso)] <- ''
+      # check NAs: sum(is.na(dates_iso))
+      # Insert the revised date field back into the dataset
+      replicate_records_output[,fields_dates[counter]] <- dates_iso
     }
+  },
+  error = function(e) {
+    error_message <- 'formatting data (replicate records - date fields)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### format numeric fields -----
 ##### ensure all records are compatible with numeric format 
 tryCatch(
-    {
-        fields_numeric <- c('Replicate', 'CollectionDepth', 'Concentration', 'Dilution', 'LabReplicate', 'Result', 
-                            'Lat', 'Long')
-        # convert to numeric
-        for (counter in seq(length(fields_numeric))) {
-            replicate_records_output[,fields_numeric[counter]] <- as.numeric(replicate_records_output[[fields_numeric[counter]]])
-        }
-    },
-    error = function(e) {
-        error_message <- 'formatting data (replicate records - numeric fields)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
+  {
+    fields_numeric <- c('Replicate', 'CollectionDepth', 'Concentration', 'Dilution', 'LabReplicate', 'Result', 
+                        'Lat', 'Long')
+    # convert to numeric
+    for (counter in seq(length(fields_numeric))) {
+      replicate_records_output[,fields_numeric[counter]] <- as.numeric(replicate_records_output[[fields_numeric[counter]]])
     }
+  },
+  error = function(e) {
+    error_message <- 'formatting data (replicate records - numeric fields)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 #### format text fields ----
 tryCatch(
-    {
-        ##### Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
-        ##### from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
-        replicate_records_output <- replicate_records_output %>% 
-            mutate_if(is.character, ~replace(., is.na(.), 'NA'))
-        # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
-    },
-    error = function(e) {
-        error_message <- 'formatting data (replicate records - text fields)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    ##### Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
+    ##### from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
+    replicate_records_output <- replicate_records_output %>% 
+      mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+    # mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
+  },
+  error = function(e) {
+    error_message <- 'formatting data (replicate records - text fields)'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
@@ -779,33 +783,33 @@ tryCatch(
 ## Note: may have to do multiple steps to fix encoding
 
 tryCatch(
-    {
-        ## define output filenames ----
-        out_file_summary <- paste0(file_save_location, 'Toxicity-Summary-Records_', Sys.Date(), '.csv')
-        out_file_replicate <- paste0(file_save_location, 'Toxicity-Replicate-Records_', Sys.Date(), '.csv')
-        
-        ## write to file using base write.csv, and specify encoding ----
-        write.csv(x = summary_records_output, file = out_file_summary, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
-        write.csv(x = replicate_records_output, file = out_file_replicate, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
-        
-        ## then, read the results back to R using readr
-        #     summary_records_output <-  readr::read_csv(file = out_file_summary, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
-        #     replicate_records_output <- readr::read_csv(file = out_file_replicate, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
-        # # last, overwrite the original file using readr::write_csv
-        #     readr::write_csv(x = summary_records_output, path = out_file_summary, na = 'NaN')
-        #     readr::write_csv(x = replicate_records_output, path = out_file_replicate, na = 'NaN')
-        
-        # # check
-        #     summary_check <- readr::read_csv(file = paste0('Toxicity-Summary-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
-        #     replicate_check <- readr::read_csv(file = paste0('Toxicity-Replicate-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
-    },
-    error = function(e) {
-        error_message <- 'writing output csv files'
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    ## define output filenames ----
+    out_file_summary <- paste0(file_save_location, 'Toxicity-Summary-Records_', Sys.Date(), '.csv')
+    out_file_replicate <- paste0(file_save_location, 'Toxicity-Replicate-Records_', Sys.Date(), '.csv')
+    
+    ## write to file using base write.csv, and specify encoding ----
+    write.csv(x = summary_records_output, file = out_file_summary, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+    write.csv(x = replicate_records_output, file = out_file_replicate, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+    
+    ## then, read the results back to R using readr
+    #     summary_records_output <-  readr::read_csv(file = out_file_summary, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
+    #     replicate_records_output <- readr::read_csv(file = out_file_replicate, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
+    # # last, overwrite the original file using readr::write_csv
+    #     readr::write_csv(x = summary_records_output, path = out_file_summary, na = 'NaN')
+    #     readr::write_csv(x = replicate_records_output, path = out_file_replicate, na = 'NaN')
+    
+    # # check
+    #     summary_check <- readr::read_csv(file = paste0('Toxicity-Summary-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
+    #     replicate_check <- readr::read_csv(file = paste0('Toxicity-Replicate-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
+  },
+  error = function(e) {
+    error_message <- 'writing output csv files'
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )
 
 
@@ -844,34 +848,34 @@ tryCatch(
 
 ## python - function ----
 tryCatch(
-    {
-        gc()
-        
-        ### get the python function ----
-        source_python(python_upload_script)
-        
-        ### summary data ----
-        file_type <- 'Summary'
-        print(glue('Updating {file_type} Data'))
-        ckanUploadFile(resourceID_summary,
-                       out_file_summary,
-                       portal_key)
-        print(glue('Finished Updating {file_type} Data'))
-        gc()
-        
-        ### replicate data ----
-        file_type <- 'Replicate'
-        print(glue('Updating {file_type} Data'))
-        ckanUploadFile(resourceID_replicate,
-                       out_file_replicate,
-                       portal_key)
-        print(glue('Finished Updating {file_type} Data'))
-    },
-    error = function(e) {
-        error_message <- glue('Uploading data to portal (error occured in uploading the {file_type} Data)')
-        error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    }
+  {
+    gc()
+    
+    ### get the python function ----
+    source_python(python_upload_script)
+    
+    ### summary data ----
+    file_type <- 'Summary'
+    print(glue('Updating {file_type} Data'))
+    ckanUploadFile(resourceID_summary,
+                   out_file_summary,
+                   portal_key)
+    print(glue('Finished Updating {file_type} Data'))
+    gc()
+    
+    ### replicate data ----
+    file_type <- 'Replicate'
+    print(glue('Updating {file_type} Data'))
+    ckanUploadFile(resourceID_replicate,
+                   out_file_replicate,
+                   portal_key)
+    print(glue('Finished Updating {file_type} Data'))
+  },
+  error = function(e) {
+    error_message <- glue('Uploading data to portal (error occured in uploading the {file_type} Data)')
+    error_message_r <- capture.output(cat(as.character(e)))
+    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    print(glue('Error: {error_message}'))
+    stop(e)
+  }
 )

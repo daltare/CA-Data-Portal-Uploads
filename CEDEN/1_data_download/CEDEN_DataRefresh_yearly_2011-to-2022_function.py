@@ -279,7 +279,8 @@ def python_get_data_2(saveLocation, tables, SERVER1, UID, PWD):
 			# no passwords are in plain text, see "Main" below for importing examples. UID
 			# below create a connection
 			# Please be sure that you have the 'ODBC Driver 11 for SQL Server' driver installed on your machine.
-			cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+			# cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+			cnxn = pyodbc.connect(Driver='SQL Server', Server=SERVER1, uid=UID, pwd=PWD)
 			# creates a cursor which will execute the sql statement
 			cursor = cnxn.cursor()
 		except:

@@ -56,7 +56,7 @@ cur_year = now.year
 ### Set the file location
 first = 'C:\\David\\_CA_data_portal\\CEDEN'
 # All output files will be saved in this folder
-saveLocation = os.path.join(first, 'CEDEN_Datasets', today)
+saveLocation = os.path.join(first, today)
 
 ### Get CEDEN datamart connection info
 # This is the SWRCB internal server set as a local environmental variable for the user.
@@ -276,13 +276,14 @@ def data_retrieval(tables, saveLocation, sep, extension):
 		# no passwords are in plain text, see "Main" below for importing examples. UID
 		# below create a connection
 		# Please be sure that you have the 'ODBC Driver 11 for SQL Server' driver installed on your machine.
-		cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+		# cnxn = pyodbc.connect(Driver='SQL Server Native Client 11.0', Server=SERVER1, uid=UID, pwd=PWD)
+		cnxn = pyodbc.connect(Driver='SQL Server', Server=SERVER1, uid=UID, pwd=PWD)
 		# creates a cursor which will execute the sql statement
 		cursor = cnxn.cursor()
 	except:
 		print("Couldn't connect to %s. It is down or you might have a typo somewhere. Make sure you've got the "
-		      "right password and Server id. Check internet "
-		      "connection." % SERVER1)
+			  "right password and Server id. Check internet "
+			  "connection." % SERVER1)
 	# initialize an AllSites dictionary
 	AllSites = {}
 	# LAt/Long strings in variables

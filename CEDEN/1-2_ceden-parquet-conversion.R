@@ -15,15 +15,17 @@
 
 
 # load packages -----------------------------------------------------------
-library(tidyverse)
-library(tictoc)
-library(data.table)
-library(glue)
-library(readxl)
-library(zip)
-library(lubridate)
-library(here)
-library(arrow)
+{
+    library(tidyverse)
+    library(tictoc)
+    library(data.table)
+    library(glue)
+    library(readxl)
+    library(zip)
+    library(lubridate)
+    library(here)
+    library(arrow)
+}
 
 
 
@@ -67,19 +69,20 @@ library(arrow)
 # create function to create a parquet file for data from 2000 - present
 # create parquet file for for a single year, given the year, directory name for the new file, and file name for the source data
 convert_data <- function(year, directory_name, source_file_name) {
-    print(glue('Creating parquet file for: {source_file_name} Year {year} ({Sys.time()})'))
+    print(glue('\n\nCreating parquet file for: {source_file_name} Year {year} ({Sys.time()})'))
     
     source_file <- glue('{data_files_path}{source_file_name}_year-{year}_{data_files_date}.csv')
     
     # check to see if source data file exists, if so create a corresponding parquet file
     if (file.exists(source_file)) {
         # create directory for the given year
-        dir.create(paste0(parquet_file_save_location, '\\', directory_name, '\\', year))
+        # dir.create(paste0(parquet_file_save_location, '\\', directory_name, '\\', year))
         
         # read source data file
         df_ceden <- read_csv(source_file, 
                              col_types = field_types,
-                             na = c('NA', 'NaN',''))
+                             na = c('NA', 'NaN','')) %>% 
+            mutate(Year = year)
         print(glue('finished reading year {year} data'))
         
         if (source_file_name == 'TissueData') { 
@@ -95,9 +98,25 @@ convert_data <- function(year, directory_name, source_file_name) {
         
         # create parquet file
         print(glue('writing year {year} file'))
-        write_parquet(df_ceden, 
-                      sink = glue('{parquet_file_save_location}\\{directory_name}\\{year}\\data.parquet'))
-
+        # write_parquet(df_ceden, 
+        #               sink = glue('{parquet_file_save_location}\\{directory_name}\\{year}\\data.parquet'))
+        ## partition by Year, Program, ParentProject
+        # if ('Program' %in% names(df_ceden)) {
+        #     write_dataset(dataset = df_ceden, 
+        #                   path = glue('{parquet_file_save_location}\\{directory_name}'), 
+        #                   format = 'parquet', 
+        #                   partitioning = c('Year', 'ParentProject'))# 'Program'))#, 'ParentProject'))#, 'Project'))
+        # } else if ('ProgramName' %in% names(df_ceden)) {
+        #     write_dataset(dataset = df_ceden, 
+        #                   path = glue('{parquet_file_save_location}\\{directory_name}'), 
+        #                   format = 'parquet', 
+        #                   partitioning = c('Year', 'ParentProjectName'))# 'ProgramName'))#, 'ParentProjectName'))#, 'ProjectName'))
+        # }
+        write_dataset(dataset = df_ceden, 
+                      path = glue('{parquet_file_save_location}\\{directory_name}'), 
+                      format = 'parquet', 
+                      partitioning = c('Year'))
+        
         rm(df_ceden)
         gc()
         Sys.sleep(1)
@@ -108,22 +127,39 @@ convert_data <- function(year, directory_name, source_file_name) {
 # create function to create a parquet file for each year with data prior to 2000
 # create parquet file for for a single year, given the year, directory name for the new file, and data frame with source data
 convert_data_pre2000 <- function(year, directory_name, source_data){
-    print(glue('Creating parquet file for: {source_file_name} Year {year} ({Sys.time()})'))
+    print(glue('\n\nCreating parquet file for: {source_file_name} Year {year} ({Sys.time()})'))
     
     # create directory for the given year
-    dir.create(paste0(parquet_file_save_location, '\\', directory_name, '\\', year))
+    # dir.create(paste0(parquet_file_save_location, '\\', directory_name, '\\', year))
     
     # filter source data for given year
     df_ceden_year <- source_data %>% 
         filter(sample_year == year) %>% 
-        select(-sample_year)
+        select(-sample_year) %>% 
+        mutate(Year = year)
     print(glue('finished reading year {year} data'))
     
     # create parquet
     print(glue('writing year {year} file'))
-    write_parquet(x = df_ceden_year, 
-                  sink = glue('{parquet_file_save_location}\\{directory_name}\\{year}\\data.parquet'))
-
+    # write_parquet(x = df_ceden_year, 
+    #               sink = glue('{parquet_file_save_location}\\{directory_name}\\{year}\\data.parquet'))
+    ## partition by Year, Program, ParentProject
+    # if ('Program' %in% names(df_ceden_year)) {
+    #     write_dataset(dataset = df_ceden_year, 
+    #                   path = glue('{parquet_file_save_location}\\{directory_name}'), 
+    #                   format = 'parquet', 
+    #                   partitioning = c('Year', 'ParentProject'))# 'Program'))#, 'ParentProject'))#, 'Project'))
+    # } else if ('ProgramName' %in% names(df_ceden_year)) {
+    #     write_dataset(dataset = df_ceden_year, 
+    #                   path = glue('{parquet_file_save_location}\\{directory_name}'), 
+    #                   format = 'parquet', 
+    #                   partitioning = c('Year', 'ParentProjectName'))# 'ProgramName'))#, 'ParentProjectName'))#, 'ProjectName'))
+    # }
+    write_dataset(dataset = df_ceden_year, 
+                  path = glue('{parquet_file_save_location}\\{directory_name}'), 
+                  format = 'parquet', 
+                  partitioning = c('Year'))
+    
     rm(df_ceden_year)
     gc()
     Sys.sleep(1)
@@ -141,7 +177,7 @@ for (i in seq_along(names(parquet_resource_id_list))) {
     latest_year <- year(as.Date(data_files_date))
     source_file_name <- parquet_resource_id_list[[i]][['source_file_name']]
     
-    print(glue('---------- Creating parquet file for: {source_file_name} ----------'))
+    print(glue('\n\n---------- Creating parquet file for: {source_file_name} ----------'))
     
     # create a list of the column types, to use when reading in the data
     df_types <- read_xlsx(glue('{data_dictionaries_path}\\{parquet_resource_id_list[[i]][["data_dictionary"]]}')) #water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx")
@@ -229,7 +265,7 @@ for (i in seq_along(names(parquet_resource_id_list))) {
     unlink(paste0(parquet_file_save_location, '\\', directory_name), 
            recursive = TRUE)
     gc()
-    print(glue('---------- Finished creating parquet file for: {source_file_name} ----------'))
+    print(glue('---------- Finished creating parquet file for: {source_file_name} ----------\n\n'))
 }
 
 uncheckpoint()

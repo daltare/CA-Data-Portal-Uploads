@@ -4,47 +4,51 @@
 
 
 # load libraries ----------------------------------------------------------
-library(tidyverse)
-library(janitor)
-library(lubridate)
-library(glue)
-library(blastula)
-library(sendmailR)
-library(reticulate)
-library(here)
-library(checkpoint)
+{
+    library(tidyverse)
+    library(janitor)
+    library(lubridate)
+    library(glue)
+    library(blastula)
+    library(sendmailR)
+    library(reticulate)
+    library(here)
+    library(checkpoint)
+}
 
 
 
 # 1 - user input --------------------------------------------------------------
-## email address (to send warning emails to/from) ----
-### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-### email address to send warning emails from
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
-credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
-
-### email address (or addresses) to send warning emails to
-email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
-
-## data portal username and password ----
-portal_username <- Sys.getenv('portal_username') 
-portal_password <- Sys.getenv('portal_password')
-
-## data portal API key ----
-#### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
-portal_key <- Sys.getenv('data_portal_key')
-
-## ceden data warehouse info ----
-ceden_server <- Sys.getenv('SERVER1')
-ceden_id <- Sys.getenv('UID')
-ceden_pwd <- Sys.getenv('PWD')
-
-## python info ----
-# python_path <- 'C:\\Anaconda-3.7'
-
-### path to data files ----
-data_files_date <- Sys.Date()
-data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
+{
+    ## email address (to send warning emails to/from) ----
+    ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+    ### email address to send warning emails from
+    email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+    credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+    
+    ### email address (or addresses) to send warning emails to
+    email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+    
+    ## data portal username and password ----
+    portal_username <- Sys.getenv('portal_username') 
+    portal_password <- Sys.getenv('portal_password')
+    
+    ## data portal API key ----
+    #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
+    portal_key <- Sys.getenv('data_portal_key')
+    
+    ## ceden data warehouse info ----
+    ceden_server <- Sys.getenv('SERVER1')
+    ceden_id <- Sys.getenv('UID')
+    ceden_pwd <- Sys.getenv('PWD')
+    
+    ## python info ----
+    # python_path <- 'C:\\Anaconda-3.7'
+    
+    ### path to data files ----
+    data_files_date <- Sys.Date()
+    data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
+}
 
 
 
@@ -151,6 +155,7 @@ tryCatch(
         
         ### get data
         for (data_type in names(tables_list)) {
+            # data_type <- 'ToxicityData'
             # print(data_type)
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
@@ -400,7 +405,7 @@ parquet_file_save_location <- glue('{data_files_path}parquet_datasets')
 ### 2021-05-09 = arrow v4.0.0
 ### 2021-04-26 = arrow v3.0.0
 ### 2021-01-26 = arrow v2.0.0 # this should work
-checkpoint('2021-07-28') # , checkpoint_location = here())
+# checkpoint('2021-07-28') # , checkpoint_location = here())
 
 ### define parquet files to create & upload ----
 parquet_resource_id_list <- list(
@@ -450,7 +455,7 @@ tryCatch(
 
 ### revert back to using up-to-date packages
 uncheckpoint()
-Sys.sleep(15) # pause to make sure it reverts
+Sys.sleep(15) # pause to make sure reversion completes
 
 ## upload parquet files ----
 tryCatch(

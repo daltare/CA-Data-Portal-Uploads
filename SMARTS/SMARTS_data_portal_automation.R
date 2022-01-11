@@ -269,13 +269,21 @@ tryCatch(
                     stdout = TRUE,
                     stderr = TRUE) %>%
             str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+        if (sum(!is.na(chrome_browser_version)) == 0) {
+            chrome_browser_version <-
+                system2(command = "wmic",
+                        args = 'datafile where name="C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+                        stdout = TRUE,
+                        stderr = TRUE) %>%
+                str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+        }
         
         #### get available chrome drivers ----
         chrome_driver_versions <- list_versions("chromedriver")
         
         #### match driver / version ----
         chrome_driver_current <- chrome_browser_version %>%
-            extract(!is.na(.)) %>%
+            magrittr::extract(!is.na(.)) %>%
             str_replace_all(pattern = "\\.",
                             replacement = "\\\\.") %>%
             paste0("^",  .) %>%
@@ -455,6 +463,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     Sys.sleep(2)
     # Rename the file, and append with the date for easier identification (may want to add in the time too?)
     file.rename(from = paste0(download_dir, '\\', 'file.txt'), to = paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'))
+    Sys.sleep(2)
     # to add the time to the filename
     # file.rename(from = 'file.txt', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', hour(Sys.time()),'.', minute(Sys.time()), '.', if(am(Sys.time())) {'AM'} else {'PM'}))
     # Delete old versions of the files (if desired)
@@ -468,11 +477,13 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             file.remove(paste0(download_dir, '\\', files_list_old))
         }
     }
+    Sys.sleep(2)
     
     # convert the file to .csv
     ## NEW (MORE SIMPLE) METHOD (2021-10-05) ----
     dataset <- read_tsv(paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'),
                         col_types = cols(.default = col_character()))
+    Sys.sleep(2)
     ### ensure all records are in UTF-8 format, convert if not ----
     dataset <- dataset %>%
         # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
@@ -484,7 +495,6 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     remove_characters <- c('\"|\t|\r|\n|\f|\v|\\|')
     dataset <- dataset %>%
         map_df(~str_replace_all(., remove_characters, ' '))
-    
     
     
     ## OLD METHOD ----

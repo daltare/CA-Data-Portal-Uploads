@@ -1,8 +1,3 @@
-# NOTE: To schedule this script to run automatically, go to 'Addins' and 'Schedule R scripts on...', then select 
-# the file that calls this script ("C:\\David\\Open_Data_Project\\__CA_DataPortal\\_Call_Scripts\\Call_SurfWater_Script.R.R")
-# and set the time/date option (make sure the date format is %m/%d/%Y)
-
-
 
 # load packages -----------------------------------------------------------
 library(ckanr) # this lets you work with the CKAN portal

@@ -108,13 +108,21 @@ chrome_browser_version <-
             stdout = TRUE,
             stderr = TRUE) %>%
     str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+if (sum(!is.na(chrome_browser_version)) == 0) {
+    chrome_browser_version <-
+        system2(command = "wmic",
+                args = 'datafile where name="C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+                stdout = TRUE,
+                stderr = TRUE) %>%
+        str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+}
 
 ## get available chrome drivers ----
 chrome_driver_versions <- list_versions("chromedriver")
 
 ## match driver / version ----
 chrome_driver_current <- chrome_browser_version %>%
-    extract(!is.na(.)) %>%
+    magrittr::extract(!is.na(.)) %>%
     str_replace_all(pattern = "\\.",
                     replacement = "\\\\.") %>%
     paste0("^",  .) %>%
