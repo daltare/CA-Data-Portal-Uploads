@@ -73,6 +73,7 @@
     
     ## define data portal resource IDs for all years in the dataset
     data_resource_id_list <-  list(
+        '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2',
         '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
         '2020' = '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
         '2019' = '2eaa2d55-9024-431e-b902-9676db949174',
@@ -255,6 +256,12 @@ tryCatch(
         #                    na.strings = c('', 'NA')) %>% 
         #     clean_names() %>% 
         #     as_tibble()
+        
+        # stop if the dataset is smaller than expected
+        if (nrow(df_esmr) < 18 * 10^6) { # >18M rows as of 2022-02
+            stop('full dataset likely not downloaded (dataset is smaller than expected)')
+        }
+
     },
     error = function(e) {
         error_message <- 'reading flat file data into R'
@@ -631,34 +638,38 @@ tryCatch(
                                 '_', file_date,
                                 '.rds')
         )
-        # if (!exists('df_esmr')) {
-        #     df_esmr <- read_rds(paste0(download_dir, 
-        #                                file_name,
-        #                                '_parquet-formatted',
-        #                                '_', file_date,
-        #                                '.rds'))
-        # }
+        
+        # to start from here if needed
+        if (!exists('df_esmr')) {
+            df_esmr <- read_rds(paste0(download_dir,
+                                       file_name,
+                                       '_parquet-formatted',
+                                       '_', file_date,
+                                       '.rds'))
+        }
+        
         gc()
         # View(df_esmr %>% count(sampling_year)) # to see how many records there are per year
         
         ## partition by region first, sampling year second
-        write_dataset(dataset = df_esmr %>% 
-                          filter(sampling_year %in% years_download), 
-                      path = glue('{download_dir}{parquet_directory}'), 
-                      format = 'parquet', 
+        write_dataset(dataset = df_esmr %>%
+                          filter(sampling_year %in% years_download),
+                      path = glue('{download_dir}{parquet_directory}'),
+                      format = 'parquet',
                       partitioning = c('region', 'sampling_year'))
-        ## partition by region first, facility name year second
-        reg <- unique(df_esmr$region)
-        for (i in seq_along(reg)) {
-            write_dataset(dataset = df_esmr %>%
-                              filter(sampling_year %in% years_download,
-                                     region == reg[i]) %>% 
-                              mutate(facility_name = str_replace_all(facility_name, '/', '-')) %>% # replaces "Yountville / CA Vets Home WWTP"
-                              select(-sampling_year),
-                          path = glue('{download_dir}{parquet_directory}_region_facility'),
-                          format = 'parquet',
-                          partitioning = c('region', 'facility_name'))
-        }
+        
+        ## partition by region first, facility name second
+        # reg <- unique(df_esmr$region)
+        # for (i in seq_along(reg)) {
+        #     write_dataset(dataset = df_esmr %>%
+        #                       filter(sampling_year %in% years_download,
+        #                              region == reg[i]) %>% 
+        #                       mutate(facility_name = str_replace_all(facility_name, '/', '-')) %>% # replaces "Yountville / CA Vets Home WWTP"
+        #                       select(-sampling_year),
+        #                   path = glue('{download_dir}{parquet_directory}'),
+        #                   format = 'parquet',
+        #                   partitioning = c('region', 'facility_name'))
+        # }
         gc()
         
         print(glue('Zipping parquet file'))

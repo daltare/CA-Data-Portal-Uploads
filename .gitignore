@@ -5,6 +5,8 @@
 
 ignore/
 
+datastore-dump_&_persistent-link-to-csv.docx
+
 *.msg
 *.7z
 *.zip
