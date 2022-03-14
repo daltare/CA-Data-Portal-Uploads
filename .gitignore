@@ -3,6 +3,8 @@
 .RData
 .Ruserdata
 
+rsconnect
+
 ignore/
 
 datastore-dump_&_persistent-link-to-csv.docx
