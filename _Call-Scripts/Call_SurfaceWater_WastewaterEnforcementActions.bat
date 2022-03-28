@@ -1,1 +1,1 @@
-Rscript -e "source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Surface-Water-Datasets\\Wastewater-Enforcement-Actions', chdir = TRUE)"
+Rscript -e "source('C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\Surface-Water-Datasets\\Wastewater-Enforcement-Actions.R', chdir = TRUE)"

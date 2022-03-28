@@ -41,7 +41,7 @@ portal_key <- Sys.getenv('data_portal_key')
 file_save_location <- 'C:\\David\\_CA_data_portal\\Urban_Water_Supplier_Monitoring'
 
 ## enter the maximum number of days between portal updates before triggering a warning email to be sent
-max_update_lag <- 40 # number of days
+max_update_lag <- 60 # number of days
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
@@ -575,7 +575,8 @@ tryCatch(
         ## send warning email if last update was too long ago ----
         if (max_update_lag_exceeded_new == TRUE) {
             error_message <- glue('WARNING: the portal has not been updated in over {max_update_lag} days (last portal update was {update_lag_new} days ago)')
-            fn_send_email(error_msg = error_message)
+            fn_send_email(error_msg = error_message, 
+                          error_msg_r = 'NA (no R error)')
             print(glue('{error_message}'))
         }
     },
