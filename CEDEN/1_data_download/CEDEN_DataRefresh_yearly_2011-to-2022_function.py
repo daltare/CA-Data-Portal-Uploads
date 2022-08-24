@@ -49,12 +49,12 @@ import string
 import zipfile
 
 
-def python_get_data_2(saveLocation, tables, SERVER1, UID, PWD):	
+def python_get_data_2(saveLocation, tables, SERVER1, UID, PWD, today):	
 
 	################################################################# Controls #################################################################
-	today = str(date.today())
-	now = datetime.now()
-	cur_year = now.year
+	# today = str(date.today())
+	# now = datetime.now()
+	# cur_year = now.year
 
 	### Set the file location
 	# first = 'C:\\David\\_CA_data_portal\\CEDEN'

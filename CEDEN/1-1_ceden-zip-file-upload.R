@@ -203,13 +203,13 @@ for (id_number in seq_along(names(zip_resource_id_list))) {
         i <- 0
         t1 <- Sys.time()
         while(remDr$getCurrentUrl() == edit_url & i <= 120) { 
-            print('uploading')
+            print(glue('uploading ({dataset_name})'))
             Sys.sleep(10)
         }
         t2 <- Sys.time()
         
         upload_time <- t2 - t1
-        print(glue('upload complete -- upload time: {round(upload_time,1)} {units(upload_time)}'))  
+        print(glue('upload complete ({dataset_name}) -- upload time: {round(upload_time,1)} {units(upload_time)}'))  
     }
     
     # go to the next file

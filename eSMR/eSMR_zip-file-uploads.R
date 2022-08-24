@@ -43,7 +43,7 @@ library(tictoc)
 #                       dataset_id = '5901c092-20e9-4614-b22b-37ee1e5c29a5',
 #                       data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{Sys.Date()}.zip')),
 #     'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-#                      dataset_id = '8d567d61-6c07-4cd8-a2f0-3b57a9edae43',
+#                      dataset_id = 'cce982b3-719f-4852-8979-923c3a639a25',
 #                      data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{Sys.Date()}.zip'))
 # )
 
@@ -198,9 +198,11 @@ for (id_number in seq_along(names(zip_resource_id_list))) {
     {
         i <- 0
         t1 <- Sys.time()
+        sleep_time <- 10 # seconds
         while(remDr$getCurrentUrl() == edit_url & i <= 120) { 
-            print(glue('uploading (counter: {i})'))
-            Sys.sleep(10)
+            print(glue('uploading (counter: {round(i * sleep_time / 60, 1)} minutes)'))
+            Sys.sleep(sleep_time)
+            i <- i + 1
         }
         t2 <- Sys.time()
         

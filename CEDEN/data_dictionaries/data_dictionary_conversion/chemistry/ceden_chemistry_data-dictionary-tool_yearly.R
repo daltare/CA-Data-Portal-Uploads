@@ -17,10 +17,13 @@
             # -Dwebdriver.chrome.driver="C:\Users\daltare\AppData\Local\binman\binman_chromedriver\win32\77.0.3865.40/chromedriver.exe"
                     
 # Enter Location of "Start_Server.bat" and "Stop.bat" files
-    bat_file_location <- 'C:\\David\\Stormwater\\_SMARTS_Data_Download_Automation\\'
-    
+    library(here)
+    bat_file_location <- here()
+
 # load packages
+    library(tidyverse)
     library(RSelenium)
+    library(wdman)
     library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
     library(XML)
     library(dplyr)
@@ -29,6 +32,9 @@
     library(lubridate)
     library(readxl)
     library(ckanr)
+    library(pingr)
+    library(binman)
+    
 
 # Enter variables:
     # User Input
@@ -49,7 +55,8 @@
         filter(format %in% c('CSV')) %>% # filter for just the resources containing csv files
         select(name, id)
     
-    data_resource_id_list <-  list(#'2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
+    data_resource_id_list <-  list('year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053'#,
+                                   #'2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
                                    # '2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234', 
                                    # '2019' = '6cf99106-f45f-4c17-80af-b91603f391d9',
                                    # '2018' = 'f638c764-89d5-4756-ac17-f6b20555d694',
@@ -70,15 +77,16 @@
                                    # '2003' = 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
                                    # '2002' = '00c4ca34-064f-4526-8276-57533a1a36d9',
                                    # '2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
-                                   '2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
-                                   'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
+                                   # '2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
+                                   # 'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
                                    )
 
         
 
 # STEP 1: Get the dictionary info ----
     # get the info to fill out the data dictionary 
-        df_dictionary <- read_excel(dictionary_filename) %>% 
+        df_dictionary <- read_excel(here('data_dictionaries', 'data_dictionary_conversion', 'chemistry', 
+                                         dictionary_filename)) %>% 
             clean_names() %>% 
             select(all_of(dictionary_fields))
         # df_dictionary <- df_dictionary %>% 
@@ -90,45 +98,134 @@
         # z_timestamp_fields <- df_dictionary %>% filter(type == 'timestamp') %>% select(column)
             # identical(z_timestamp_fields$column, fields_dates) # should be TRUE
 
+    
+    
 # STEP 2: Set up the methodology to automate data entry, using RSelenium (use the Chrome browser in this script) ----
     # Note - for more information / examples on how the RSelenium package works, see:
-        # https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
-        # https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
-        # https://stackoverflow.com/questions/32123248/submitting-form-from-r-to-mixed-html-and-javascript
-        # https://github.com/ropensci/RSelenium/issues/121
-
-
+    # https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
+    # https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
+    # https://stackoverflow.com/questions/32123248/submitting-form-from-r-to-mixed-html-and-javascript
+    # https://github.com/ropensci/RSelenium/issues/121
+    
+    
     # Set up RSelenium 
     # define the chrome browser options for the Selenium session
-        eCaps <- list( 
-            chromeOptions = 
-                list(prefs = list(
-                    "profile.default_content_settings.popups" = 0L,
-                    "download.prompt_for_download" = FALSE,
-                    "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = getwd()) # download.dir
-                )
-                )
-        )
-
+    eCaps <- list( 
+        chromeOptions = 
+            list(prefs = list(
+                "profile.default_content_settings.popups" = 0L,
+                "download.prompt_for_download" = FALSE,
+                "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = getwd()) # download.dir
+            )
+            )
+    )
+    
     # Open the connection
-        # OLD METHOD (for some reason it doesn't work when running as an automated task with the task scheduler, but does work when just running from a normal RStudio session) 
-            # rsD <- RSelenium::rsDriver(port = 4444L, browser = 'chrome', extraCapabilities = eCaps) #, chromever = "75.0.3770.90")
-            # remDr <- rsD$client
-            # probably don't need these lines anymore:
-            # remDr <- remoteDriver(browserName="chrome", port = 4444L, extraCapabilities = eCaps)
-            # remDr$open()
-        # NEW METHOD (works when running as an automated task)
-            # Run this, and paste the output into a terminal (cmd) window
-                # selCommand <- wdman::selenium(jvmargs = c("-Dwebdriver.chrome.verboseLogging=true"), retcommand = TRUE)
-                # cat(selCommand)
-                # This command starts the server, by entering the output from the line above into a command window
-                    shell.exec(file = paste0(bat_file_location , 'Start_Server.bat'))
-            # NOTE: There can be a mismatch between the Chrome browser version and the Chrome driver version - if so, it may 
-                # be necessary to manually edit the output of the steps above to point to the correct version of the 
-                # driver (at: C:\Users\daltare\AppData\Local\binman\binman_chromedriver\win32) - also see: https://stackoverflow.com/questions/55201226/session-not-created-this-version-of-chromedriver-only-supports-chrome-version-7
-            # open the connection
-                remDr <- RSelenium::remoteDriver(port = 4567L, browserName = "chrome", extraCapabilities = eCaps)
-                remDr$open()
+    # OLD METHOD (for some reason it doesn't work when running as an automated task with the task scheduler, but does work when just running from a normal RStudio session) 
+    # rsD <- RSelenium::rsDriver(port = 4444L, browser = 'chrome', extraCapabilities = eCaps) #, chromever = "75.0.3770.90")
+    # remDr <- rsD$client
+    # probably don't need these lines anymore:
+    # remDr <- remoteDriver(browserName="chrome", port = 4444L, extraCapabilities = eCaps)
+    # remDr$open()
+    #### NEW METHOD (works when running as an automated task)
+    #### (see: https://github.com/ropensci/RSelenium/issues/221)
+    
+    # selenium(jvmargs = 
+    #              c("-Dwebdriver.chrome.verboseLogging=true"), 
+    #          retcommand = TRUE)
+    
+    
+    #### check for open port ----
+    for (port_check in 4567L:4577L) {
+        port_test <- ping_port(destination = 'localhost', port = port_check)
+        # print(all(is.na(port_test)))
+        if (all(is.na(port_test)) == TRUE) {
+            port_use <- port_check
+            break
+        }
+    }
+    
+    #### get drivers ----
+    selenium(jvmargs = 
+                 c("-Dwebdriver.chrome.verboseLogging=true"), 
+             retcommand = TRUE,
+             port = port_use)
+    Sys.sleep(5)
+    
+    #### get current version of chrome browser ----
+    chrome_browser_version <-
+        system2(command = "wmic",
+                args = 'datafile where name="C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+                stdout = TRUE,
+                stderr = TRUE) %>%
+        str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+    if (sum(!is.na(chrome_browser_version)) == 0) {
+        chrome_browser_version <-
+            system2(command = "wmic",
+                    args = 'datafile where name="C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+                    stdout = TRUE,
+                    stderr = TRUE) %>%
+            str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+    }
+    
+    #### get available chrome drivers ----
+    chrome_driver_versions <- list_versions("chromedriver")
+    
+    #### match driver / version ----
+    chrome_driver_current <- chrome_browser_version %>%
+        magrittr::extract(!is.na(.)) %>%
+        str_replace_all(pattern = "\\.",
+                        replacement = "\\\\.") %>%
+        paste0("^",  .) %>%
+        str_subset(string = last(chrome_driver_versions)) %>%
+        as.numeric_version() %>%
+        max() %>%
+        as.character()
+    
+    #### re-check for open port ----
+    for (port_check in 4567L:4577L) {
+        port_test <- ping_port(destination = 'localhost', port = port_check)
+        # print(all(is.na(port_test)))
+        if (all(is.na(port_test)) == TRUE) {
+            port_use <- port_check
+            break
+        }
+    }
+    
+    #### set up selenium with the current chrome version ----
+    selCommand <- selenium(jvmargs = 
+                               c("-Dwebdriver.chrome.verboseLogging=true"), 
+                           retcommand = TRUE,
+                           chromever = chrome_driver_current,
+                           port = port_use)
+    
+    #### OLD - No longer needed
+    # cat(selCommand) # view / print to console #Run this, and paste the output into a terminal (cmd) window
+    
+    #### write selenium specifications to batch file ----
+    writeLines(selCommand, 
+               paste0(bat_file_location, '/Start_Server.bat'))
+    Sys.sleep(5) #### wait a few seconds
+    
+    #### start server ----
+    shell.exec(here('Start_Server.bat'))
+    
+    Sys.sleep(10) #### wait a few seconds
+    
+    # This command starts the server, by entering the output from the line above into a command window
+    # shell.exec(file = 'C:/David/Stormwater/_SMARTS_Data_Download_Automation/Start_Server.bat')
+    # NOTE: There can be a mismatch between the Chrome browser version and the Chrome driver version - if so, it may 
+    # be necessary to manually edit the output of the steps above to point to the correct version of the 
+    # driver (at: C:\Users\daltare\AppData\Local\binman\binman_chromedriver\win32) - also see: https://stackoverflow.com/questions/55201226/session-not-created-this-version-of-chromedriver-only-supports-chrome-version-7
+    
+    ### open connection ----
+    remDr <- remoteDriver(port = port_use, # 4567L, 
+                          browserName = "chrome", 
+                          extraCapabilities = eCaps)
+    Sys.sleep(10) #### wait a few seconds
+    remDr$open() 
+    
+    
 
 # STEP 3: Enter the data ----
     # get portal username and password
@@ -181,4 +278,4 @@
     # rsD$server$stop() # from the old method
     rm(list = c('remDr'))#'eCaps', , 'SMARTS_url', 'rsD'))
     gc()   
-    shell.exec(file = paste0(bat_file_location, 'Stop.bat')) # this closes the java window
+    shell.exec(file = paste0(bat_file_location, '/Stop.bat')) # this closes the java window

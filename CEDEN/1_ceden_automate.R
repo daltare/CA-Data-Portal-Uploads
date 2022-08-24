@@ -3,7 +3,7 @@
 
 
 
-# load libraries ----------------------------------------------------------
+# load packages ----------------------------------------------------------
 {
     library(tidyverse)
     library(janitor)
@@ -46,7 +46,7 @@
     # python_path <- 'C:\\Anaconda-3.7'
     
     ### path to data files ----
-    data_files_date <- Sys.Date()
+    data_files_date <- Sys.Date() %>% as.character()
     data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
 }
 
@@ -165,7 +165,8 @@ tryCatch(
                               tables,
                               ceden_server,
                               ceden_id,
-                              ceden_pwd)
+                              ceden_pwd, 
+                              data_files_date)
             print(glue('finished downloading {data_type} (through 2010)'))
             gc()
         }
@@ -199,7 +200,8 @@ tryCatch(
                               tables,
                               ceden_server,
                               ceden_id,
-                              ceden_pwd)
+                              ceden_pwd, 
+                              data_files_date)
             print(glue('finished downloading {data_type} (2011 through present)'))
             gc()
         }
@@ -230,6 +232,7 @@ upload_files_list <- list(
         'all_years' = '3dfee140-47d5-4e29-99ae-16b9b12a404f'
     ),
     WaterChemistryData = list(
+        'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
         'year-2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
         'year-2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234',
         'year-2019' = '6cf99106-f45f-4c17-80af-b91603f391d9',
@@ -254,7 +257,7 @@ upload_files_list <- list(
         'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
         'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'),
     TissueData = list(
-        #'year-2021' = ,
+        'year-2021' = '02e2e832-fa46-4ecb-98e8-cdb70fe3902d',
         'year-2020' = 'a3545e8e-2ab5-46b3-86d5-72a74fcd8261',
         'year-2019' = 'edd16b08-3d9f-4375-9396-dce7cbd2f717',
         'year-2018' = '559c5523-8883-4da0-9750-f7fd3f088cfb',
@@ -278,6 +281,7 @@ upload_files_list <- list(
         'year-2000' = '06b35b3c-6338-44cb-b465-ba4c1863b7c5',
         'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'),
     HabitatData = list(
+        'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',
         'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
         'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
         'year-2019' = 'c0f230c5-3f51-4a7a-a3db-5eb8692654aa',
@@ -453,7 +457,8 @@ tryCatch(
     }
 )
 
-### revert back to using up-to-date packages
+### revert back to using up-to-date packages (if needed - to be safe, this 
+### can stay in the code regardless of whether or not checkpoint is used)
 uncheckpoint()
 Sys.sleep(15) # pause to make sure reversion completes
 

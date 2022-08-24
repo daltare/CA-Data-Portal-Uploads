@@ -46,14 +46,13 @@
     # define which years to extract from the dataset and write to the data.ca.gov portal
     ## years to download and write to local data files 
     years_download <- 2006:year(Sys.Date())
-    ## years to write to portal -- per discussion with Jarma, typically just update the current and previous years - for other years, update ~ once per year
-    years_write <- (year(Sys.Date())-3):year(Sys.Date()) 
+    ## years to write to portal -- per discussion with Jarma, typically just update the current and last few years - for other years, update ~ once per year
+    years_write <- (year(Sys.Date())-4):year(Sys.Date()) 
     
     ## delete old files
     delete_old_versions <- TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
     # NOTE: currently set to keep the versions from the current day if TRUE
-    
-    ## enter the email address to send warning emails from
+        ## enter the email address to send warning emails from
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
     email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
     credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
@@ -98,7 +97,7 @@
                            dataset_id = '5901c092-20e9-4614-b22b-37ee1e5c29a5',
                            data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{file_date}.zip')),
         'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-                         dataset_id = '8d567d61-6c07-4cd8-a2f0-3b57a9edae43',
+                         dataset_id = 'cce982b3-719f-4852-8979-923c3a639a25',
                          data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{file_date}.zip'))
     )
     
@@ -489,6 +488,23 @@ if (!exists('df_esmr')) {
 
 # 5- format data -------------------------------------------------------------
 
+## remove duplicates ----
+tryCatch(
+    {
+        gc()
+        df_esmr <- df_esmr %>% 
+            distinct()
+        gc()
+    },
+    error = function(e) {
+        error_message <- 'removing duplicates'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
 ## rename fields ----
 tryCatch(
     {
@@ -681,7 +697,8 @@ tryCatch(
                  #mode = 'cherry-pick',
                  # files = glue('{directory_name}/{list.files(directory_name, recursive = TRUE)}'),
                  files = list.files(recursive = TRUE),
-                 compression_level = 0)
+                 # compression_level = 0
+                 )
         gc()
         Sys.sleep(2)
         

@@ -27,7 +27,9 @@
     
 # download the most recent dataset #----------------------------------------------------------------------------------------#
     # Create a directory for the current month / year / day
-        current_year_month <- paste0(lubridate::year(Sys.Date()), '-', formatC(x = lubridate::month(Sys.Date()), digits = 1, flag = 0, format = 'd'), '-', formatC(x = lubridate::day(Sys.Date()), digits = 1, flag = 0, format = 'd'))
+        current_year_month <- paste0(lubridate::year(Sys.Date()), '-', 
+                                     formatC(x = lubridate::month(Sys.Date()), digits = 1, flag = 0, format = 'd'), '-', 
+                                     formatC(x = lubridate::day(Sys.Date()), digits = 1, flag = 0, format = 'd'))
         if (dir.exists(paste0(file_save_location, current_year_month)) == FALSE) { # make sure that a directory for the current month doesn't already exist
             dir.create(paste0(file_save_location, current_year_month))
         }   
@@ -40,9 +42,9 @@
             download.file(url = path_rtc, destfile = paste0(file_save_location, current_year_month, '//', file_rtc, extension), method = 'curl')
     # read the datsets into R
         data_active <-  read_excel(path = paste0(file_save_location, current_year_month, '//' , 
-                                                 file_active, extension), guess_max = 999999)
+                                                 file_active, extension), guess_max = 999999, na = c('', 'NULL', 'NA'))
         data_rtc <-  read_excel(path = paste0(file_save_location, current_year_month, '//' , file_rtc, extension), 
-                                guess_max = 999999)
+                                guess_max = 999999, na = c('', 'NULL', 'NA'))
         
         
 # format the datasets #------------------------------------------------------------------------------------------------------#
