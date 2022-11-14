@@ -54,16 +54,15 @@
 
 # 2 - setup automated email ---------------------------------------------------
 ## create credentials file (only need to do this once) ----
-### outlook credentials ----
-# create_smtp_creds_file(file = 'outlook_creds', 
-#                        user = 'david.altare@waterboards.ca.gov',
-#                        provider = 'outlook'
-#                        ) 
+
 ### gmail credentials ----
-#### !!! NOTE - for gmail, you also have to enable 'less secure apps'  within your 
-#### gmail account settings - see: https://github.com/rstudio/blastula/issues/228
-# create_smtp_creds_file(file = 'gmail_creds', 
-#                        user = 'daltare.work@gmail.com',
+#### NOTE - for gmail, you have to create an 'App Password' and use that 
+#### instead of your normal password - see: 
+#### (https://support.google.com/accounts/answer/185833?hl=en) 
+#### Background here:
+#### https://github.com/rstudio/blastula/issues/228 
+# create_smtp_creds_file(file = 'gmail_creds',
+#                        user = 'daltare.swrcb@gmail.com',
 #                        provider = 'gmail'
 #                        )
 
