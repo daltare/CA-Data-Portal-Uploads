@@ -54,7 +54,7 @@
     # NOTE: currently set to keep the versions from the current day if TRUE
         ## enter the email address to send warning emails from
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-    email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
+    email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
     credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
     # email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
     
@@ -124,7 +124,7 @@
     #### Background here:
     #### https://github.com/rstudio/blastula/issues/228 
     # create_smtp_creds_file(file = 'gmail_creds',
-    #                        user = 'daltare.swrcb@gmail.com',
+    #                        user = email_from,
     #                        provider = 'gmail'
     #                        )
     

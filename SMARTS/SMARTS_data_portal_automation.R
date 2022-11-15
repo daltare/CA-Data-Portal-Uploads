@@ -46,7 +46,7 @@ delete_old_versions = TRUE # whether or not to delete previous versions of each 
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
 credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
 
 ## enter the email address (or addresses) to send warning emails to
@@ -142,7 +142,7 @@ dataset_list <- list(dataset1 = list(filename = 'Industrial_Ad_Hoc_Reports_-_Par
 #### Background here:
 #### https://github.com/rstudio/blastula/issues/228 
 # create_smtp_creds_file(file = 'gmail_creds',
-#                        user = 'daltare.swrcb@gmail.com',
+#                        user = email_from,
 #                        provider = 'gmail'
 #                        )
 
