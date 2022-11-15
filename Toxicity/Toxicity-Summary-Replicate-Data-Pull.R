@@ -67,7 +67,7 @@
 #### (https://support.google.com/accounts/answer/185833?hl=en) 
 #### Background here:
 #### https://github.com/rstudio/blastula/issues/228 
-# create_smtp_creds_file(file = 'gmail_creds',
+# create_smtp_creds_file(file = credentials_file,
 #                        user = email_from,
 #                        provider = 'gmail'
 #                        )
