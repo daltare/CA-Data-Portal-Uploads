@@ -7,15 +7,10 @@
 # -Dwebdriver.chrome.driver="C:\Users\daltare\AppData\Local\binman\binman_chromedriver\win32\77.0.3865.40/chromedriver.exe"
 
 
-# NOTE: To schedule this script to run automatically, go to 'Addins' and 'Schedule R scripts on...', then select 
-# the file that calls this script ("C:\\David\\Open_Data_Project\\__CA_DataPortal\\_Call_Scripts\\_Call_SMARTS_download.R")
-# and set the time/date option (make sure the date format is %m/%d/%Y)
-
 
 
 # load packages -----------------------------------------------------------
 library(RSelenium)
-library(wdman)
 library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
 library(XML)
 # library(tidyverse)
@@ -32,6 +27,7 @@ library(blastula)
 library(binman)
 library(pingr)
 library(ckanr)
+library(wdman)
 
 
 
@@ -256,10 +252,10 @@ tryCatch(
         }
         
         #### get drivers ----
-        selenium(jvmargs = 
-                     c("-Dwebdriver.chrome.verboseLogging=true"), 
+        selenium(#jvmargs = c("-Dwebdriver.chrome.verboseLogging=true"), 
                  retcommand = TRUE,
-                 port = port_use)
+                 port = port_use
+                 )
         Sys.sleep(5)
         
         #### get current version of chrome browser ----

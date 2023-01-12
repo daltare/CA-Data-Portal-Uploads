@@ -135,6 +135,8 @@ The source data comes from the CEDEN data mart"
 # use_condaenv()
 # reticulate::py_config()
 
+Sys.sleep(5)
+
 ## define datasets to download ----
 tables_list = c(
     "ToxicityData" = "ToxDmart_MV",
@@ -156,6 +158,9 @@ tryCatch(
         for (data_type in names(tables_list)) {
             # data_type <- 'ToxicityData'
             # print(data_type)
+            
+            Sys.sleep(1)
+            
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
             tables <- r_to_py(tables)
@@ -191,6 +196,9 @@ tryCatch(
         ### get data
         for (data_type in names(tables_list)) {
             # print(data_type)
+            
+            Sys.sleep(1)
+            
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
             tables <- r_to_py(tables)
@@ -218,6 +226,8 @@ tryCatch(
 
 
 # 4 - upload csv files ----------------------------------------------------
+
+Sys.sleep(5)
 
 ## define files to be uploaded ----
 upload_files_list <- list(
@@ -310,6 +320,11 @@ options(timeout = 3600) # default is 60, units are seconds
 tryCatch(
     {
         ### get python function
+        #### install dependent python packages
+        shell('cd 2_portal-upload-ckan-chunked_CEDEN')
+        shell('pip install -r requirements.txt')
+        shell('cd ..')
+        #### get function
         source_python(here('2_portal-upload-ckan-chunked_CEDEN', 
                            'main_CEDEN_function.py'))
         

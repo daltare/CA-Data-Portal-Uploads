@@ -79,8 +79,7 @@ for (port_check in 4567L:4577L) {
 }
 
 ## get drivers ----
-selenium(jvmargs = 
-             c("-Dwebdriver.chrome.verboseLogging=true"), 
+selenium(# jvmargs = c("-Dwebdriver.chrome.verboseLogging=true"), 
          retcommand = TRUE,
          port = port_use)
 Sys.sleep(5)

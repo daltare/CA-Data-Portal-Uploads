@@ -1,12 +1,12 @@
 
 # load packages -----------------------------------------------------------
 library(ckanr)
-library(dplyr)
-library(readr)
+library(tidyverse)
+library(lubridate)
 # library(writexl)
-library(lubridate)
 # library(here)
-library(lubridate)
+
+
 
 
 # setup -------------------------------------------------------------------
@@ -93,11 +93,17 @@ df_datasets_format <- df_datasets %>%
 # resource level metadata -------------------------------------------------
 ## extract resource metadata ----
 df_resources <- df_datasets %>% 
-    select(resources)
+    select(resources) %>% 
+    as.list()
+
+df_resources <- df_resources$resources
 
 ## convert to single data frame ----
 df_resources <- df_resources %>% 
-    purrr::map_df(~.x)
+    map(.f = ~ .x %>% mutate_all(as.character)) %>% 
+    map_df(~.x) %>% 
+    # type_convert() %>% 
+    {.}
 
 ## format resource metadata ----
 df_resources_format <- df_resources %>% 
@@ -141,9 +147,9 @@ df_resources_format <- df_resources %>%
              .after = resource_last_update) %>% 
     mutate(resource_filename = basename(resource_filename)) %>% 
     mutate(datastore_contains_all_records_of_source_file = case_when(
-        datastore_active == 'FALSE' ~ NA_character_,
-        datastore_active == 'TRUE' & datastore_contains_all_records_of_source_file == 'True' ~ 'TRUE',
-        datastore_active == 'TRUE' & datastore_contains_all_records_of_source_file == 'False' ~ 'FALSE',
+        tolower(datastore_active) == 'false' ~ NA_character_,
+        tolower(datastore_active) == 'true' & tolower(datastore_contains_all_records_of_source_file) == 'true' ~ 'TRUE',
+        tolower(datastore_active) == 'true' & tolower(datastore_contains_all_records_of_source_file) == 'false' ~ 'FALSE',
         TRUE ~ datastore_contains_all_records_of_source_file
     )) %>%
     mutate(resource_created = as.character(resource_created),
@@ -174,9 +180,10 @@ df_resources_format <- df_resources_format %>%
 # glimpse(df_resources_format)
 # View(df_resources_format)
 
-# z <- df_resources_format %>% 
-#     filter(datastore_contains_all_records_of_source_file == 'False' & 
-#                datastore_active== 'TRUE')
+# df_resources_format %>%
+#     filter(datastore_contains_all_records_of_source_file %in% c('FALSE', 'False') &
+#                datastore_active %in% c('TRUE', 'True')) %>% 
+#     View()
 
 
 

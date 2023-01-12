@@ -44,7 +44,7 @@
   
   ## enter the email address to send warning emails from
   ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-  email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+  email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
   credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
   # email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
   
@@ -60,17 +60,18 @@
 
 # setup automated email -----------------------------------------------
 ## create credentials file (only need to do this once) ----
-
+### outlook credentials ----
+# create_smtp_creds_file(file = 'outlook_creds', 
+#                        user = 'david.altare@waterboards.ca.gov',
+#                        provider = 'outlook'
+#                        ) 
 ### gmail credentials ----
-#### NOTE - for gmail, you have to create an 'App Password' and use that 
-#### instead of your normal password - see: 
-#### (https://support.google.com/accounts/answer/185833?hl=en) 
-#### Background here:
-#### https://github.com/rstudio/blastula/issues/228 
-# create_smtp_creds_file(file = credentials_file,
-#                        user = email_from,
+#### !!! NOTE - for gmail, you also have to enable 'less secure apps'  within your 
+#### gmail account settings - see: https://github.com/rstudio/blastula/issues/228
+# create_smtp_creds_file(file = 'gmail_creds', 
+#                        user = 'daltare.work@gmail.com',
 #                        provider = 'gmail'
-#                        )
+#                        )   
 
 ## create email function ----
 fn_send_email <- function(error_msg, error_msg_r) {
@@ -851,6 +852,11 @@ tryCatch(
     gc()
     
     ### get the python function ----
+    #### install dependent python packages
+    shell('cd portal-upload-ckan-chunked_Tox')
+    shell('pip install -r requirements.txt')
+    shell('cd ..')
+    #### get function
     source_python(python_upload_script)
     
     ### summary data ----

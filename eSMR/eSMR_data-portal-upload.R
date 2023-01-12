@@ -1113,7 +1113,15 @@ tryCatch(
     {
         gc()
         last_year <- NA
+        
+        ### get python function
+        #### install dependent python packages
+        shell('cd portal-upload-ckan-chunked_eSMR')
+        shell('pip install -r requirements.txt')
+        shell('cd ..')
+        #### get function
         source_python(python_upload_script)
+        
         for (i in as.character(rev(years_write))) {
             print(glue('Updating Year: {i}'))
             ckanUploadFile(data_resource_id_list[[as.character(i)]],
