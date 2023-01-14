@@ -106,6 +106,7 @@
     
     ## define location of python script to upload chunked data (relative path)
     python_upload_script <- here('portal-upload-ckan-chunked_eSMR', 'main_eSMR_function.py')
+    chunked_upload_directory <- 'portal-upload-ckan-chunked_eSMR'
     
     ## define location of the data dictionary spreadsheet (relative path)
     data_dictionary_path <- here('esmr-data-dictionary-tool', 'eSMR_Data_Dictionary_Template.xlsx')
@@ -1116,9 +1117,9 @@ tryCatch(
         
         ### get python function
         #### install dependent python packages
-        shell('cd portal-upload-ckan-chunked_eSMR')
+        setwd(chunked_upload_directory)
         shell('pip install -r requirements.txt')
-        shell('cd ..')
+        setwd('..')
         #### get function
         source_python(python_upload_script)
         

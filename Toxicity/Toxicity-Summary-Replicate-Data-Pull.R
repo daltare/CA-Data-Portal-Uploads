@@ -54,6 +54,7 @@
   
   ## define location of python script to upload chunked data (relative path)
   python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
+  chunked_upload_directory <- 'portal-upload-ckan-chunked_Tox'
 }
 
 
@@ -853,9 +854,9 @@ tryCatch(
     
     ### get the python function ----
     #### install dependent python packages
-    shell('cd portal-upload-ckan-chunked_Tox')
+    setwd(chunked_upload_directory)
     shell('pip install -r requirements.txt')
-    shell('cd ..')
+    setwd('..')
     #### get function
     source_python(python_upload_script)
     

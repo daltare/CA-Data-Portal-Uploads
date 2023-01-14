@@ -48,6 +48,12 @@
     ### path to data files ----
     data_files_date <- Sys.Date() %>% as.character()
     data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
+    
+    ## define location of python script to upload chunked data (relative path)
+    python_upload_script <- here('2_portal-upload-ckan-chunked_CEDEN', 
+                                 'main_CEDEN_function.py')
+    chunked_upload_directory <- '2_portal-upload-ckan-chunked_CEDEN'
+    
 }
 
 
@@ -321,12 +327,11 @@ tryCatch(
     {
         ### get python function
         #### install dependent python packages
-        shell('cd 2_portal-upload-ckan-chunked_CEDEN')
+        setwd(chunked_upload_directory)
         shell('pip install -r requirements.txt')
-        shell('cd ..')
+        setwd('..')
         #### get function
-        source_python(here('2_portal-upload-ckan-chunked_CEDEN', 
-                           'main_CEDEN_function.py'))
+        source_python(python_upload_script)
         
         ### upload data
         for (upload_data_type in names(upload_files_list)) {
