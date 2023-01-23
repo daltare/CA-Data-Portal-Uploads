@@ -10,24 +10,21 @@
 
 
 # load packages -----------------------------------------------------------
-library(RSelenium)
-library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
-library(XML)
-# library(tidyverse)
-library(dplyr)
-library(stringr)
-library(magrittr)
-library(readr)
-library(purrr)
-library(janitor)
-library(lubridate)
-library(glue)
-library(sendmailR)
-library(blastula)
-library(binman)
-library(pingr)
-library(ckanr)
-library(wdman)
+{
+    library(RSelenium)
+    library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
+    library(XML)
+    library(tidyverse)
+    library(janitor)
+    library(lubridate)
+    library(glue)
+    library(sendmailR)
+    library(blastula)
+    library(binman)
+    library(pingr)
+    library(ckanr)
+    library(wdman)
+}
 
 
 
@@ -236,8 +233,8 @@ tryCatch(
         #### NEW METHOD (works when running as an automated task)
         #### (see: https://github.com/ropensci/RSelenium/issues/221)
         
-        # selenium(jvmargs = 
-        #              c("-Dwebdriver.chrome.verboseLogging=true"), 
+        # selenium(jvmargs =
+        #              c("-Dwebdriver.chrome.verboseLogging=true"),
         #          retcommand = TRUE)
         
         
@@ -252,10 +249,11 @@ tryCatch(
         }
         
         #### get drivers ----
-        selenium(#jvmargs = c("-Dwebdriver.chrome.verboseLogging=true"), 
-                 retcommand = TRUE,
-                 port = port_use
-                 )
+        selenium(
+            check = TRUE,
+            retcommand = TRUE,
+            port = port_use
+        )
         Sys.sleep(5)
         
         #### get current version of chrome browser ----
@@ -298,12 +296,25 @@ tryCatch(
             }
         }
         
+        #### remove the 'LICENSE.chromedriver' file (if it exists)
+        chrome_driver_dir <- paste0(app_dir("chromedriver", FALSE), 
+                                    '/win32/',
+                                    chrome_driver_current)
+        # list.files(chrome_driver_dir)
+        if ('LICENSE.chromedriver' %in% list.files(chrome_driver_dir)) {
+            file.remove(
+                paste0(chrome_driver_dir, '/', 'LICENSE.chromedriver')
+            )
+        }
+        
         #### set up selenium with the current chrome version ----
-        selCommand <- selenium(jvmargs = 
-                                   c("-Dwebdriver.chrome.verboseLogging=true"), 
-                               retcommand = TRUE,
-                               chromever = chrome_driver_current,
-                               port = port_use)
+        selCommand <- wdman::selenium(
+            jvmargs = c("-Dwebdriver.chrome.verboseLogging=true"),
+            check = FALSE,
+            retcommand = TRUE,
+            chromever = chrome_driver_current,
+            port = port_use
+        )
         
         #### OLD - No longer needed
         # cat(selCommand) # view / print to console #Run this, and paste the output into a terminal (cmd) window
@@ -329,8 +340,7 @@ tryCatch(
                               browserName = "chrome", 
                               extraCapabilities = eCaps)
         Sys.sleep(10) #### wait a few seconds
-        remDr$open()  
-        
+        remDr$open()
     },
     ## Error function
     error = function(e) {

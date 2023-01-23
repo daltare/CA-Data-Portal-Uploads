@@ -95,9 +95,11 @@ for (port_check in 4567L:4577L) {
 }
 
 ## get drivers ----
-selenium(# jvmargs = c("-Dwebdriver.chrome.verboseLogging=true"), 
-         retcommand = TRUE,
-         port = port_use)
+selenium(
+    check = TRUE,
+    retcommand = TRUE,
+    port = port_use
+)
 Sys.sleep(5)
 
 ## get current version of chrome browser ----
@@ -140,9 +142,21 @@ for (port_check in 4567L:4577L) {
     }
 }
 
+#### remove the 'LICENSE.chromedriver' file (if it exists)
+chrome_driver_dir <- paste0(app_dir("chromedriver", FALSE), 
+                            '/win32/',
+                            chrome_driver_current)
+# list.files(chrome_driver_dir)
+if ('LICENSE.chromedriver' %in% list.files(chrome_driver_dir)) {
+    file.remove(
+        paste0(chrome_driver_dir, '/', 'LICENSE.chromedriver')
+    )
+}
+
 ## set up selenium with the current chrome version ----
 selCommand <- selenium(jvmargs = 
                            c("-Dwebdriver.chrome.verboseLogging=true"), 
+                       check = FALSE,
                        retcommand = TRUE,
                        chromever = chrome_driver_current,
                        port = port_use)
