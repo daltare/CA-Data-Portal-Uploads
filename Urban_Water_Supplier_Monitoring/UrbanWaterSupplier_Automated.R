@@ -169,7 +169,7 @@ tryCatch(
         reports_page <- readLines(url_conservation_portal)
         
         ## cut out everything after the 'Archived Monthly Report' header
-        reports_page <- reports_page[1:grep('Archived Monthly Report', reports_page)[1]] 
+        # reports_page <- reports_page[1:grep('Archived Monthly Report', reports_page)[1]] 
         
         ## extract the lines that contain '.xlsx' and some form of 'uw supplier data'
         condition_1 <- str_detect(string = reports_page, 

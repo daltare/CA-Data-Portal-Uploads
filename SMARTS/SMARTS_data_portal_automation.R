@@ -777,12 +777,17 @@ tryCatch(
         for (i in seq(length(dataset_list))) {
             resourceID <- dataset_list[[i]]$resource_id
             filename <- dataset_list[[i]]$filename
+            
+            print(glue('Uploading file: {filename}'))
+            
             ckan_resource_info <- resource_show(id = resourceID, as = 'table') # resource
             # check the connection
             # current_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = ckan_resource_info$url)
             # print(current_dataportal_filename) # this is just a test to make sure the API connection is successful
             fileToUpload <- paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv')
             file_upload <- resource_update(id = resourceID, path = fileToUpload)
+            
+            
             
             # # output the result of the upload process to a log file called: _DataPortalUpload-Log.txt
             # # check to see if the log file exists - if not, create it
@@ -800,6 +805,7 @@ tryCatch(
             #                 file = '_DataPortalUpload-Log.txt', append = TRUE)
             # }
         }
+        print('Upload complete')
     },
     error = function(e) {
         error_message <- 'uploading data (sending data to portal)'
