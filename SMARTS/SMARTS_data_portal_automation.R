@@ -201,12 +201,6 @@ Here's the link to the source data: https://smarts.waterboards.ca.gov/smarts/fac
 
 
 # 4 - Setup RSelenium --------------------------------------------------------
-# Note - for more information / examples on how the RSelenium package works, see:
-# https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
-# https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
-# https://stackoverflow.com/questions/32123248/submitting-form-from-r-to-mixed-html-and-javascript
-# https://github.com/ropensci/RSelenium/issues/121
-
 tryCatch(
     {
         source(here('start_selenium.R'))
