@@ -72,6 +72,7 @@
     
     ## define data portal resource IDs for all years in the dataset
     data_resource_id_list <-  list(
+        '2023' = '65eb7023-86b6-4960-b714-5f6574d43556',
         '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2',
         '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
         '2020' = '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
@@ -1123,7 +1124,7 @@ tryCatch(
         #### get function
         source_python(python_upload_script)
         
-        for (i in as.character(rev(years_write))) {
+        for (i in as.character(2023)) { # as.character(rev(years_write))) {
             print(glue('Updating Year: {i}'))
             ckanUploadFile(data_resource_id_list[[as.character(i)]],
                            paste0(download_dir, file_name, '_year-', as.character(i), '_', file_date, '.csv'),

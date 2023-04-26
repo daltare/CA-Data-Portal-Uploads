@@ -22,6 +22,7 @@ library(binman)
 library(wdman)
 library(stringr)
 library(magrittr)
+library(here)
 
 
 
@@ -44,7 +45,8 @@ dataset_name <- 'water-quality-effluent-electronic-self-monitoring-report-esmr-d
 #     filter(format %in% c('CSV')) %>% # filter for just the resources containing csv files
 #     select(name, id)
 
-data_resource_id_list <-  list('2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2'#,
+data_resource_id_list <-  list('2023' = '65eb7023-86b6-4960-b714-5f6574d43556'#,
+                               # '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2'#,
                                # '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
                                # '2020' = '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
                                # '2019' = '2eaa2d55-9024-431e-b902-9676db949174',
@@ -64,9 +66,11 @@ data_resource_id_list <-  list('2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2'#,
 )
 
 
+
 # STEP 1: Get the dictionary info ----
 # get the info to fill out the data dictionary 
-df_dictionary <- read_excel(dictionary_filename) %>% 
+df_dictionary <- read_excel(here('esmr-data-dictionary-tool', 
+                                 dictionary_filename)) %>% 
     clean_names() %>% 
     select(all_of(dictionary_fields))
 # df_dictionary <- df_dictionary %>% 
@@ -78,74 +82,10 @@ df_dictionary <- read_excel(dictionary_filename) %>%
 # z_timestamp_fields <- df_dictionary %>% filter(type == 'timestamp') %>% select(column)
 # identical(z_timestamp_fields$column, fields_dates) # should be TRUE
 
+
+
 # STEP 2: Set up the methodology to automate data entry, using RSelenium (use the Chrome browser in this script) ----
-# Note - for more information / examples on how the RSelenium package works, see:
-# https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
-# https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
-# https://stackoverflow.com/questions/32123248/submitting-form-from-r-to-mixed-html-and-javascript
-# https://github.com/ropensci/RSelenium/issues/121
-
-
-# Set up RSelenium ----
-## define the chrome browser options for the Selenium session ----
-eCaps <- list( 
-    chromeOptions = 
-        list(prefs = list(
-            "profile.default_content_settings.popups" = 0L,
-            "download.prompt_for_download" = FALSE,
-            "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = getwd()) # download.dir
-        )
-        )
-)
-
-## get current version of chrome browser ----
-chrome_browser_version <-
-    system2(command = "wmic",
-            args = 'datafile where name="C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
-            stdout = TRUE,
-            stderr = TRUE) %>%
-    str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
-if (sum(!is.na(chrome_browser_version)) == 0) {
-    chrome_browser_version <-
-        system2(command = "wmic",
-                args = 'datafile where name="C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
-                stdout = TRUE,
-                stderr = TRUE) %>%
-        str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
-}
-
-#### get available chrome drivers ----
-chrome_driver_versions <- list_versions("chromedriver")
-
-#### match driver / version ----
-chrome_driver_current <- chrome_browser_version %>%
-    extract(!is.na(.)) %>%
-    str_replace_all(pattern = "\\.",
-                    replacement = "\\\\.") %>%
-    paste0("^",  .) %>%
-    str_subset(string = dplyr::last(chrome_driver_versions)) %>%
-    as.numeric_version() %>%
-    max() %>%
-    as.character()
-
-#### set up selenium with the current chrome version ----
-selCommand <- selenium(jvmargs = 
-                           c("-Dwebdriver.chrome.verboseLogging=true"), 
-                       retcommand = TRUE,
-                       chromever = chrome_driver_current)
-
-#### write selenium specifications to batch file ----
-writeLines(selCommand, 
-           'Start_Server.bat')
-
-#### start server ----
-shell.exec('Start_Server.bat')
-
-### open connection ----
-remDr <- remoteDriver(port = 4567L, 
-                      browserName = "chrome", 
-                      extraCapabilities = eCaps)
-remDr$open()
+source(here('start_selenium.R'))
 
 
 
@@ -200,4 +140,4 @@ remDr$close()
 # rsD$server$stop() # from the old method
 rm(list = c('remDr'))#'eCaps', , 'SMARTS_url', 'rsD'))
 gc()   
-shell.exec(file = 'Stop.bat') # this closes the java window
+shell.exec(file = here('Stop.bat')) # this closes the java window

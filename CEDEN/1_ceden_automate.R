@@ -191,7 +191,7 @@ tryCatch(
     }
 )
 
-## download 2011 to present ----
+## download 2011 to 2022 ----
 tryCatch(
     {
         gc()
@@ -208,20 +208,58 @@ tryCatch(
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
             tables <- r_to_py(tables)
-            print(glue('downloading {data_type} (2011 through present)'))
+            print(glue('downloading {data_type} (2011 through 2022)'))
             python_get_data_2(data_files_path,
                               tables,
                               ceden_server,
                               ceden_id,
                               ceden_pwd, 
                               data_files_date)
-            print(glue('finished downloading {data_type} (2011 through present)'))
+            print(glue('finished downloading {data_type} (2011 through 2022)'))
             gc()
         }
         rm('python_get_data_2')
     },
     error = function(e) {
-        error_message <<- glue('Downloading data from 2011 to present (failed at: {data_type})')
+        error_message <<- glue('Downloading data from 2011 to 2022 (failed at: {data_type})')
+        error_message_r <<- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+## download 2023 to present ----
+tryCatch(
+    {
+        gc()
+        ### get python function
+        source_python(here('1_data_download', 
+                           'CEDEN_DataRefresh_yearly_2023-to-present_function.py')) 
+        
+        ### get data
+        for (data_type in names(tables_list)) {
+            # print(data_type)
+            
+            Sys.sleep(1)
+            
+            tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
+                                tables_list[data_type]))
+            tables <- r_to_py(tables)
+            print(glue('downloading {data_type} (2023 through present)'))
+            python_get_data_3(data_files_path,
+                              tables,
+                              ceden_server,
+                              ceden_id,
+                              ceden_pwd, 
+                              data_files_date)
+            print(glue('finished downloading {data_type} (2023 through present)'))
+            gc()
+        }
+        rm('python_get_data_3')
+    },
+    error = function(e) {
+        error_message <<- glue('Downloading data from 2023 to present (failed at: {data_type})')
         error_message_r <<- capture.output(cat(as.character(e)))
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
@@ -247,6 +285,7 @@ upload_files_list <- list(
         'all_years' = '3dfee140-47d5-4e29-99ae-16b9b12a404f'
     ),
     WaterChemistryData = list(
+        'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
         'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
         'year-2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
         'year-2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234',
@@ -270,8 +309,10 @@ upload_files_list <- list(
         'year-2002' = '00c4ca34-064f-4526-8276-57533a1a36d9',
         'year-2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
         'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
-        'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'),
+        'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
+        ),
     TissueData = list(
+        'year-2022' = '6754e8b7-9136-44aa-b65c-bf3a8af6be77',
         'year-2021' = '02e2e832-fa46-4ecb-98e8-cdb70fe3902d',
         'year-2020' = 'a3545e8e-2ab5-46b3-86d5-72a74fcd8261',
         'year-2019' = 'edd16b08-3d9f-4375-9396-dce7cbd2f717',
@@ -294,8 +335,10 @@ upload_files_list <- list(
         'year-2002' = '6a56b123-9275-4549-a625-e5aa6f2b8b57',
         'year-2001' = '47df34fd-8712-4f72-89ff-091b3e954399',
         'year-2000' = '06b35b3c-6338-44cb-b465-ba4c1863b7c5',
-        'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'),
+        'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'
+    ),
     HabitatData = list(
+        'year-2023' = '1f6b0641-3aac-48b2-b12f-fa2d4966adfd',
         'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',
         'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
         'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
@@ -319,7 +362,8 @@ upload_files_list <- list(
         'year-2002' = 'a9d8302d-0d37-4cf3-bbeb-386f6bd948a6',
         'year-2001' = 'ea8b0171-e226-4e80-991d-50752abea734',
         'year-2000' = 'b3dba1ee-6ada-42d5-9679-1a10b44630bc',
-        'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848')
+        'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848'
+        )
 )
 
 options(timeout = 3600) # default is 60, units are seconds
