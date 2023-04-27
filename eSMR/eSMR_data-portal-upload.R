@@ -19,6 +19,10 @@
     library(data.table)
     library(here)
     library(archive)
+    
+    ## conflicts ----
+    library(conflicted)
+    conflicts_prefer(dplyr::filter)
 }
 
 # 1 - user input --------------------------------------------------------------------------------------------------------------------------------------------

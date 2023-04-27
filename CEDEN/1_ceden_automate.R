@@ -14,6 +14,10 @@
     library(reticulate)
     library(here)
     library(checkpoint)
+    
+    ## conflicts ----
+    library(conflicted)
+    conflicts_prefer(dplyr::filter)
 }
 
 
