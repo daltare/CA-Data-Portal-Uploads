@@ -9,20 +9,20 @@
 
 
 # load packages -----------------------------------------------------------
+library(tidyverse)
 library(RSelenium)
 library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
-library(XML)
-library(dplyr)
-library(janitor)
-library(readr)
-library(lubridate)
-library(readxl)
-library(ckanr)
 library(binman)
 library(wdman)
-library(stringr)
-library(magrittr)
 library(pingr)
+library(glue)
+library(janitor)
+library(readxl)
+library(magrittr)
+
+library(conflicted)
+conflicts_prefer(magrittr::extract,
+                 dplyr::filter)
 
 
 
@@ -99,7 +99,7 @@ for (port_check in 4567L:4577L) {
 selenium(check = TRUE,
          retcommand = TRUE,
          port = port_use)
-Sys.sleep(5)
+Sys.sleep(1)
 
 ## get current version of chrome browser ----
 chrome_browser_version <-
@@ -161,19 +161,21 @@ selCommand <- selenium(jvmargs =
                        port = port_use)
 
 ## write selenium specifications to batch file ----
-writeLines(selCommand, 
+writeLines(selCommand,
            'Start_Server.bat')
-Sys.sleep(5) #### wait a few seconds
+Sys.sleep(1) #### wait a few seconds
 
 ## start server ----
 shell.exec('Start_Server.bat')
-Sys.sleep(10) #### wait a few seconds
+# shell(cmd = selCommand, 
+#       wait = FALSE)
+Sys.sleep(1) #### wait a few seconds
 
 ## open connection ----
 remDr <- remoteDriver(port = port_use, # 4567L, 
                       browserName = "chrome", 
                       extraCapabilities = eCaps)
-Sys.sleep(10) #### wait a few seconds
+Sys.sleep(1) #### wait a few seconds
 remDr$open()
 
 
@@ -196,11 +198,11 @@ webElem$clickElement()
 ## loop through all resources and enter data ----
 for (id_number in seq_along(names(data_resource_id_list))) {
     data_resource_id <- data_resource_id_list[[id_number]]
-    
+
     ### navigate to data dictionary editor page ----
     dictionary_url <- paste0('https://data.ca.gov/dataset/', dataset_name, '/dictionary/', data_resource_id)
     remDr$navigate(dictionary_url)
-    
+
     ### loop through all fields defined in the dictionary / enter into data dictionary interface on the portal ----
     for (i in seq(nrow(df_dictionary))) {
         #### enter field type ----
@@ -215,7 +217,7 @@ for (id_number in seq_along(names(data_resource_id_list))) {
         webElem$clearElement()
         webElem$sendKeysToElement(list(df_dictionary[[i, dictionary_fields[4]]]))
     }
-    
+
     ### click save button ----
     webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
     webElem$clickElement()
@@ -226,3 +228,5 @@ for (id_number in seq_along(names(data_resource_id_list))) {
 # 4 - close server ------------------------------------------------------------
 remDr$close()
 shell.exec(file = 'Stop.bat') # this closes the java window
+# shell(cmd = glue('taskkill /f /im jqs.exe \ntaskkill /f /im javaw.exe \ntaskkill /f /im java.exe'), 
+#       wait = FALSE)
