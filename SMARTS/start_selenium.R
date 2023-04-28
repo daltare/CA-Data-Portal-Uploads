@@ -20,6 +20,9 @@ conflicts_prefer(magrittr::extract)
 # start selenium server ---------------------------------------------------
 print('Setting up Selenium server')
 
+## set times for Sys.sleep() arguments
+sleep_time <- 0.5
+
 ## define chrome browser options for the Selenium session ----
 eCaps <- list( 
     chromeOptions = 
@@ -47,7 +50,7 @@ selenium(
     retcommand = TRUE,
     port = port_use
 )
-Sys.sleep(1)
+Sys.sleep(sleep_time)
 
 ### get current version of chrome browser ----
 chrome_browser_version <-
@@ -109,18 +112,20 @@ selCommand <- wdman::selenium(
 )
 
 ### write selenium specifications to batch file ----
-writeLines(selCommand, 
-           here('Start_Server.bat'))
-Sys.sleep(1) # wait a few seconds
+# writeLines(selCommand, 
+#            here('Start_Server.bat'))
+Sys.sleep(sleep_time) # wait a few seconds
 
 ### start server ----
-shell.exec(here('Start_Server.bat'))
+# shell.exec(here('Start_Server.bat'))
+shell(cmd = selCommand, 
+      wait = FALSE)
 
-Sys.sleep(1) # wait a few seconds
+Sys.sleep(sleep_time) # wait a few seconds
 
 ### open connection ----
 remDr <- remoteDriver(port = port_use, # 4567L, 
                       browserName = "chrome", 
                       extraCapabilities = eCaps)
-Sys.sleep(1) # wait a few seconds
+Sys.sleep(sleep_time) # wait a few seconds
 remDr$open() 
