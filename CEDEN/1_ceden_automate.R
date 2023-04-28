@@ -1,4 +1,4 @@
-# this scripts automates all setps to update CEDEN data on the CA data portal 
+# this scripts automates all steps to update CEDEN data on the CA data portal 
 # (data.ca.gov), and sends an automated email if any part of the process fails
 
 
