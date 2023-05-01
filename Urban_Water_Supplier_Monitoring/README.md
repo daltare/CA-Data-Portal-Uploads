@@ -1,4 +1,4 @@
-# Instructions - Surface Water Open Data Portal Updates
+# Instructions - Water Conservation Open Data Portal Updates
 
 This script automates the process of loading data from the [Waterboard's conservation portal](http://www.waterboards.ca.gov/water_issues/programs/conservation_portal/conservation_reporting.shtml) onto the [Drinking Water - Public Water System Operations Monthly Water Production and Conservation Information](https://data.ca.gov/dataset/drinking-water-%E2%80%93-urban-water-supplier-monitoring-%E2%80%93-drinc) dataset on the CA Open Data Portal. It pulls the most recent dataset from the Waterboard's site and checks to see if that dataset has already been loaded to the CA data portal. If not, it does a bit of reformatting (including renaming and reordering columns, replacing blanks with NAs, and inserting the PWSID codes), saves the reformatted dataset locally as a .csv file, and pushes the reformatted .csv file to the data.ca.gov portal.
 
