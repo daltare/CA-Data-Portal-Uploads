@@ -28,6 +28,18 @@
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
     ### email address to send warning emails from
     email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+    
+    ## create credentials file (only need to do this once) ----
+    ### gmail credentials ----
+    #### NOTE - for gmail, you have to create an 'App Password' and use that 
+    #### instead of your normal password - see: 
+    #### (https://support.google.com/accounts/answer/185833?hl=en) 
+    #### Background here:
+    #### https://github.com/rstudio/blastula/issues/228 
+    # create_smtp_creds_file(file = credentials_file,
+    #                        user = email_from,
+    #                        provider = 'gmail'
+    #                        )
     credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
     
     ### email address (or addresses) to send warning emails to
@@ -58,23 +70,104 @@
                                  'main_CEDEN_function.py')
     chunked_upload_directory <- '2_portal-upload-ckan-chunked_CEDEN'
     
+    ## define files to be uploaded ----
+    upload_files_list <- list(
+        All_CEDEN_Sites = list(
+            'all_sites' = 'a927cb45-0de1-47e8-96a5-a5290816797b'
+        ),
+        ToxicityData = list(
+            'all_years' = 'bd484e9b-426a-4ba6-ba4d-f5f8ce095836'
+        ),
+        BenthicData = list(
+            'all_years' = '3dfee140-47d5-4e29-99ae-16b9b12a404f'
+        ),
+        WaterChemistryData = list(
+            'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
+            'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
+            'year-2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
+            'year-2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234',
+            'year-2019' = '6cf99106-f45f-4c17-80af-b91603f391d9',
+            'year-2018' = 'f638c764-89d5-4756-ac17-f6b20555d694',
+            'year-2017' = '68787549-8a78-4eea-b5b9-ef719e65a05c',
+            'year-2016' = '42b906a2-9e30-4e44-92c9-0f94561e47fe',
+            'year-2015' = '7d9384fa-70e1-4986-81d6-438ce5565be6',
+            'year-2014' = '7abfde16-61b6-425d-9c57-d6bd70700603',
+            'year-2013' = '341627e6-a483-4e9e-9a85-9f73b6ddbbba',
+            'year-2012' = 'f9dd0348-85d5-4945-aa62-c7c9ad4cf6fd',
+            'year-2011' = '4d01a693-2a22-466a-a60b-3d6f236326ff',
+            'year-2010' = '572bf4d2-e83d-490a-9aa5-c1d574e36ae0',
+            'year-2009' = '5b136831-8870-46f2-8f72-fe79c23d7118',
+            'year-2008' = 'c587a47f-ac28-4f77-b85e-837939276a28',
+            'year-2007' = '13e64899-df32-461c-bec1-a4e72fcbbcfa',
+            'year-2006' = 'a31a7864-06b9-4a81-92ba-d8912834ca1d',
+            'year-2005' = '9538cbfa-f8be-4445-97dc-b931579bb927',
+            'year-2004' = 'c962f46d-6a7b-4618-90ec-3c8522836f28',
+            'year-2003' = 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
+            'year-2002' = '00c4ca34-064f-4526-8276-57533a1a36d9',
+            'year-2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
+            'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
+            'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
+        ),
+        TissueData = list(
+            'year-2022' = '6754e8b7-9136-44aa-b65c-bf3a8af6be77',
+            'year-2021' = '02e2e832-fa46-4ecb-98e8-cdb70fe3902d',
+            'year-2020' = 'a3545e8e-2ab5-46b3-86d5-72a74fcd8261',
+            'year-2019' = 'edd16b08-3d9f-4375-9396-dce7cbd2f717',
+            'year-2018' = '559c5523-8883-4da0-9750-f7fd3f088cfb',
+            'year-2017' = 'e30e6266-5978-47f4-ae6a-94336ab224f9',
+            'year-2016' = 'c7a56123-8692-4d92-93cc-aa12d7ab46c9',
+            'year-2015' = '3376163c-dcda-4b76-9672-4ecfee1e1417',
+            'year-2014' = '8256f15c-8500-47c3-be34-d12b45b0bbe9',
+            'year-2013' = 'eb2d102a-ecdc-4cbe-acb9-c11161ac74b6',
+            'year-2012' = '8e3bbc50-dd72-4cee-b926-b00f488ff10c',
+            'year-2011' = '06440749-3ada-4461-959f-7ac2699faeb0',
+            'year-2010' = '82dbd8ec-4d59-48b5-8e10-ce1e41bbf62a',
+            'year-2009' = 'c1357d10-41cb-4d84-bd3a-34e18fa9ecdf',
+            'year-2008' = 'da39833c-9d62-4307-a93e-2ae8ad2092e3',
+            'year-2007' = 'f88461cf-49b2-4c5c-ba2c-d9484202bc74',
+            'year-2006' = 'f3ac3204-f0a2-4561-ae18-836b8aafebe8',
+            'year-2005' = '77daaca9-3f47-4c88-9d22-daf9f79e2729',
+            'year-2004' = '1dc7ed28-a59b-48a7-bc81-ef9582a4efaa',
+            'year-2003' = '1a21e2ac-a9d8-4e81-a6ad-aa6636d064d1',
+            'year-2002' = '6a56b123-9275-4549-a625-e5aa6f2b8b57',
+            'year-2001' = '47df34fd-8712-4f72-89ff-091b3e954399',
+            'year-2000' = '06b35b3c-6338-44cb-b465-ba4c1863b7c5',
+            'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'
+        ),
+        HabitatData = list(
+            'year-2023' = '1f6b0641-3aac-48b2-b12f-fa2d4966adfd',
+            'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',
+            'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
+            'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
+            'year-2019' = 'c0f230c5-3f51-4a7a-a3db-5eb8692654aa',
+            'year-2018' = 'd814ca0c-ace1-4cc1-a80f-d63f138e2f61',
+            'year-2017' = 'f7a33584-510f-46f8-a314-625f744ecbdd',
+            'year-2016' = '01e35239-6936-4699-b9db-fda4751be6e9',
+            'year-2015' = '115c55e3-40af-4734-877f-e197fdae6737',
+            'year-2014' = '082a7665-8f54-4e4f-9d24-cc3506bb8f3e',
+            'year-2013' = '3be276c3-9966-48de-b53a-9a98d9006cdb',
+            'year-2012' = '78d44ee3-65af-4c83-b75e-8a82b8a1db88',
+            'year-2011' = '2fa6d874-1d29-478a-a5dc-0c2d31230705',
+            'year-2010' = '2a8b956c-38fa-4a15-aaf9-cb0fcaf915f3',
+            'year-2009' = 'd025552d-de5c-4f8a-b2b5-a9de9e9c86c3',
+            'year-2008' = 'ce211c51-05a2-4a7c-be18-298099a0dcd2',
+            'year-2007' = '1659a2b4-21e5-4fc4-a9a4-a614f0321c05',
+            'year-2006' = '88b33d5b-5428-41e2-b77b-6cb46ca5d1e4',
+            'year-2005' = '1609e7ab-d913-4d24-a582-9ca7e8e82233',
+            'year-2004' = 'e5132397-69a5-46fb-b24a-cd3b7a1fe53a',
+            'year-2003' = '899f3ebc-538b-428e-8f1f-d591445a847c',
+            'year-2002' = 'a9d8302d-0d37-4cf3-bbeb-386f6bd948a6',
+            'year-2001' = 'ea8b0171-e226-4e80-991d-50752abea734',
+            'year-2000' = 'b3dba1ee-6ada-42d5-9679-1a10b44630bc',
+            'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848'
+        )
+    )
+    
 }
 
 
 
 # 2 - setup automated email ---------------------------------------------------
-## create credentials file (only need to do this once) ----
-
-### gmail credentials ----
-#### NOTE - for gmail, you have to create an 'App Password' and use that 
-#### instead of your normal password - see: 
-#### (https://support.google.com/accounts/answer/185833?hl=en) 
-#### Background here:
-#### https://github.com/rstudio/blastula/issues/228 
-# create_smtp_creds_file(file = credentials_file,
-#                        user = email_from,
-#                        provider = 'gmail'
-#                        )
 
 ## create email function ----
 fn_send_email <- function(error_msg, error_msg_r) {
@@ -276,99 +369,6 @@ tryCatch(
 # 4 - upload csv files ----------------------------------------------------
 
 Sys.sleep(5)
-
-## define files to be uploaded ----
-upload_files_list <- list(
-    All_CEDEN_Sites = list(
-        'all_sites' = 'a927cb45-0de1-47e8-96a5-a5290816797b'
-    ),
-    ToxicityData = list(
-        'all_years' = 'bd484e9b-426a-4ba6-ba4d-f5f8ce095836'
-    ),
-    BenthicData = list(
-        'all_years' = '3dfee140-47d5-4e29-99ae-16b9b12a404f'
-    ),
-    WaterChemistryData = list(
-        'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
-        'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
-        'year-2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
-        'year-2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234',
-        'year-2019' = '6cf99106-f45f-4c17-80af-b91603f391d9',
-        'year-2018' = 'f638c764-89d5-4756-ac17-f6b20555d694',
-        'year-2017' = '68787549-8a78-4eea-b5b9-ef719e65a05c',
-        'year-2016' = '42b906a2-9e30-4e44-92c9-0f94561e47fe',
-        'year-2015' = '7d9384fa-70e1-4986-81d6-438ce5565be6',
-        'year-2014' = '7abfde16-61b6-425d-9c57-d6bd70700603',
-        'year-2013' = '341627e6-a483-4e9e-9a85-9f73b6ddbbba',
-        'year-2012' = 'f9dd0348-85d5-4945-aa62-c7c9ad4cf6fd',
-        'year-2011' = '4d01a693-2a22-466a-a60b-3d6f236326ff',
-        'year-2010' = '572bf4d2-e83d-490a-9aa5-c1d574e36ae0',
-        'year-2009' = '5b136831-8870-46f2-8f72-fe79c23d7118',
-        'year-2008' = 'c587a47f-ac28-4f77-b85e-837939276a28',
-        'year-2007' = '13e64899-df32-461c-bec1-a4e72fcbbcfa',
-        'year-2006' = 'a31a7864-06b9-4a81-92ba-d8912834ca1d',
-        'year-2005' = '9538cbfa-f8be-4445-97dc-b931579bb927',
-        'year-2004' = 'c962f46d-6a7b-4618-90ec-3c8522836f28',
-        'year-2003' = 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
-        'year-2002' = '00c4ca34-064f-4526-8276-57533a1a36d9',
-        'year-2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
-        'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
-        'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
-        ),
-    TissueData = list(
-        'year-2022' = '6754e8b7-9136-44aa-b65c-bf3a8af6be77',
-        'year-2021' = '02e2e832-fa46-4ecb-98e8-cdb70fe3902d',
-        'year-2020' = 'a3545e8e-2ab5-46b3-86d5-72a74fcd8261',
-        'year-2019' = 'edd16b08-3d9f-4375-9396-dce7cbd2f717',
-        'year-2018' = '559c5523-8883-4da0-9750-f7fd3f088cfb',
-        'year-2017' = 'e30e6266-5978-47f4-ae6a-94336ab224f9',
-        'year-2016' = 'c7a56123-8692-4d92-93cc-aa12d7ab46c9',
-        'year-2015' = '3376163c-dcda-4b76-9672-4ecfee1e1417',
-        'year-2014' = '8256f15c-8500-47c3-be34-d12b45b0bbe9',
-        'year-2013' = 'eb2d102a-ecdc-4cbe-acb9-c11161ac74b6',
-        'year-2012' = '8e3bbc50-dd72-4cee-b926-b00f488ff10c',
-        'year-2011' = '06440749-3ada-4461-959f-7ac2699faeb0',
-        'year-2010' = '82dbd8ec-4d59-48b5-8e10-ce1e41bbf62a',
-        'year-2009' = 'c1357d10-41cb-4d84-bd3a-34e18fa9ecdf',
-        'year-2008' = 'da39833c-9d62-4307-a93e-2ae8ad2092e3',
-        'year-2007' = 'f88461cf-49b2-4c5c-ba2c-d9484202bc74',
-        'year-2006' = 'f3ac3204-f0a2-4561-ae18-836b8aafebe8',
-        'year-2005' = '77daaca9-3f47-4c88-9d22-daf9f79e2729',
-        'year-2004' = '1dc7ed28-a59b-48a7-bc81-ef9582a4efaa',
-        'year-2003' = '1a21e2ac-a9d8-4e81-a6ad-aa6636d064d1',
-        'year-2002' = '6a56b123-9275-4549-a625-e5aa6f2b8b57',
-        'year-2001' = '47df34fd-8712-4f72-89ff-091b3e954399',
-        'year-2000' = '06b35b3c-6338-44cb-b465-ba4c1863b7c5',
-        'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'
-    ),
-    HabitatData = list(
-        'year-2023' = '1f6b0641-3aac-48b2-b12f-fa2d4966adfd',
-        'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',
-        'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
-        'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
-        'year-2019' = 'c0f230c5-3f51-4a7a-a3db-5eb8692654aa',
-        'year-2018' = 'd814ca0c-ace1-4cc1-a80f-d63f138e2f61',
-        'year-2017' = 'f7a33584-510f-46f8-a314-625f744ecbdd',
-        'year-2016' = '01e35239-6936-4699-b9db-fda4751be6e9',
-        'year-2015' = '115c55e3-40af-4734-877f-e197fdae6737',
-        'year-2014' = '082a7665-8f54-4e4f-9d24-cc3506bb8f3e',
-        'year-2013' = '3be276c3-9966-48de-b53a-9a98d9006cdb',
-        'year-2012' = '78d44ee3-65af-4c83-b75e-8a82b8a1db88',
-        'year-2011' = '2fa6d874-1d29-478a-a5dc-0c2d31230705',
-        'year-2010' = '2a8b956c-38fa-4a15-aaf9-cb0fcaf915f3',
-        'year-2009' = 'd025552d-de5c-4f8a-b2b5-a9de9e9c86c3',
-        'year-2008' = 'ce211c51-05a2-4a7c-be18-298099a0dcd2',
-        'year-2007' = '1659a2b4-21e5-4fc4-a9a4-a614f0321c05',
-        'year-2006' = '88b33d5b-5428-41e2-b77b-6cb46ca5d1e4',
-        'year-2005' = '1609e7ab-d913-4d24-a582-9ca7e8e82233',
-        'year-2004' = 'e5132397-69a5-46fb-b24a-cd3b7a1fe53a',
-        'year-2003' = '899f3ebc-538b-428e-8f1f-d591445a847c',
-        'year-2002' = 'a9d8302d-0d37-4cf3-bbeb-386f6bd948a6',
-        'year-2001' = 'ea8b0171-e226-4e80-991d-50752abea734',
-        'year-2000' = 'b3dba1ee-6ada-42d5-9679-1a10b44630bc',
-        'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848'
-        )
-)
 
 options(timeout = 3600) # default is 60, units are seconds
 tryCatch(
