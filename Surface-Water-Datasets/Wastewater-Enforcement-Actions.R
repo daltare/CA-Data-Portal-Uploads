@@ -36,8 +36,19 @@
     ## enter the email address to send warning emails from
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
     email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+    
+    ## create credentials file (only need to do this once) ----
+    ### gmail credentials ----
+    #### NOTE - for gmail, you have to create an 'App Password' and use that 
+    #### instead of your normal password - see: 
+    #### (https://support.google.com/accounts/answer/185833?hl=en) 
+    #### Background here:
+    #### https://github.com/rstudio/blastula/issues/228 
+    # create_smtp_creds_file(file = credentials_file,
+    #                        user = email_from,
+    #                        provider = 'gmail'
+    #                        )
     credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
-    # email_from <- "gisscripts-noreply@waterboards.ca.gov" # for GIS scripting server
     
     ## enter the email address (or addresses) to send warning emails to
     email_to <- 'david.altare@waterboards.ca.gov' 
@@ -46,18 +57,6 @@
 
 
 # setup automated email ---------------------------------------------------
-## create credentials file (only need to do this once) ----
-
-### gmail credentials ----
-#### NOTE - for gmail, you have to create an 'App Password' and use that 
-#### instead of your normal password - see: 
-#### (https://support.google.com/accounts/answer/185833?hl=en) 
-#### Background here:
-#### https://github.com/rstudio/blastula/issues/228 
-# create_smtp_creds_file(file = credentials_file,
-#                        user = email_from,
-#                        provider = 'gmail'
-#                        )
 
 ## create email function ----
 fn_send_email <- function(error_msg, error_msg_r) {
