@@ -3,7 +3,12 @@
 This script automates the process of creating a report about the datasets and data resources associated with the [California State Water Resources Control Board](https://data.ca.gov/organization/california-state-water-resources-control-board) organizational account on the [California Open Data Portal](https://data.ca.gov/). It saves an Excel workbook containing metadata about all of the associated resources / datasets to the Water Board's SharePoint and Teams sites, at:
 
 -   SharePoint: `OIMA` -\> `Data Integration & Analysis` -\> `CalEPA Open Data` -\> `Data-Portal-Report` -\> `DataPortalReport.xlsx`
+
+    -   [SharePoint Link](https://cawaterboards.sharepoint.com/sites/OIMA/DIA/Documents/CalEPA%20Open%20Data/Data-Portal-Report/DataPortalReport.xlsx?d=w29363af660234757b3efd8fbaa60b0cb)
+
 -   Teams: `OIMA Data Team` -\> `Open Data` -\> `Files` -\> `Data-Portal-Report` -\> `DataPortalReport.xlsx`
+
+    -   [Teams Link](https://cawaterboards.sharepoint.com/:x:/r/sites/oimadatateam2/Shared%20Documents/Open%20Data/Data-Portal-Report/DataPortalReport.xlsx?d=w0b5b1728df9c4cd29f9ab007cbfb4fc9&csf=1&web=1&e=JrWPor)
 
 It also creates a Shiny app that displays some of the results, at: <https://cawaterdatadive.shinyapps.io/Data-Portal-Report/>
 
