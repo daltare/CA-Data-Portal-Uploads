@@ -2,7 +2,7 @@
 
 This script automates the process of loading data from the [Waterboard's conservation portal](http://www.waterboards.ca.gov/water_issues/programs/conservation_portal/conservation_reporting.shtml) onto the [Drinking Water - Public Water System Operations Monthly Water Production and Conservation Information](https://data.ca.gov/dataset/drinking-water-%E2%80%93-urban-water-supplier-monitoring-%E2%80%93-drinc) dataset on the CA Open Data Portal. It pulls the most recent dataset from the Waterboard's site and checks to see if that dataset has already been loaded to the CA data portal. If not, it does a bit of reformatting (including renaming and reordering columns, replacing blanks with NAs, and inserting the PWSID codes), saves the reformatted dataset locally as a .csv file, and pushes the reformatted .csv file to the data.ca.gov portal.
 
-The only required step is to run the `UrbanWaterSupplier_Automated` script (e.g., run `source('UrbanWaterSupplier_Automated')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process.
+The only required step is to run the `UrbanWaterSupplier_Automated.R` script (e.g., run `source('UrbanWaterSupplier_Automated.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process.
 
 To automatically run this update process on a set schedule on a Windows computer, you can create a task in "Task Scheduler" that runs the `Call_UrbanSupplierConservation.bat` file on a specified day and time (the `Call_UrbanSupplierConservation.bat` file is in the `_Call-Scripts` directory at the top level of this repository).
 
