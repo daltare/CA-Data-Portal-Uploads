@@ -1,5 +1,7 @@
 # Instructions - SMARTS Open Data Portal Updates
 
+This process updates the data resources on the CA open data portal that are contained in the [Stormwater - Regulatory (including Enforcement Actions) Information and Water Quality Results](https://data.ca.gov/dataset/stormwater-regulatory-including-enforcement-actions-information-and-water-quality-results) dataset.
+
 The only required step is to run the `SMARTS_data_portal_automation.R` script (i.e., run `source('SMARTS_data_portal_automation.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R`.
 
 To automatically run the process on a set schedule on a Windows computer, you can create a task in "Task Scheduler" that runs the `Call_SMARTS.bat` file (which is in the `_Call-Scripts` directory at the top level of this repository) on a specified day and time.

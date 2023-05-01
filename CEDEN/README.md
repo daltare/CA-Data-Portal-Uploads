@@ -1,5 +1,14 @@
 # Instructions - CEDEN Open Data Portal Updates
 
+This process updates the data resources on the CA open data portal that are contained in the following datasets:
+
+-   [Surface Water - Chemistry Results](https://data.ca.gov/dataset/surface-water-chemistry-results)
+-   [Surface Water - Habitat Results](https://data.ca.gov/dataset/surface-water-habitat-results)
+-   [Surface Water - Toxicity Results](https://data.ca.gov/dataset/surface-water-toxicity-results)
+-   [Surface Water - Aquatic Organism Tissue Sample Results](https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-results)
+-   [Surface Water - Benthic Macroinvertebrate Results](https://data.ca.gov/dataset/surface-water-benthic-macroinvertebrate-results)
+-   [Surface Water - Sampling Location Information](https://data.ca.gov/dataset/surface-water-sampling-location-information)
+
 The only required step is to run the `1_ceden_automate.R` script (i.e., run `source('1_ceden_automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R`, `1-1_ceden-zip-file-upload.R`, `1-2_ceden-parquet-conversion`, and `1-2_ceden-parquet-conversion`.
 
 If the process fails at any point, it is set up to send an automated email alerting you that it has failed (and an attempt at telling you why it failed). If that happens, you may be able to diagnose / fix the problem and run the remaining parts of the `1_ceden_automate.R` script (without having to re-run the entire process).

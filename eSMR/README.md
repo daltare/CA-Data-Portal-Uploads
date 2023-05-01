@@ -1,5 +1,7 @@
 # Instructions - eSMR Open Data Portal Updates
 
+This process updates the data resources on the CA open data portal that are contained in the [Water Quality - Effluent - Electronic Self-Monitoring Report (eSMR) Data](https://data.ca.gov/dataset/water-quality-effluent-electronic-self-monitoring-report-esmr-data) dataset.
+
 The only required step is to run the `1_eSMR_data-portal-automate.R` script (i.e., run `source('1_eSMR_data-portal-automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R` and `1-1_eSMR_zip-file-uploads.R`.
 
 If the process fails at any point, it is set up to send an automated email alerting you that it has failed (and an attempt at telling you why it failed). If that happens, you may be able to diagnose / fix the problem and run the remaining parts of the `1_eSMR_data-portal-automate.R` script (without having to re-run the entire process).

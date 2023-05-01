@@ -2,9 +2,9 @@
 
 These scripts update the following data resources on the CA Open Data Portal:
 
-- Reg_Meas_AnimalWaste.R: https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/c16335af-f2dc-41e6-a429-f19edba5b957
-- Reg_Meas_WastewaterFacilities-PermitsOrders.R: https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950
-- Wastewater-Enforcement-Actions.R: https://data.ca.gov/dataset/surface-water-water-quality-regulatory-information/resource/64f25cad-2e10-4a66-8368-79293f56c2f1
+-   `Reg_Meas_AnimalWaste.R`: <https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/c16335af-f2dc-41e6-a429-f19edba5b957>
+-   `Reg_Meas_WastewaterFacilities-PermitsOrders.R`: <https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950>
+-   `Wastewater-Enforcement-Actions.R`: <https://data.ca.gov/dataset/surface-water-water-quality-regulatory-information/resource/64f25cad-2e10-4a66-8368-79293f56c2f1>
 
 The only required step is to run the R script associated with the given resource (e.g., run `source('Reg_Meas_AnimalWaste.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process.
 
