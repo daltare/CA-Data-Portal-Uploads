@@ -6,6 +6,9 @@
 library(tidyverse)
 library(writexl)
 library(lubridate)
+library(glue)
+library(sendmailR)
+library(blastula)
 
 
 
