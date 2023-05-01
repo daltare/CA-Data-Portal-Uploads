@@ -17,6 +17,6 @@ There are a few additional things to be aware of, which will likely require some
 
 -   The process saves data files to separate directories on the Water Board's SharePoint and Teams sites. The paths to these directories are defined by the `paths_output` variable in the `user inputs` part of the `2_save-portal-metadata.R` script. In order to save the data to these Sharepoint and/or Teams locations, you must:
 
-    -   Have access to the relevant WB / OIMA sharepoint site and Teams channel,
+    -   have access to the relevant WB / OIMA sharepoint site and Teams channel, and
 
-    -   Sync the folders on the WB / OIMA sharepoint site and Teams channel to your local computer, and update the `paths_output` variable accordingly (at a minimum you'll need to enter the username for your computer)
+    -   sync the folders on the WB / OIMA sharepoint site and Teams channel to your local computer, and update the `paths_output` variable accordingly (at a minimum you'll need to enter the username for your computer).
