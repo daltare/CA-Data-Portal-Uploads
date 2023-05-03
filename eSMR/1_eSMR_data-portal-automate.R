@@ -16,13 +16,14 @@
     library(readxl)
     library(zip)
     library(arrow)
-    library(data.table)
+    # library(data.table)
     library(here)
     library(archive)
     
     ## conflicts ----
     library(conflicted)
-    conflicts_prefer(dplyr::filter)
+    conflicts_prefer(dplyr::filter, 
+                     lubridate::year)
 }
 
 # 1 - user input --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1127,7 +1128,7 @@ tryCatch(
         #### get function
         source_python(python_upload_script)
         
-        for (i in as.character(2023)) { # as.character(rev(years_write))) {
+        for (i in as.character(rev(years_write))) {
             print(glue('Updating Year: {i}'))
             ckanUploadFile(data_resource_id_list[[as.character(i)]],
                            paste0(download_dir, file_name, '_year-', as.character(i), '_', file_date, '.csv'),

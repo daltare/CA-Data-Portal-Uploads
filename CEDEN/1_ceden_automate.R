@@ -17,7 +17,10 @@
     
     ## conflicts ----
     library(conflicted)
-    conflicts_prefer(dplyr::filter)
+    conflicts_prefer(dplyr::filter, 
+                     lubridate::year, 
+                     magrittr::extract,
+                     dplyr::last)
 }
 
 
@@ -527,7 +530,7 @@ tryCatch(
 ### revert back to using up-to-date packages (if needed - to be safe, this 
 ### can stay in the code regardless of whether or not checkpoint is used)
 uncheckpoint()
-Sys.sleep(15) # pause to make sure reversion completes
+Sys.sleep(1) # pause to make sure reversion completes
 
 ## upload parquet files ----
 tryCatch(

@@ -9,7 +9,7 @@ This process updates the data resources on the CA open data portal that are cont
 -   [Surface Water - Benthic Macroinvertebrate Results](https://data.ca.gov/dataset/surface-water-benthic-macroinvertebrate-results)
 -   [Surface Water - Sampling Location Information](https://data.ca.gov/dataset/surface-water-sampling-location-information)
 
-The only required step is to run the `1_ceden_automate.R` script (i.e., run `source('1_ceden_automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R`, `1-1_ceden-zip-file-upload.R`, `1-2_ceden-parquet-conversion`, and `1-2_ceden-parquet-conversion`.
+The only required step is to run the `1_ceden_automate.R` script (i.e., run `source('1_ceden_automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including: `start_selenium.R`, `1-1_ceden-zip-file-upload.R`, `1-2_ceden-parquet-conversion`, and `1-2_ceden-parquet-conversion`. It also calls some python scripts contained in the `1_data_download` folder, including: `CEDEN_DataRefresh_yearly_through-2010_function.py`, `CEDEN_DataRefresh_yearly_2011-to-2022_function.py`, and `CEDEN_DataRefresh_yearly_2023-to-present_function.py`. \*\*NOTE: these python scripts take a long time to run, and at some point should be be re-written to make them more efficient (I made some rudimentary changes to the original scripts just to get them working to get data for each individual year, but the changes I made were very sub-optimal - currently, each time they are called, they re-download and re-process the entire CEDEN dataset).\*\*
 
 If the process fails at any point, it is set up to send an automated email alerting you that it has failed (and an attempt at telling you why it failed). If that happens, you may be able to diagnose / fix the problem and run the remaining parts of the `1_ceden_automate.R` script (without having to re-run the entire process).
 
@@ -34,6 +34,8 @@ There are a few additional things to be aware of, which will likely require some
     -   `PWD`: CEDEN data warehouse password
 
 -   The process (optionally) saves data files to a separate directory (i.e., not necessarily the one in which this project is stored). This separate directory is defined by the `data_files_path` variable, and needs to be edited to run the script on a different computer. (As a side note, it's set up this way because, for my own use, I have the project saved to OneDrive, but I don't want to frequently save a lot of large files to a cloud location like OneDrive, so instead save them to the local C drive.)
+
+-   You may need to install Python and set it up to work with RStudio, if you haven't already done so.
 
 Finally, over time it will be necessary to create new resources within each dataset on the data.ca.gov portal to hold data for additional years. The process to do this is:
 

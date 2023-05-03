@@ -18,7 +18,6 @@
 {
     library(tidyverse)
     library(tictoc)
-    library(data.table)
     library(glue)
     library(readxl)
     library(zip)

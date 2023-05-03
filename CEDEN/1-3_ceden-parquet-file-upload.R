@@ -4,22 +4,15 @@
 
 
 # load packages -----------------------------------------------------------
-library(RSelenium)
-library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
-library(XML)
-library(dplyr)
-library(janitor)
-library(readr)
-library(lubridate)
-library(readxl)
-library(ckanr)
-library(binman)
-library(wdman)
-library(stringr)
-library(magrittr)
-library(pingr)
+library(tidyverse)
+# library(RSelenium)
+# library(methods) # it seems that this needs to be called explicitly to avoid an error for some reason
+# library(XML)
+# library(janitor)
+# library(lubridate)
+# library(binman)
+# library(wdman)
 library(glue)
-library(tictoc)
 library(here)
 
 
