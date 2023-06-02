@@ -1,39 +1,28 @@
 '''
+Modified version of code originally written by Andrew Hill (andrew.hill@waterboards.ca.gov) for the 
+California State Water Resource Control Board (SWRCB) Office of Information Management and Analysis (OIMA)
 
-Author:
-	Andrew Dix Hill; https://github.com/AndrewDixHill/CEDEN_to_DataCAGov ; andrew.hill@waterboards.ca.gov
+Original notes from Andrew:
 
-Agency:
-	California State Water Resource Control Board (SWRCB)
-	Office of Information Management and Analysis (OIMA)
+    Purpose:
+        This script is intended to query, clean and calculate new fields for
+    datasets from an internal SWRCB DataMart of CEDEN data. The original datasets contain
+    non-ascii characters and restricted character such as tabs, feedlines, return lines, etc which
+    this script removes. This script also applies a data quality estimate to every record.
+    The data quality estimate is calculated from a data quality decision tree in development.
+        In addition, this script subsets the newly created datasets into smaller and more
+    specialized data based on a list of analytes. This script also publishes each
+    dataset to the open data water portal on data.ca.gov.
 
-Purpose:
-	This script is intended to query, clean and calculate new fields for
-datasets from an internal SWRCB DataMart of CEDEN data. The original datasets contain
-non-ascii characters and restricted character such as tabs, feedlines, return lines, etc which
-this script removes. This script also applies a data quality estimate to every record.
-The data quality estimate is calculated from a data quality decision tree in development.
-	In addition, this script subsets the newly created datasets into smaller and more
-specialized data based on a list of analytes. This script also publishes each
-dataset to the open data water portal on data.ca.gov.
-
-How to use this script:
-	From a powershell prompt (windows), call python and specify
-	the complete path to this file. Below is an example, where XXXXXXX should be replaced
-	with the filename and the path should be specific to the file location:
-	python C:\\Users\\AHill\\Downloads\\XXXXXXX.py
-
-Prerequisites:
-	Windows platform (not strictly requirement but I was unable to get this library
-		working on a mac... I tried)
-	Python 3.X
-	pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
-	dkan library for python.    See https://github.com/GetDKAN/pydkan
-	set appropriate server addresses, usernames, passwords for both the water boards DataMart and
-	Data.ca.gov's account.
-	Please also use the pyodbc's drivers() tool to determine which sql driver is on your machine.
-		ie., "pyodbc.drivers()" in python environment will return list of available sql drivers
-
+    Prerequisites:
+        Windows platform (not strictly requirement but I was unable to get this library
+            working on a mac... I tried)
+        Python 3.X
+        pyodbc library for python.  See https://github.com/mkleehammer/pyodbc
+        set appropriate server addresses, usernames, passwords for both the water boards DataMart and
+        Data.ca.gov's account.
+        Please also use the pyodbc's drivers() tool to determine which sql driver is on your machine.
+            ie., "pyodbc.drivers()" in python environment will return list of available sql drivers
 '''
 
 # Import the necessary libraries of python code
