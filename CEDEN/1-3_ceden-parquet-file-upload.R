@@ -81,7 +81,7 @@ Sys.sleep(3)
 ## loop through all resources and upload file ----
 for (id_number in seq_along(names(parquet_resource_id_list))) {
     gc()
-    # id_number <- 4
+    # id_number <- 5
     data_resource_id <- parquet_resource_id_list[[id_number]][['portal_dataset_id']]
     dataset_name <- parquet_resource_id_list[[id_number]][['portal_dataset_name']]
     data_file <- parquet_resource_id_list[[id_number]][['parquet_data_file']]
@@ -92,18 +92,18 @@ for (id_number in seq_along(names(parquet_resource_id_list))) {
     ### navigate to resource editor page ----
     edit_url <- paste0('https://data.ca.gov/dataset/', dataset_name, '/resource_edit/', data_resource_id)
     remDr$navigate(edit_url)
-    Sys.sleep(3)
+    Sys.sleep(1)
     
     # click the 'Remove' button (to remove the old version of the file)
     webElem <- remDr$findElement(using = 'css selector', value = paste0('.btn-remove-url'))
     webElem$clickElement()
-    Sys.sleep(3)
+    Sys.sleep(1)
     
     # enter the path of the new file to be uploaded
     webElem <- remDr$findElement(using = 'css selector', value = paste0('#field-image-upload'))
     # webElem$clickElement()
     webElem$sendKeysToElement(list(data_file_path))
-    Sys.sleep(3)
+    Sys.sleep(1)
     
     # click the 'Update Resource' button to upload the new file
     webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')

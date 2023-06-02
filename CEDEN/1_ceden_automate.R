@@ -241,7 +241,7 @@ The source data comes from the CEDEN data mart"
 # use_condaenv()
 # reticulate::py_config()
 
-Sys.sleep(5)
+Sys.sleep(1)
 
 ## define datasets to download ----
 tables_list = c(
@@ -252,38 +252,37 @@ tables_list = c(
     "HabitatData" = "HabitatDMart_MV"
 )
 
-## download through 2010 ----
+## download 2023 to present ----
+### NOTE: this only gets the 2023 - present data, as an individual file for each year;
+### bulk files with data across all years are created with the process that downloads data 
+### up through 2010
 tryCatch(
     {
         gc()
         ### get python function
         source_python(here('1_data_download', 
-                           'CEDEN_DataRefresh_yearly_through-2010_function.py'))
+                           'CEDEN_DataRefresh_yearly_2023-to-present_function.py')) 
         
         ### get data
         for (data_type in names(tables_list)) {
-            # data_type <- 'ToxicityData'
-            # print(data_type)
-            
             Sys.sleep(1)
-            
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
             tables <- r_to_py(tables)
-            print(glue('downloading {data_type} (through 2010)'))
-            python_get_data_1(data_files_path,
-                              tables,
-                              ceden_server,
-                              ceden_id,
-                              ceden_pwd, 
-                              data_files_date)
-            print(glue('finished downloading {data_type} (through 2010)'))
+            print(glue('downloading {data_type} (2023 through present)'))
+            python_get_data_2023_present(data_files_path,
+                                         tables,
+                                         ceden_server,
+                                         ceden_id,
+                                         ceden_pwd, 
+                                         data_files_date)
+            print(glue('finished downloading {data_type} (2023 through present)'))
             gc()
         }
-        rm('python_get_data_1')
+        # rm('python_get_data_2023_present')
     },
     error = function(e) {
-        error_message <<- glue('Downloading data through 2010 (failed at: {data_type})')
+        error_message <<- glue('Downloading data from 2023 to present (failed at: {data_type})')
         error_message_r <<- capture.output(cat(as.character(e)))
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
@@ -292,6 +291,9 @@ tryCatch(
 )
 
 ## download 2011 to 2022 ----
+### NOTE: this only gets the 2011 - 2022 data, as an individual file for each year;
+### bulk files with data across all years are created with the process that downloads data 
+### up through 2010
 tryCatch(
     {
         gc()
@@ -301,24 +303,21 @@ tryCatch(
         
         ### get data
         for (data_type in names(tables_list)) {
-            # print(data_type)
-            
             Sys.sleep(1)
-            
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
             tables <- r_to_py(tables)
             print(glue('downloading {data_type} (2011 through 2022)'))
-            python_get_data_2(data_files_path,
-                              tables,
-                              ceden_server,
-                              ceden_id,
-                              ceden_pwd, 
-                              data_files_date)
+            python_get_data_2011_2022(data_files_path,
+                                      tables,
+                                      ceden_server,
+                                      ceden_id,
+                                      ceden_pwd, 
+                                      data_files_date)
             print(glue('finished downloading {data_type} (2011 through 2022)'))
             gc()
         }
-        rm('python_get_data_2')
+        # rm('python_get_data_2011_2022')
     },
     error = function(e) {
         error_message <<- glue('Downloading data from 2011 to 2022 (failed at: {data_type})')
@@ -329,37 +328,38 @@ tryCatch(
     }
 )
 
-## download 2023 to present ----
+## download through 2010 ----
+### NOTE: this gets the data up through 2010, as an individual file for each year,
+### and also creates the bulk files with data across all years; it needs to be run
+### last, as the processes that download more recent data will over-write some 
+### of the bulk files
 tryCatch(
     {
         gc()
         ### get python function
         source_python(here('1_data_download', 
-                           'CEDEN_DataRefresh_yearly_2023-to-present_function.py')) 
+                           'CEDEN_DataRefresh_yearly_through-2010_and-bulk-files_function.py'))
         
         ### get data
         for (data_type in names(tables_list)) {
-            # print(data_type)
-            
             Sys.sleep(1)
-            
             tables <- as.list(c("WQX_Stations" = "DM_WQX_Stations_MV", # this always has to be the first item
                                 tables_list[data_type]))
             tables <- r_to_py(tables)
-            print(glue('downloading {data_type} (2023 through present)'))
-            python_get_data_3(data_files_path,
-                              tables,
-                              ceden_server,
-                              ceden_id,
-                              ceden_pwd, 
-                              data_files_date)
-            print(glue('finished downloading {data_type} (2023 through present)'))
+            print(glue('downloading {data_type} (through 2010)'))
+            python_get_data_through_2010_and_bulk_files(data_files_path,
+                                                        tables,
+                                                        ceden_server,
+                                                        ceden_id,
+                                                        ceden_pwd, 
+                                                        data_files_date)
+            print(glue('finished downloading {data_type} (through 2010)'))
             gc()
         }
-        rm('python_get_data_3')
+        # rm('python_get_data_through_2010_and_bulk_files')
     },
     error = function(e) {
-        error_message <<- glue('Downloading data from 2023 to present (failed at: {data_type})')
+        error_message <<- glue('Downloading data through 2010 (failed at: {data_type})')
         error_message_r <<- capture.output(cat(as.character(e)))
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))

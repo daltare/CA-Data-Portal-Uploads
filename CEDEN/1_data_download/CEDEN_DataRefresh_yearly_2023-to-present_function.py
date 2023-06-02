@@ -49,7 +49,7 @@ import string
 import zipfile
 
 
-def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):	
+def python_get_data_2023_present(saveLocation, tables, SERVER1, UID, PWD, today):	
 
 	################################################################# Controls #################################################################
 	# today = str(date.today())
@@ -308,10 +308,14 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 		range_10 = prefix + str(years[9]) # 
 		range_11 = prefix + str(years[10]) # 
 		range_12 = prefix + str(years[11]) # 
-
-
+        
+		# get min/max date, used to build SQL query
+		min_year = min(years)
+		min_date = str(min_year - 1) + str("-12-31")
+		max_year = max(years)
+		max_date = str(max_year + 1) + str("-01-01")
 		
-		# This loop iterates on each item in the tables variable below
+        # This loop iterates on each item in the tables variable below
 		### DAA - ADD CURRENT DATE TO FILENAMES
 		# from datetime import date
 		# today = str(date.today())
@@ -361,8 +365,17 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 				sql = "SELECT * FROM %s ;" % table
 				cursor.execute(sql)
 				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
+			elif table == "TissueDMart_MV":
+				sql = "SELECT * FROM %s WHERE CONVERT(date,SampleDate,111) BETWEEN '%s' AND '%s'" % (table, min_date, max_date)
+				cursor.execute(sql)
+				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
+				# Check to see if datum is in the column headers, add two new column names
+				if 'Datum' in columns:
+					columns += ['DataQuality'] + ['DataQualityIndicator']
+				else:
+					columns += ['DataQuality'] + ['DataQualityIndicator'] + ['Datum']
 			else:
-				sql = "SELECT * FROM %s" % table
+				sql = "SELECT * FROM %s WHERE SampleDate BETWEEN '%s' AND '%s'" % (table, min_date, max_date)
 				cursor.execute(sql)
 				columns = [desc[0].replace('TargetL', 'L') for desc in cursor.description]
 				# Check to see if datum is in the column headers, add two new column names
@@ -401,7 +414,7 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 						WQX_Sites[SiterowDict['StationCode']] = SiterowDict['Datum']
 			if count == count:  ### Change back to  1 == 1:
 				# this is where we create a reader for each file in the "tables" variable
-				# using the filename iterable
+				# using the filename iterable filename_0
 				with open(writtenFiles[filename], 'w', newline='', encoding='utf8') as csvfile:
 					# we open a file and write the first row with the DictWriter tool
 					dw = csv.DictWriter(csvfile, fieldnames=columns, delimiter=sep, lineterminator='\n')
@@ -771,7 +784,7 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 																			elif recordYear == years[11]:
 																				writer12.writerow(list(recordDict.values()))
 																			# all years
-																			writer.writerow(list(recordDict.values()))
+																			# writer.writerow(list(recordDict.values()))
 																			# for each line that we process, all of the sites found in benthic, water chem,
 																			# tissue, habitat, WQX, Toxicity we store the Stationname, Lat/Long and datum to
 																			# this temporary thing called:
@@ -783,6 +796,8 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 					# these lines remove files that do not have anything but headers
 					# Sometimes we create empty files to hold data but nothing ends up
 					# going into them. So we erase them based on # of bytes which is 2000
+					# if os.stat(writtenFiles[filename]).st_size < 2000:
+						# os.remove(writtenFiles[filename])
 					if os.stat(filename_1).st_size < 2000:
 						os.remove(filename_1)
 						writtenFiles.pop(filename + range_1)
@@ -821,57 +836,6 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 						writtenFiles.pop(filename + range_12)
 					print("Finished data retrieval for the %s table" % filename)
 		return writtenFiles, AllSites
-
-	####################################################################################
-	############################# Select By Analyte Subset #############################
-	####################################################################################
-
-	# this is a tool to subset the main CEDEN datasets using the Analyte column ( or whatever column you specify)
-	def selectByAnalyte(path, fileName, analytes, newFileName, field_filter, sep):
-		# we create a variable that store the entire path of the input file
-		file = os.path.join(path, fileName)
-		# we create a variable that store the entire path of the output file
-		fileOut = os.path.join(path, newFileName)
-		# we initialize the Analyte_Sites and columns so we can store stuff in it
-		Analyte_Sites = {}
-		columns = []
-		Latitude, Longitude = ['Latitude', 'Longitude', ]
-		# using with open..... again
-		with open(file, 'r', newline='', encoding='utf8') as txtfile:
-			reader = csv.reader(txtfile, delimiter=sep, lineterminator='\n')
-			with open(fileOut, 'w', newline='', encoding='utf8') as txtfileOut:
-				writer = csv.writer(txtfileOut, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
-				count = 0
-				for row in reader:
-					row = [str(word) if word is not None else '' for word in row]
-					if count == 0:
-						columns = row
-						writer.writerow(row)
-						count += 1
-						continue
-					rowDict = dict(zip(columns, row))
-					# here is the magic of this whole definition
-					# field_filter is how we extract the current records analyte and see if it is in the
-					# analytes list. If it is in the list then we write the row to fileout.
-					# we also add that row's location information to a Analyte_Sites variable
-					if rowDict[field_filter] in analytes:
-						writer.writerow(row)
-						if rowDict['StationCode'] not in Analyte_Sites:
-							Analyte_Sites[rowDict['StationCode']] = [rowDict['StationName'], rowDict[Latitude],
-																	 rowDict[Longitude], rowDict['Datum']]
-		Sites = os.path.join(path, 'Sites_for_' + newFileName)
-		with open(Sites, 'w', newline='', encoding='utf8') as Sites_Out:
-			Sites_writer = csv.writer(Sites_Out, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
-			AllSites_dw = csv.DictWriter(Sites_Out, fieldnames=['StationName', 'SiteCode', 'Latitude', 'Longitude',
-														  'Datum'], delimiter=sep, lineterminator='\n')
-			AllSites_dw.writeheader()
-			for key, value in Analyte_Sites.items():
-				Sites_writer.writerow([value[0], key, value[1], value[2], value[3]])
-		return newFileName, fileOut, 'Sites_for_' + newFileName, Sites
-
-					####################################################################################
-					############################# Select By Analyte Subset #############################
-					####################################################################################
 
 
 	##############################################################################
@@ -985,16 +949,16 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 		print("this is the FILES object: \n", FILES, "\n\n")
 		# write out the All sites variable... This includes all sites in the Chemistry, benthic, toxicity, tissue and
 		# habitat datasets.
-		AllSites_path = os.path.join(saveLocation, 'All_CEDEN_Sites' + '_' + today + '.csv')
-		with open(AllSites_path, 'w', newline='', encoding='utf8') as AllSites_csv_file:
-			AllSites_dw = csv.DictWriter(AllSites_csv_file, 
-								   fieldnames=['StationName', 'SiteCode', 'Latitude', 'Longitude','Datum', ], 
-								   delimiter=sep, lineterminator='\n')
-			AllSites_dw.writeheader()
-			AllSites_writer = csv.writer(AllSites_csv_file, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
-			for key, value in AllSites.items():
-				AllSites_writer.writerow([value[0], key, value[1], value[2], value[3]])
-			FILES['All_CEDEN_Sites'] = AllSites_path
+		# AllSites_path = os.path.join(saveLocation, 'All_CEDEN_Sites' + '_' + today + '.csv')
+		# with open(AllSites_path, 'w', newline='', encoding='utf8') as AllSites_csv_file:
+			# AllSites_dw = csv.DictWriter(AllSites_csv_file, 
+								   # fieldnames=['StationName', 'SiteCode', 'Latitude', 'Longitude','Datum', ], 
+								   # delimiter=sep, lineterminator='\n')
+			# AllSites_dw.writeheader()
+			# AllSites_writer = csv.writer(AllSites_csv_file, csv.QUOTE_MINIMAL, delimiter=sep, lineterminator='\n')
+			# for key, value in AllSites.items():
+				# AllSites_writer.writerow([value[0], key, value[1], value[2], value[3]])
+			# FILES['All_CEDEN_Sites'] = AllSites_path
 		totalTime = datetime.now() - startTime
 		seconds = totalTime.seconds
 		minutes = seconds // 60
@@ -1010,31 +974,31 @@ def python_get_data_3(saveLocation, tables, SERVER1, UID, PWD, today):
 		# use FILES["TableKey"] to subset future datasets, as in example below...
 
 
-	##########################################################################################################
-	##########################################################################################################
-	############### ####       Create Zip Files (DA)          ######################################
-	##########################################################################################################
-	##########################################################################################################
-	# for files containing the data for all years, convert the file to .zip, and delete the original csv file
-	print('Creating zip files...')
-	# today = '2021-01-27'
+	# ##########################################################################################################
+	# ##########################################################################################################
+	# ############### ####       Create Zip Files (DA)          ######################################
+	# ##########################################################################################################
+	# ##########################################################################################################
+	# # for files containing the data for all years, convert the file to .zip, and delete the original csv file
+	# print('Creating zip files...')
+	# # today = '2021-01-27'
 
-	# create a list of files to be zipped, and a separate list of files to be deleted (may not want to delete them all)
-	files_zip = ["WaterChemistryData", "TissueData", "HabitatData", "ToxicityData", "BenthicData"]
-	files_delete = ["WaterChemistryData", "TissueData", "HabitatData"] # "ToxicityData", "BenthicData"
+	# # create a list of files to be zipped, and a separate list of files to be deleted (may not want to delete them all)
+	# files_zip = ["WaterChemistryData", "TissueData", "HabitatData", "ToxicityData", "BenthicData"]
+	files_delete = ["WaterChemistryData", "TissueData", "HabitatData", "ToxicityData", "BenthicData"] # 
 
-	# create zip files
-	for fname in files_zip:
-		csv_file = saveLocation + '\\' + fname + '_' + today + '.csv'
-		zip_file = saveLocation + '\\' + fname + '_' + today + '.zip'
-		if os.path.exists(csv_file):
-			# create a ZipFile object
-			zipObj = zipfile.ZipFile(zip_file, 'w')
-			# Add file(s) to the zip file
-			zipObj.write(csv_file, fname + '_' + today + '.csv', compress_type = zipfile.ZIP_DEFLATED)
-			# close the zip File
-			zipObj.close()
-			print("Created: " + zip_file )
+	# # create zip files
+	# for fname in files_zip:
+		# csv_file = saveLocation + '\\' + fname + '_' + today + '.csv'
+		# zip_file = saveLocation + '\\' + fname + '_' + today + '.zip'
+		# if os.path.exists(csv_file):
+			# # create a ZipFile object
+			# zipObj = zipfile.ZipFile(zip_file, 'w')
+			# # Add file(s) to the zip file
+			# zipObj.write(csv_file, fname + '_' + today + '.csv', compress_type = zipfile.ZIP_DEFLATED)
+			# # close the zip File
+			# zipObj.close()
+			# print("Created: " + zip_file )
 			
 	for fname in files_delete:
 		csv_file = saveLocation + '\\' + fname + '_' + today + '.csv'

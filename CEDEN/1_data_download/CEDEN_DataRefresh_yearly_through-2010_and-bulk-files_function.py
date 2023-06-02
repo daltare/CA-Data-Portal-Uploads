@@ -49,7 +49,7 @@ import string
 import zipfile
 
 
-def python_get_data_1(saveLocation, tables, SERVER1, UID, PWD, today):	
+def python_get_data_through_2010_and_bulk_files(saveLocation, tables, SERVER1, UID, PWD, today):	
 
 	################################################################# Controls #################################################################
 	# today = str(date.today())
