@@ -2,7 +2,7 @@
 Modified version of code originally written by Andrew Hill (andrew.hill@waterboards.ca.gov) for the 
 California State Water Resource Control Board (SWRCB) Office of Information Management and Analysis (OIMA)
 
-Original notes from Andrew:
+Original notes from Andrew (revised to remove outdated information):
 
     Purpose:
         This script is intended to query, clean and calculate new fields for
@@ -10,9 +10,6 @@ Original notes from Andrew:
     non-ascii characters and restricted character such as tabs, feedlines, return lines, etc which
     this script removes. This script also applies a data quality estimate to every record.
     The data quality estimate is calculated from a data quality decision tree in development.
-        In addition, this script subsets the newly created datasets into smaller and more
-    specialized data based on a list of analytes. This script also publishes each
-    dataset to the open data water portal on data.ca.gov.
 
     Prerequisites:
         Windows platform (not strictly requirement but I was unable to get this library
