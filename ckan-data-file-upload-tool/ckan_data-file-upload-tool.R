@@ -20,6 +20,7 @@ library(magrittr)
 library(pingr)
 library(glue)
 library(tictoc)
+library(here)
 
 
 
@@ -33,6 +34,8 @@ data_resource_id_list <- list('toxicity' = 'ac8bf4c8-0675-4764-92f1-b67bdb187ba1
 
 
 # set up selenium (automated browser) ---------------------------------
+source(here('start_selenium.R'))
+
 ## Note - for more information / examples on how the RSelenium package works, see:
 # https://stackoverflow.com/questions/35504731/specify-download-folder-in-rselenium        
 # https://cran.r-project.org/web/packages/RSelenium/vignettes/RSelenium-basics.html
@@ -40,107 +43,121 @@ data_resource_id_list <- list('toxicity' = 'ac8bf4c8-0675-4764-92f1-b67bdb187ba1
 # https://github.com/ropensci/RSelenium/issues/121
 
 
-## define chrome browser options for the Selenium session ----
-eCaps <- list( 
-    chromeOptions = 
-        list(prefs = list(
-            "profile.default_content_settings.popups" = 0L,
-            "download.prompt_for_download" = FALSE,
-            "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = getwd()) # download.dir
-        )
-        )
-)
-
-## check for open port ----
-for (port_check in 4567L:4577L) {
-    port_test <- ping_port(destination = 'localhost', port = port_check)
-    # print(all(is.na(port_test)))
-    if (all(is.na(port_test)) == TRUE) {
-        port_use <- port_check
-        break
-    }
-}
-
-## get drivers ----
-selenium(check = TRUE,
-         retcommand = TRUE,
-         port = port_use)
-Sys.sleep(5)
-
-## get current version of chrome browser ----
-chrome_browser_version <-
-    system2(command = "wmic",
-            args = 'datafile where name="C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
-            stdout = TRUE,
-            stderr = TRUE) %>%
-    str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
-if (sum(!is.na(chrome_browser_version)) == 0) {
-    chrome_browser_version <-
-        system2(command = "wmic",
-                args = 'datafile where name="C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
-                stdout = TRUE,
-                stderr = TRUE) %>%
-        str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
-}
-
-## get available chrome drivers ----
-chrome_driver_versions <- list_versions("chromedriver")
-
-## match driver / version ----
-chrome_driver_current <- chrome_browser_version %>%
-    extract(!is.na(.)) %>%
-    str_replace_all(pattern = "\\.",
-                    replacement = "\\\\.") %>%
-    paste0("^",  .) %>%
-    str_subset(string = dplyr::last(chrome_driver_versions)) %>%
-    as.numeric_version() %>%
-    max() %>%
-    as.character()
-
-## re-check for open port ----
-for (port_check in 4567L:4577L) {
-    port_test <- ping_port(destination = 'localhost', port = port_check)
-    # print(all(is.na(port_test)))
-    if (all(is.na(port_test)) == TRUE) {
-        port_use <- port_check
-        break
-    }
-}
-
-#### remove the 'LICENSE.chromedriver' file (if it exists)
-chrome_driver_dir <- paste0(app_dir("chromedriver", FALSE), 
-                            '/win32/',
-                            chrome_driver_current)
-# list.files(chrome_driver_dir)
-if ('LICENSE.chromedriver' %in% list.files(chrome_driver_dir)) {
-    file.remove(
-        paste0(chrome_driver_dir, '/', 'LICENSE.chromedriver')
-    )
-}
-
-## set up selenium with the current chrome version ----
-selCommand <- selenium(jvmargs = 
-                           c("-Dwebdriver.chrome.verboseLogging=true"), 
-                       check = TRUE,
-                       retcommand = TRUE,
-                       chromever = chrome_driver_current,
-                       port = port_use)
-
-## write selenium specifications to batch file ----
-writeLines(selCommand, 
-           'Start_Server.bat')
-Sys.sleep(5) #### wait a few seconds
-
-## start server ----
-shell.exec('Start_Server.bat')
-Sys.sleep(10) #### wait a few seconds
-
-## open connection ----
-remDr <- remoteDriver(port = port_use, # 4567L, 
-                      browserName = "chrome", 
-                      extraCapabilities = eCaps)
-Sys.sleep(10) #### wait a few seconds
-remDr$open()
+# ## define chrome browser options for the Selenium session ----
+# eCaps <- list( 
+#     chromeOptions = 
+#         list(prefs = list(
+#             "profile.default_content_settings.popups" = 0L,
+#             "download.prompt_for_download" = FALSE,
+#             "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = getwd()) # download.dir
+#         )
+#         )
+# )
+# 
+# ## check for open port ----
+# for (port_check in 4567L:4577L) {
+#     port_test <- ping_port(destination = 'localhost', port = port_check)
+#     # print(all(is.na(port_test)))
+#     if (all(is.na(port_test)) == TRUE) {
+#         port_use <- port_check
+#         break
+#     }
+# }
+# 
+# ## get drivers ----
+# selenium(check = TRUE,
+#          retcommand = TRUE,
+#          port = port_use)
+# Sys.sleep(1)
+# 
+# ## get current version of chrome browser ----
+# chrome_browser_version <-
+#     system2(command = "wmic",
+#             args = 'datafile where name="C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+#             stdout = TRUE,
+#             stderr = TRUE) %>%
+#     str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+# if (sum(!is.na(chrome_browser_version)) == 0) {
+#     chrome_browser_version <-
+#         system2(command = "wmic",
+#                 args = 'datafile where name="C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe" get Version /value',
+#                 stdout = TRUE,
+#                 stderr = TRUE) %>%
+#         str_extract(pattern = "(?<=Version=)(\\d+\\.){3}")
+# }
+# 
+# ## get available chrome drivers ----
+# chrome_driver_versions <- list_versions("chromedriver")
+# 
+# ## match driver / version ----
+# chrome_driver_current <- chrome_browser_version %>%
+#     extract(!is.na(.)) %>%
+#     str_replace_all(pattern = "\\.",
+#                     replacement = "\\\\.") %>%
+#     paste0("^",  .) %>%
+#     str_subset(string = dplyr::last(chrome_driver_versions)) %>%
+#     as.numeric_version() %>%
+#     max() %>%
+#     as.character()
+# 
+# ### if no matching driver / version, use most recent driver ----
+# if(is_empty(chrome_driver_current)) {
+#     chrome_driver_current <- tibble(version = last(chrome_driver_versions)) %>% 
+#         separate_wider_delim(cols = version, 
+#                              delim = '.', 
+#                              names_sep = '', 
+#                              cols_remove = FALSE) %>% 
+#         rename(version = versionversion) %>% 
+#         mutate(across(num_range('version', 1:4), as.numeric)) %>% 
+#         arrange(desc(version1), desc(version2), desc(version3), desc(version4)) %>% 
+#         slice(1) %>% 
+#         pull(version)
+# }
+# 
+# ## re-check for open port ----
+# for (port_check in 4567L:4577L) {
+#     port_test <- ping_port(destination = 'localhost', port = port_check)
+#     # print(all(is.na(port_test)))
+#     if (all(is.na(port_test)) == TRUE) {
+#         port_use <- port_check
+#         break
+#     }
+# }
+# 
+# #### remove the 'LICENSE.chromedriver' file (if it exists)
+# chrome_driver_dir <- paste0(app_dir("chromedriver", FALSE), 
+#                             '/win32/',
+#                             chrome_driver_current)
+# # list.files(chrome_driver_dir)
+# if ('LICENSE.chromedriver' %in% list.files(chrome_driver_dir)) {
+#     file.remove(
+#         paste0(chrome_driver_dir, '/', 'LICENSE.chromedriver')
+#     )
+# }
+# 
+# ## set up selenium with the current chrome version ----
+# selCommand <- selenium(jvmargs = 
+#                            c("-Dwebdriver.chrome.verboseLogging=true"), 
+#                        check = TRUE,
+#                        retcommand = TRUE,
+#                        chromever = chrome_driver_current,
+#                        port = port_use)
+# 
+# ## write selenium specifications to batch file ----
+# writeLines(selCommand, 
+#            'Start_Server.bat')
+# Sys.sleep(1) #### wait a few seconds
+# 
+# ## start server ----
+# shell.exec('Start_Server.bat')
+# Sys.sleep(1) #### wait a few seconds
+# 
+# ## open connection ----
+# remDr <- remoteDriver(port = port_use, # 4567L, 
+#                       browserName = "chrome", 
+#                       extraCapabilities = eCaps)
+# Sys.sleep(1) #### wait a few seconds
+# remDr$open()
 
 
 
@@ -173,13 +190,13 @@ for (id_number in seq_along(names(data_resource_id_list))) {
     # click the 'Remove' button (to remove the old version of the file)
     webElem <- remDr$findElement(using = 'css selector', value = paste0('.btn-remove-url'))
     webElem$clickElement()
-    Sys.sleep(3)
+    Sys.sleep(1)
     
     # enter the path of the new file to be uploaded
     webElem <- remDr$findElement(using = 'css selector', value = paste0('#field-image-upload'))
     # webElem$clickElement()
     webElem$sendKeysToElement(list('C:\\David\\_CA_data_portal\\CEDEN\\CEDEN_Datasets\\2021-09-01\\ToxicityData_2021-09-01.zip'))
-    Sys.sleep(3)
+    Sys.sleep(1)
     
     # click the 'Update Resource' button to upload the new file
     webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')

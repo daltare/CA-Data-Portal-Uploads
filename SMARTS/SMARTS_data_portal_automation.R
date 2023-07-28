@@ -655,7 +655,7 @@ tryCatch(
             fileToUpload <- paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv')
             file_upload <- resource_update(id = resourceID, path = fileToUpload)
             
-            
+            Sys.sleep(1)
             
             # # output the result of the upload process to a log file called: _DataPortalUpload-Log.txt
             # # check to see if the log file exists - if not, create it

@@ -82,6 +82,20 @@ chrome_driver_current <- chrome_browser_version %>%
     max() %>%
     as.character()
 
+### if no matching driver / version, use most recent driver ----
+if(is_empty(chrome_driver_current)) {
+    chrome_driver_current <- tibble(version = last(chrome_driver_versions)) %>% 
+        separate_wider_delim(cols = version, 
+                             delim = '.', 
+                             names_sep = '', 
+                             cols_remove = FALSE) %>% 
+        rename(version = versionversion) %>% 
+        mutate(across(num_range('version', 1:4), as.numeric)) %>% 
+        arrange(desc(version1), desc(version2), desc(version3), desc(version4)) %>% 
+        slice(1) %>% 
+        pull(version)
+}
+
 ## re-check for open port ----
 for (port_check in 4567L:4577L) {
     port_test <- ping_port(destination = 'localhost', port = port_check)

@@ -987,65 +987,65 @@ tryCatch(
 # X - write parquet files --------------------------------------------
 # tryCatch(
 #     {
-# #         ## optionally, use old version of arrow package (and all other packages for compatibility)
-# #         checkpoint('2021-07-28')
-# #         Sys.sleep(2)
-# #         
-# #         dir.create(glue('{download_dir}{parquet_directory}'))
-# #         
-# #         ## create a list of the column types, to use when reading in the data ----
-# #         df_types <- read_xlsx(data_dictionary_path)
-# #         field_types <- df_types %>% 
-# #             pull(type) %>% 
-# #             str_replace(pattern = 'text', replacement = 'c') %>% 
-# #             str_replace(pattern = 'numeric', replacement = 'n') %>% 
-# #             str_replace(pattern = 'timestamp', replacement = 'T') %>% 
-# #             glue_collapse() %>% 
-# #             as.character() %>% 
-# #             {.}
-# #         Sys.sleep(5)
-# #         
-# #         options(warn = 2) # this converts warnings into errors, so that the function below will stop if there is a problem reading in the data
-# #         
-# #         ## create function to create a parquet file for data partitioned by year ----
-# #         convert_data <- function(year) {
-# #             print(glue('Creating parquet file for: Year {year} ({Sys.time()})'))
-# #             
-# #             source_file <- glue('{download_dir}{file_name}_year-{year}_{file_date}.csv')
-# #             
-# #             ### create directory for the given year ----
-# #             dir.create(glue('{download_dir}{parquet_directory}\\{year}'))
-# #             
-# #             gc()
-# #             
-# #             ### read source data file ----
-# #             df_esmr_par <- read_csv(source_file, 
-# #                                     col_types = field_types,
-# #                                     na = c('NA', 'NaN', ''))
-# #             print(glue('finished reading year {year} data'))
-# #             
-# #             # create parquet file
-# #             print(glue('writing year {year} file'))
-# #             write_parquet(df_esmr_par, 
-# #                           sink = glue('{download_dir}{parquet_directory}\\{year}\\data.parquet'))
-# #             
-# #             rm(df_esmr_par)
-# #             gc()
-# #             Sys.sleep(1)
-# #         }
-# #         
-# #         print(glue('---------- Creating parquet file ----------'))
-# #         
-# #         #### create folder and parquet file for each year from 2000 to present ####
-# #         walk(years_download, ~ convert_data(.))
-# #         
-# #         options(warn = 0) # this converts warnings back into regular warnings (not errors)
-# #         
-# #         uncheckpoint()
-# #         Sys.sleep(5)
-# #         
-# #         gc()
-# #         
+##        ## optionally, use old version of arrow package (and all other packages for compatibility)
+##        checkpoint('2021-07-28')
+##        Sys.sleep(2)
+##        
+##        dir.create(glue('{download_dir}{parquet_directory}'))
+##        
+##        ## create a list of the column types, to use when reading in the data ----
+##        df_types <- read_xlsx(data_dictionary_path)
+##        field_types <- df_types %>% 
+##            pull(type) %>% 
+##            str_replace(pattern = 'text', replacement = 'c') %>% 
+##            str_replace(pattern = 'numeric', replacement = 'n') %>% 
+##            str_replace(pattern = 'timestamp', replacement = 'T') %>% 
+##            glue_collapse() %>% 
+##            as.character() %>% 
+##            {.}
+##        Sys.sleep(5)
+##        
+##        options(warn = 2) # this converts warnings into errors, so that the function below will stop if there is a problem reading in the data
+##        
+##        ## create function to create a parquet file for data partitioned by year ----
+##        convert_data <- function(year) {
+##            print(glue('Creating parquet file for: Year {year} ({Sys.time()})'))
+##            
+##            source_file <- glue('{download_dir}{file_name}_year-{year}_{file_date}.csv')
+##            
+##            ### create directory for the given year ----
+##            dir.create(glue('{download_dir}{parquet_directory}\\{year}'))
+##            
+##            gc()
+##            
+##            ### read source data file ----
+##            df_esmr_par <- read_csv(source_file, 
+##                                    col_types = field_types,
+##                                    na = c('NA', 'NaN', ''))
+##            print(glue('finished reading year {year} data'))
+##            
+##            # create parquet file
+##            print(glue('writing year {year} file'))
+##            write_parquet(df_esmr_par, 
+##                          sink = glue('{download_dir}{parquet_directory}\\{year}\\data.parquet'))
+##            
+##            rm(df_esmr_par)
+##            gc()
+##            Sys.sleep(1)
+##        }
+##        
+##        print(glue('---------- Creating parquet file ----------'))
+##        
+##        #### create folder and parquet file for each year from 2000 to present ####
+##        walk(years_download, ~ convert_data(.))
+##        
+##        options(warn = 0) # this converts warnings back into regular warnings (not errors)
+##        
+##        uncheckpoint()
+##        Sys.sleep(5)
+##        
+##        gc()
+##        
 #         print(glue('Zipping parquet file'))
 #         
 #         # add all of the files to a zip file, but without compression (this file can be loaded to the data portal)
