@@ -506,7 +506,7 @@ parquet_resource_id_list <- list(
     'habitat' = list(source_file_name = 'HabitatData',
                      data_dictionary = 'habitat\\CEDEN_Habitat_Data_Dictionary.xlsx',
                      portal_dataset_name = 'surface-water-habitat-results',
-                     portal_dataset_id = '0184c4d0-1e1d-4a33-92ad-e967b5491274',
+                     portal_dataset_id = '0f83793d-1f12-4fee-87b2-45dcc1389f0c',
                      parquet_data_file = glue('HabitatData_Parquet_{data_files_date}'))
 )
 

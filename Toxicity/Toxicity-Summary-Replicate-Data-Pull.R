@@ -44,7 +44,7 @@
   
   ## enter the email address to send warning emails from
   ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-  email_from <- 'daltare.work@gmail.com' # 'david.altare@waterboards.ca.gov' 
+  email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' 
   
   ## create credentials file (only need to do this once) 
   ### gmail credentials ----
