@@ -10,6 +10,8 @@ library(pingr)
 library(binman)
 library(here)
 library(magrittr)
+library(rvest)
+library(httr)
 
 ## conflicts ----
 library(conflicted)
@@ -50,6 +52,53 @@ selenium(
     retcommand = TRUE,
     port = port_use
 )
+
+### get chrome driver directly from google ---- 
+#### (https://googlechromelabs.github.io/chrome-for-testing/#stable)
+#### see: https://support.google.com/chrome/thread/230521170/requires-version-116-of-the-google-chrome-driver%EF%BC%8Cplease?hl=en
+#### for web scraping example, see: https://dcl-wrangle.stanford.edu/rvest.html
+driver_url <- 'https://googlechromelabs.github.io/chrome-for-testing/#stable'
+css_selector <- 'body > div > table'
+
+#### read table of drivers from google website
+driver_table <- driver_url %>% 
+    read_html() %>% 
+    html_element(css = css_selector) %>% 
+    html_table()
+
+#### get current stable driver version number from table
+driver_version_number <- driver_table %>% 
+    filter(Channel == 'Stable') %>% 
+    pull(Version)
+
+#### construct link to new driver zip file
+driver_zip_file <- paste0('https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/',
+                      driver_version_number,
+                      '/win32/chromedriver-win32.zip')
+
+#### define local directory for driver 
+driver_dir <- file.path('C:\\Users\\daltare\\AppData\\Local\\binman\\binman_chromedriver\\win32', 
+                        driver_version_number)
+
+#### if driver not already saved locally, download and unzip
+if (!dir.exists(driver_dir)) {
+    # create directory
+    dir.create(driver_dir)
+    
+    # download zip file to new directory
+    GET(url = driver_zip_file, 
+        write_disk(file.path(driver_dir, 
+                             'chromedriver-win32.zip'),
+                   overwrite = TRUE))
+    
+    # unzip the chromedriver.exe file 
+    unzip(zipfile = file.path(driver_dir, 
+                              'chromedriver-win32.zip'), 
+          files = 'chromedriver-win32/chromedriver.exe', 
+          junkpaths = TRUE,
+          exdir = driver_dir)    
+}
+
 Sys.sleep(sleep_time)
 
 ### get current version of chrome browser ----
@@ -128,6 +177,7 @@ selCommand <- wdman::selenium(
 ### write selenium specifications to batch file ----
 # writeLines(selCommand, 
 #            here('Start_Server.bat'))
+
 Sys.sleep(sleep_time) # wait a few seconds
 
 ### start server ----
