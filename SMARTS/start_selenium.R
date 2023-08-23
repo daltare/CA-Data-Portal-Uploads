@@ -71,19 +71,20 @@ driver_version_number <- driver_table %>%
     filter(Channel == 'Stable') %>% 
     pull(Version)
 
-#### construct link to new driver zip file
-driver_zip_file <- paste0('https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/',
-                      driver_version_number,
-                      '/win32/chromedriver-win32.zip')
-
 #### define local directory for driver 
-driver_dir <- file.path('C:\\Users\\daltare\\AppData\\Local\\binman\\binman_chromedriver\\win32', 
+driver_dir <- file.path(app_dir("chromedriver", FALSE), 
+                        'win32', 
                         driver_version_number)
 
 #### if driver not already saved locally, download and unzip
 if (!dir.exists(driver_dir)) {
     # create directory
     dir.create(driver_dir)
+    
+    #### construct link to new driver zip file
+    driver_zip_file <- paste0('https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/',
+                              driver_version_number,
+                              '/win32/chromedriver-win32.zip')
     
     # download zip file to new directory
     GET(url = driver_zip_file, 
