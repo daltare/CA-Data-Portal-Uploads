@@ -44,11 +44,20 @@ for (port_check in 4567L:4577L) {
 }
 
 ## get drivers ----
-selenium(
-    check = TRUE,
-    retcommand = TRUE,
-    port = port_use
+### note - this may not work if on the waterboard VPN, so only run this command 
+### if not on the VPN
+vpn <- any(
+    str_detect(string = system("ipconfig /all", 
+                               intern = TRUE), 
+               pattern = 'ca.epa.local')
 )
+if (vpn == FALSE) {
+    selenium(
+        check = TRUE,
+        retcommand = TRUE,
+        port = port_use
+    )  
+}
 
 ### get chrome driver directly from google ---- 
 #### (https://googlechromelabs.github.io/chrome-for-testing/#stable)

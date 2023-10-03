@@ -15,6 +15,7 @@
   library(glue)
   library(blastula)
   library(sendmailR)
+  library(gmailr)
 }
 
 
@@ -42,9 +43,15 @@
   dm_password <- Sys.getenv('PWD')
   dm_server <- Sys.getenv('SERVER1')
   
+  ## send email if process fails?
+  send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
+  
   ## enter the email address to send warning emails from
   ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
   email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' 
+  
+  ### email subject line ----
+  subject_line <- "Data Portal Upload Error - CEDEN Toxicity Summary / Replicate"
   
   ## create credentials file (only need to do this once) 
   ### gmail credentials ----
@@ -103,9 +110,6 @@ The source data comes from the CEDEN datamart"
   #### footer ----
   footer <- glue("Email sent on {date_time}.")
   
-  #### subject ----
-  subject <- "Data Portal Upload Error - CEDEN Toxicity Summary / Replicate"
-  
   ### create email ----
   email <- compose_email(
     body = md(body),
@@ -119,7 +123,7 @@ The source data comes from the CEDEN datamart"
       # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
       to = email_to,
       from = email_from,
-      subject = subject,
+      subject = subject_line,
       credentials = creds_file(credentials_file)
       # credentials = creds_key("outlook_key")
     )
@@ -130,6 +134,42 @@ The source data comes from the CEDEN datamart"
   # sendmail(from,to,subject,body,control=list(smtpServer= ""))
   
   print('sent automated email')
+}
+
+
+## gmailr function ----
+### NOTE: blastula may not work when on the waterboard VPN, but gmailr might
+### (it's hard to tell if that will always be the case though)
+### setting up gmailr is somewhat complicated, instructions are here:
+### https://github.com/r-lib/gmailr 
+### in particular note the OAuth steps: https://gmailr.r-lib.org/dev/articles/oauth-client.html
+fn_email_gmailr <- function(error_msg, error_msg_r) {
+  
+  body <- glue(
+    "Hi,
+There was an error uploading the eSMR Analytical Data to the data.ca.gov portal on {Sys.Date()}.
+                
+------
+                
+The process failed at this step: *{error_msg}*
+
+Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
+
+------
+                
+Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/surface-water-electronic-self-monitoring-report-esmr-data
+                
+Here's the link to the flat file with the source data: https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml  (Export Type = SMR Analytical Data)"                
+  )
+  
+  email_message <-
+    gm_mime() |>
+    gm_to(email_to) |>
+    gm_from(email_from) |>
+    gm_subject(subject_line) |>
+    gm_text_body(body)
+  
+  gm_send_message(email_message)
 }
 
 
@@ -153,7 +193,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'deleting old versions of dataset'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -181,7 +230,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'connecting to CEDEN database'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -241,7 +299,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'querying CEDEN database (all records)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -282,7 +349,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'querying CEDEN database (summary records)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -313,7 +389,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'selecting replicate records'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -364,7 +449,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'closing CEDEN database connection'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -455,7 +549,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'adjusting field names'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -474,7 +577,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (defining output data frames)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -503,7 +615,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (selecting fields for output data frames)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -548,7 +669,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (summary records - converting to UTF-8)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -565,7 +695,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (summary records - removing special characters)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -583,7 +722,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (summary records - collection time field)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -610,7 +758,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (summary records - date fields)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -633,7 +790,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (summary records - numeric fields)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -651,7 +817,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (summary records - text fields)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -672,7 +847,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (replicate records - converting to UTF-8)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -688,7 +872,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (replicate records - removing special characters)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -706,7 +899,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (replicate records - collection time field)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -733,7 +935,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (replicate records - date fields)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -753,7 +964,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (replicate records - numeric fields)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -771,7 +991,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'formatting data (replicate records - text fields)'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -805,7 +1034,16 @@ tryCatch(
   error = function(e) {
     error_message <- 'writing output csv files'
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }
@@ -823,7 +1061,16 @@ tryCatch(
 #     error = function(e) {
 #         error_message <- 'loading summary data to data.ca.gov portal'
 #         error_message_r <- capture.output(cat(as.character(e)))
-#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+# vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+#                       pattern = 'ca.epa.local'))
+# if (send_failure_email == TRUE) {
+#   if (vpn == FALSE) {
+#     fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+#   } else {
+#     ## attempt to use gmailr if on the VPN
+#     fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+#   } 
+# }
 #         print(glue('Error: {error_message}'))
 #         stop(e)
 #     }
@@ -838,7 +1085,16 @@ tryCatch(
 #     error = function(e) {
 #         error_message <- 'loading replicate data to data.ca.gov portal'
 #         error_message_r <- capture.output(cat(as.character(e)))
-#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+# vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+#                       pattern = 'ca.epa.local'))
+# if (send_failure_email == TRUE) {
+#   if (vpn == FALSE) {
+#     fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+#   } else {
+#     ## attempt to use gmailr if on the VPN
+#     fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+#   } 
+# }
 #         print(glue('Error: {error_message}'))
 #         stop(e)
 #     }
@@ -878,7 +1134,16 @@ tryCatch(
   error = function(e) {
     error_message <- glue('Uploading data to portal (error occured in uploading the {file_type} Data)')
     error_message_r <- capture.output(cat(as.character(e)))
-    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                          pattern = 'ca.epa.local'))
+    if (send_failure_email == TRUE) {
+      if (vpn == FALSE) {
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+      } else {
+        ## attempt to use gmailr if on the VPN
+        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+      } 
+    }
     print(glue('Error: {error_message}'))
     stop(e)
   }

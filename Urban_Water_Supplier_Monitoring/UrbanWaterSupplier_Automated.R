@@ -36,7 +36,7 @@ portal_key <- Sys.getenv('data_portal_key')
 file_save_location <- 'C:\\David\\_CA_data_portal\\Urban_Water_Supplier_Monitoring'
 
 ## enter the maximum number of days between portal updates before triggering a warning email to be sent
-max_update_lag <- 60 # number of days
+max_update_lag <- 90 # number of days
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
