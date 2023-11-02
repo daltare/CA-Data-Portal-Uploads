@@ -116,21 +116,21 @@ dataset_list <- list(dataset1 = list(filename = 'Industrial_Ad_Hoc_Reports_-_Par
                                                         'IMPERVIOUSNESS_AFTER', 'R_FACTOR', 
                                                         'K_FACTOR', 'LS_FACTOR', 
                                                         'WATERSHED_EROSION_ESTIMATE')),
-                     dataset5 = list(filename = 'Inspections', # to add a new dataset, enter here and un-comment these lines
+                     dataset5 = list(filename = 'Inspections', 
                                      html_id = 'intDataFileDowloaddataFileForm:inspectionLink',
                                      resource_id = '33047e47-7d44-46aa-9e0f-1a0f1b0cad66',
                                      date_fields = c('INSPECTION_DATE'),
                                      time_fields = c('INSPECTION_START_TIME', 'INSPECTION_END_TIME'),
                                      timestamp_fields = c(),
                                      numeric_fields = c('COUNT_OF_VIOLATIONS')),
-                     dataset6 = list(filename = 'Violations', # to add a new dataset, enter here and un-comment these lines
+                     dataset6 = list(filename = 'Violations', 
                                      html_id = 'intDataFileDowloaddataFileForm:violationLink',
                                      resource_id = '9b69a654-0c9a-4865-8d10-38c55b1b8c58',
                                      date_fields = c('OCCURRENCE_DATE', 'DISCOVERY_DATE'),
                                      time_fields = c(),
                                      timestamp_fields = c(),
                                      numeric_fields = c()),
-                     dataset7 = list(filename = 'Enforcement_Actions', # to add a new dataset, enter here and un-comment these lines
+                     dataset7 = list(filename = 'Enforcement_Actions', 
                                      html_id = 'intDataFileDowloaddataFileForm:enfocementActionLink',
                                      resource_id = '9cf197f4-f1d5-4d43-b94b-ccb155ef14cf',
                                      date_fields = c('ISSUANCE_DATE', 'DUE_DATE', 'ACL_COMPLAINT_ISSUANCE_DATE', 
@@ -319,6 +319,17 @@ tryCatch(
 #### use to loop through all of the datasets defined at the top of the script in the 'dataset_list' variable
 #### function downloads a given dataset from the "Download NOI Data By Regional Board" page
 SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE, fields_dates, fields_times, fields_timestamps, fields_numeric) { # NOTE: The html_id is the identifier of the button/link for the given dataset in the html code (use the 'developer' too in the browser to find this in the html code)
+    
+    # # For Testing Only ----
+    # filename = dataset_list[[j]]$filename
+    # html_id = dataset_list[[j]]$html_id
+    # delete_old_versions = delete_old_versions
+    # fields_dates = dataset_list[[j]]$date_fields
+    # fields_times = dataset_list[[j]]$time_fields
+    # fields_timestamps = dataset_list[[j]]$timestamp_names
+    # fields_numeric = dataset_list[[j]]$numeric_fields
+
+    
     # this automatically downloads the file to the default download location for the browser, set above
     # NOTE: Files downloaed from SMARTS are automatically named file.txt, so check to make sure there isn't already an un-named file (file.txt) in 
     # this location  - if so, delete it (otherwise the newly downloaded file will be appended with a number, and the versions might get confused)
@@ -422,20 +433,29 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         filename == 'Industrial_Application_Specific_Data' |
         filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' |
         filename == 'Construction_Application_Specific_Data') {
-        # convert dates and times into a timestamp field that can be read by the portal - ADDED 2019-09-18
+        
         for (counter in seq_along(fields_dates)) {
             # Get a list of the date fields in the ISO format
             dates_iso <- mdy(dataset[[fields_dates[counter]]])
-            if ((filename == 'Construction_Application_Specific_Data' | 
+            
+            # one date field is formatted differently
+            if ((filename == 'Industrial_Application_Specific_Data' | 
                  filename == 'Construction_Application_Specific_Data') & 
                 fields_dates[counter] == 'CERTIFICATION_DATE') {
                 dates_iso <- dmy(substr(x = dataset$CERTIFICATION_DATE, start = 1, stop = 9))
             }
             # check NAs: sum(is.na(dates_iso))
             
+            
+            
+            # convert dates and times into a timestamp field ----
+            ## ADDED 2019-09-18
+
             # Create a vector of timestamps for any date (plus associated time) fields in the dataset
-            if (filename == 'Industrial_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Industrial_Application_Specific_Data') {
-                timestamps <- mdy_hm(paste(dataset[[fields_dates[counter]]], dataset[[fields_times[counter]]]))
+            if (fields_times[counter] == '') {
+                timestamps <- dates_iso
+            } else if (filename == 'Industrial_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Industrial_Application_Specific_Data') {
+                timestamps <- mdy_hm(paste(dataset[[fields_dates[counter]]], dataset[[counter]]))
             } else if (filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Construction_Application_Specific_Data') {
                 timestamps <- mdy_hms(paste(dataset[[fields_dates[counter]]], dataset[[fields_times[counter]]]))
             }
@@ -444,23 +464,94 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             # For timestamps that don't work, just use the date (times are often not in a standard format)
             timestamps[is.na(timestamps)] <- dates_iso[is.na(timestamps)]
             # check NAs: 
-            print(paste0('Unconverted timestamps: ', sum(is.na(timestamps))))
+            # print(paste0('Unconverted timestamps: ', sum(is.na(timestamps))))
             
-            # Convert to text, and for timestamps that still don't work, store as '' (empty text string) - this converts to 'null' in Postgres
-            timestamps <- as.character(timestamps)
-            sum(is.na(timestamps))
-            timestamps[is.na(timestamps)] <- ''
-            # check NAs: sum(is.na(timestamps))
+            ### convert to character
+            timestamps_text <- as.character(timestamps)
+            
+            ### adjust for incorrect years
+            years_correction <- case_when(
+                is.na(timestamps) ~ NA,
+                year(timestamps) < 10 ~ '000',
+                year(timestamps) >= 10 & year(timestamps) < 100 ~ '00',
+                year(timestamps) >= 100 & year(timestamps) < 1000 ~ '0',
+                year(timestamps) > 1000 ~ ''
+            )
+            timestamps_text <- case_when(
+                is.na(timestamps) ~ NA,
+                .default = paste0(years_correction, timestamps_text)
+            )
+            # check
+            # sum(is.na(timestamps_text))
+            # range(nchar(timestamps_text), na.rm = T)
+            # timestamps_text[year(timestamps) < 1000 & !is.na(timestamps)]
+            
+            ### adjust for missing times
+            if (fields_times[counter] == '') {
+                times_correction <- case_when(
+                    is.na(timestamps) ~ NA,
+                    !is.na(timestamps) ~ ' 00:00:00'
+                )
+            } else {
+                times_correction <- case_when(
+                    is.na(timestamps) ~ NA,
+                    is.na(dataset[[fields_times[counter]]]) ~ ' 00:00:00',
+                    dataset[[fields_times[counter]]] == '00:00:00' ~ ' 00:00:00',
+                    dataset[[fields_times[counter]]] != '00:00:00' ~ ''
+                )
+            }
+            timestamps_text <- case_when(
+                is.na(timestamps) ~ NA,
+                .default = paste0(timestamps_text, times_correction)
+            )
+            # check
+            # sum(is.na(timestamps_text))
+            # range(nchar(timestamps_text), na.rm = T)
+            # timestamps_text[year(timestamps) < 1000 & !is.na(timestamps)]
+            
+            ### replace NAs with empty text string
+            timestamps_text[is.na(timestamps_text)] <- ''
+            # sum(is.na(timestamps_text))
+            # tabyl(nchar(timestamps_text)) # should only be zero or 19
             
             # Insert the timestamp fields into the dataset
-            dataset[,fields_timestamps[counter]] <- timestamps
+            dataset[,fields_timestamps[counter]] <- timestamps_text
             
-            # convert the date fields to dates (added 2020-07-20)
-            dates_iso <- as.character(dates_iso)
-            dates_iso[is.na(dates_iso)] <- ''
-            dataset[[fields_dates[counter]]] <- dates_iso
             
-            # convert numeric fields to numeric (added 2020-07-20)
+            
+            # convert the date fields to dates (added 2020-07-20) ----
+
+            ## adjust for incorrect years
+            dates_iso_text <- as.character(dates_iso)
+            # sum(is.na(dates_iso_text))
+            # range(nchar(dates_iso_text), na.rm = T)
+            
+            years_correction <- case_when(
+                is.na(dates_iso) ~ NA,
+                year(dates_iso) < 10 ~ '000',
+                year(dates_iso) >= 10 & year(dates_iso) < 100 ~ '00',
+                year(dates_iso) >= 100 & year(dates_iso) < 1000 ~ '0',
+                year(dates_iso) > 1000 ~ ''
+            )
+            
+            ### adjust
+            dates_iso_text <- case_when(
+                is.na(dates_iso) ~ NA,
+                .default = paste0(years_correction, dates_iso_text)
+            )
+            # sum(is.na(dates_iso_text))
+            # range(nchar(dates_iso_text), na.rm = T)
+            
+            ### replace NAs with empty text string
+            dates_iso_text[is.na(dates_iso_text)] <- ''
+            # sum(is.na(dates_iso_text))
+            # tabyl(nchar(dates_iso_text)) # should only be zero or 10
+
+            dataset[[fields_dates[counter]]] <- dates_iso_text
+            
+            
+            
+            # convert numeric fields to numeric (added 2020-07-20) ----
             for (counter in seq_along(fields_numeric)) {
                 dataset[[fields_numeric[counter]]] <- as.numeric(dataset[[fields_numeric[counter]]])
             }
@@ -471,20 +562,44 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     if (filename == 'Inspections' | 
         filename == 'Violations' |
         filename == 'Enforcement_Actions') {
+        
         # convert date fields into ISO format (YYYY-MM-DD)
         for (counter in seq_along(fields_dates)) {
             dates_iso <- mdy(dataset[[fields_dates[counter]]])
             
-            dates_iso <- as.character(dates_iso)
-            # sum(is.na(dates_iso))
-            dates_iso[is.na(dates_iso)] <- ''
+            ### adjust for incorrect years
+            years_correction <- case_when(
+                is.na(dates_iso) ~ NA,
+                year(dates_iso) < 10 ~ '000',
+                year(dates_iso) >= 10 & year(dates_iso) < 100 ~ '00',
+                year(dates_iso) >= 100 & year(dates_iso) < 1000 ~ '0',
+                year(dates_iso) > 1000 ~ ''
+            )
             
-            dataset[[fields_dates[counter]]] <- dates_iso
+            dates_iso_text <- as.character(dates_iso)
+            
+            ### adjust
+            dates_iso_text <- case_when(
+                is.na(dates_iso) ~ NA,
+                .default = paste0(years_correction, dates_iso_text)
+            )
+            # sum(is.na(dates_iso_text))
+            # range(nchar(dates_iso_text), na.rm = T)
+            
+            ### replace NAs with empty text string
+            dates_iso_text[is.na(dates_iso_text)] <- ''
+            # sum(is.na(dates_iso_text))
+            # tabyl(nchar(dates_iso_text)) # should only be zero or 10
+            
+            dataset[[fields_dates[counter]]] <- dates_iso_text
+            
         }
+        
         # # convert time fields into character strings (if not already)
         # for (counter in seq_along(fields_times)) {
         #     dataset[[fields_times[counter]]] <- as.character(dataset[[fields_times[counter]]])
         # }
+        
         # convert numeric fields to numeric
         for (counter in seq_along(fields_numeric)) {
             dataset[[fields_numeric[counter]]] <- as.numeric(dataset[[fields_numeric[counter]]])
@@ -566,14 +681,14 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
 
 ### download the files ----
 tryCatch(
-    for (i in seq_along(dataset_list)) {
-        SMARTS_data_download(filename = dataset_list[[i]]$filename, 
-                             html_id = dataset_list[[i]]$html_id, 
+    for (j in seq_along(dataset_list)) {
+        SMARTS_data_download(filename = dataset_list[[j]]$filename, 
+                             html_id = dataset_list[[j]]$html_id, 
                              delete_old_versions = delete_old_versions, 
-                             fields_dates = dataset_list[[i]]$date_fields, 
-                             fields_times = dataset_list[[i]]$time_fields, 
-                             fields_timestamps = dataset_list[[i]]$timestamp_names,
-                             fields_numeric = dataset_list[[i]]$numeric_fields)
+                             fields_dates = dataset_list[[j]]$date_fields, 
+                             fields_times = dataset_list[[j]]$time_fields, 
+                             fields_timestamps = dataset_list[[j]]$timestamp_names,
+                             fields_numeric = dataset_list[[j]]$numeric_fields)
         Sys.sleep(sleep_time)
     }, 
     error = function(e) {
