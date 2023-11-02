@@ -9,6 +9,7 @@ library(janitor)
 library(glue)
 library(blastula)
 library(sendmailR)
+library(gmailr)
 
 
 
@@ -35,12 +36,18 @@ portal_key <- Sys.getenv('data_portal_key')
 ## define location where files will be saved
 file_save_location <- 'C:\\David\\_CA_data_portal\\Urban_Water_Supplier_Monitoring'
 
+## send email if process fails?
+send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
+
 ## enter the maximum number of days between portal updates before triggering a warning email to be sent
 max_update_lag <- 90 # number of days
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
 email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+
+### email subject line ----
+subject_line <- '"Data Portal Upload Error - Drinking Water Production & Conservation Data'
 
 ## create credentials file (only need to do this once) 
 ### gmail credentials ----
@@ -92,9 +99,6 @@ Here's the link to the website with the source data (see the link labeled \"Raw 
     #### footer ----
     footer <- glue("Email sent on {date_time}.")
     
-    #### subject ----
-    subject <- "Data Portal Upload Error - Drinking Water Production & Conservation Data"
-    
     ### create email ----
     email <- compose_email(
         body = md(body),
@@ -108,7 +112,7 @@ Here's the link to the website with the source data (see the link labeled \"Raw 
             # to = c("david.altare@waterboards.ca.gov", "waterdata@waterboards.ca.gov"),
             to = email_to,
             from = email_from,
-            subject = subject,
+            subject = subject_line,
             credentials = creds_file(credentials_file)
             # credentials = creds_key("outlook_key")
         )
@@ -118,6 +122,44 @@ Here's the link to the website with the source data (see the link labeled \"Raw 
     
     print('sent automated email')
 }
+
+
+## gmailr function ----
+### NOTE: blastula may not work when on the waterboard VPN, but gmailr might
+### (it's hard to tell if that will always be the case though)
+### setting up gmailr is somewhat complicated, instructions are here:
+### https://github.com/r-lib/gmailr 
+### in particular note the OAuth steps: https://gmailr.r-lib.org/dev/articles/oauth-client.html
+fn_email_gmailr <- function(error_msg, error_msg_r) {
+    
+    body <- glue(
+        "Hi,
+        
+There was an error uploading the Drinking Water Production & Conservation data to the data.ca.gov portal on {Sys.Date()}.
+
+------
+                
+The process failed at this step: *{error_msg}*
+
+Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
+
+------
+                
+Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/drinking-water-public-water-system-operations-monthly-water-production-and-conservation-information
+                
+Here's the link to the website with the source data (see the link labeled \"Raw Dataset\"): https://www.waterboards.ca.gov/water_issues/programs/conservation_portal/conservation_reporting.html"                
+    )
+    
+    email_message <-
+        gm_mime() |>
+        gm_to(email_to) |>
+        gm_from(email_from) |>
+        gm_subject(subject_line) |>
+        gm_text_body(body)
+    
+    gm_send_message(email_message)
+}
+
 
 
 
@@ -143,7 +185,19 @@ tryCatch(
     error = function(e) {
         error_message <- 'checking how long since last portal update (NOTE: portal was last updated {update_lag} days ago)'
         error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                              pattern = 'ca.epa.local'))
+        if (send_failure_email == TRUE) {
+            if (vpn == FALSE) {
+                fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+            } else {
+                ## attempt to use gmailr if on the VPN
+                tryCatch(
+                    fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                    error = function(e) {}
+                )
+            } 
+        }
         print(glue('Error: {error_message}'))
         stop(e)
     }
@@ -298,7 +352,19 @@ tryCatch(
     error = function(e) {
         error_message <- glue('getting source file link (NOTE: portal was last updated {update_lag} days ago)')
         error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                              pattern = 'ca.epa.local'))
+        if (send_failure_email == TRUE) {
+            if (vpn == FALSE) {
+                fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+            } else {
+                ## attempt to use gmailr if on the VPN
+                tryCatch(
+                    fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                    error = function(e) {}
+                )
+            } 
+        }
         print(glue('Error: {error_message}'))
         stop(e)
     }
@@ -332,7 +398,19 @@ tryCatch(
     error = function(e) {
         error_message <- glue('downloading source file (NOTE: portal was last updated {update_lag} days ago)')
         error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                              pattern = 'ca.epa.local'))
+        if (send_failure_email == TRUE) {
+            if (vpn == FALSE) {
+                fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+            } else {
+                ## attempt to use gmailr if on the VPN
+                tryCatch(
+                    fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                    error = function(e) {}
+                )
+            } 
+        }
         print(glue('Error: {error_message}'))
         stop(e)
     }
@@ -353,7 +431,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- glue('reading data into R (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -371,7 +461,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- 'formatting data (converting to UTF-8)'
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -395,7 +497,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- 'formatting data (removing special characters)'
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -422,7 +536,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- glue('cleaning field names and codes (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -455,7 +581,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- glue('formatting numeric fields (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -474,7 +612,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- glue('formatting character fields (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -506,7 +656,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- glue('formatting date fields (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -522,7 +684,19 @@ if(check_data == FALSE) { # only do this if there is new data that hasn't alread
         error = function(e) {
             error_message <- glue('writing formatted dataset to csv files (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -543,7 +717,19 @@ if(check_data == FALSE) {
         error = function(e) {
             error_message <- glue('uploading data to data.ca.gov portal (NOTE: portal was last updated {update_lag} days ago)')
             error_message_r <- capture.output(cat(as.character(e)))
-            fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                        error = function(e) {}
+                    )
+                } 
+            }
             print(glue('Error: {error_message}'))
             stop(e)
         }
@@ -567,15 +753,37 @@ tryCatch(
         ## send warning email if last update was too long ago ----
         if (max_update_lag_exceeded_new == TRUE) {
             error_message <- glue('WARNING: the portal has not been updated in over {max_update_lag} days (last portal update was {update_lag_new} days ago)')
-            fn_send_email(error_msg = error_message, 
-                          error_msg_r = 'NA (no R error)')
-            print(glue('{error_message}'))
+            vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                                  pattern = 'ca.epa.local'))
+            if (send_failure_email == TRUE) {
+                if (vpn == FALSE) {
+                    fn_send_email(error_msg = error_message, error_msg_r = 'NA (no R error)')  
+                } else {
+                    ## attempt to use gmailr if on the VPN
+                    tryCatch(
+                        fn_email_gmailr(error_msg = error_message, error_msg_r = 'NA (no R error)'),
+                        error = function(e) {}
+                    )
+                } 
+            }
         }
     },
     error = function(e) {
         error_message <- 'checking how long since last portal update (NOTE: portal was last updated {update_lag} days ago)'
         error_message_r <- capture.output(cat(as.character(e)))
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+                              pattern = 'ca.epa.local'))
+        if (send_failure_email == TRUE) {
+            if (vpn == FALSE) {
+                fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+            } else {
+                ## attempt to use gmailr if on the VPN
+                tryCatch(
+                    fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r),
+                    error = function(e) {}
+                )
+            } 
+        }
         print(glue('Error: {error_message}'))
         stop(e)
     }
