@@ -125,7 +125,7 @@ fn_email_gmailr <- function(error_msg, error_msg_r) {
     
     body <- glue(
         "Hi,
-There was an error uploading the eSMR Analytical Data to the data.ca.gov portal on {Sys.Date()}.
+There was an error uploading the Wastewater Enforcement Actions data (from CIWQS) to the data.ca.gov portal on {Sys.Date()}.
                 
 ------
                 
@@ -134,10 +134,10 @@ The process failed at this step: *{error_msg}*
 Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
 
 ------
+
+Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/surface-water-water-quality-regulatory-information/resource/64f25cad-2e10-4a66-8368-79293f56c2f1
                 
-Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/surface-water-electronic-self-monitoring-report-esmr-data
-                
-Here's the link to the flat file with the source data: https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml  (Export Type = SMR Analytical Data)"                
+Here's the link to the flat file with the source data: https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml  (Export Type = )"                
     )
     
     email_message <-
