@@ -64,9 +64,9 @@
     portal_key <- Sys.getenv('data_portal_key')
     
     ## ceden data warehouse info ----
-    ceden_server <- Sys.getenv('SERVER1')
-    ceden_id <- Sys.getenv('UID')
-    ceden_pwd <- Sys.getenv('PWD')
+    ceden_server <- Sys.getenv('ceden_server')
+    ceden_id <- Sys.getenv('ceden_user_id')
+    ceden_pwd <- Sys.getenv('ceden_password')
     
     ## python info ----
     # python_path <- 'C:\\Anaconda-3.7'

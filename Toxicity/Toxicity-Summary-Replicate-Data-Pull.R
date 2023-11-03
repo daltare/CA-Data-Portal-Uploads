@@ -39,9 +39,9 @@
   filename_replicate <- 'Toxicity-Replicate-Records_'
   
   ## get user ID and Password for CEDEN Data Mart
-  dm_user <- Sys.getenv('UID')
-  dm_password <- Sys.getenv('PWD')
-  dm_server <- Sys.getenv('SERVER1')
+  dm_user <- Sys.getenv('ceden_user_id')
+  dm_password <- Sys.getenv('ceden_password')
+  dm_server <- Sys.getenv('ceden_server')
   
   ## send email if process fails?
   send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)

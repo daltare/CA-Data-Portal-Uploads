@@ -29,11 +29,11 @@ There are a few additional things to be aware of, which will likely require some
 
 -   The `1_ceden_automate.R` script also assumes that you have access to the CEDEN data warehouse, and that you have the necessary credentials saved as Environment Variables on your computer (in Windows, search for "edit environment variables for your account"), which are accessed in the `1 - user input` part of the script. The variables are:
 
-    -   `SERVER1`: CEDEN data warehouse name
+    -   `ceden_server`: CEDEN data warehouse name
 
-    -   `UID`: CEDEN data warehouse user ID
+    -   `ceden_user_id`: CEDEN data warehouse user ID
 
-    -   `PWD`: CEDEN data warehouse password
+    -   `ceden_password`: CEDEN data warehouse password
 
 -   The process (optionally) saves data files to a separate directory (i.e., not necessarily the one in which this project is stored). This separate directory is defined by the `data_files_path` variable, and needs to be edited to run the script on a different computer. (As a side note, it's set up this way because, for my own use, I have the project saved to OneDrive, but I don't want to frequently save a lot of large files to a cloud location like OneDrive, so instead save them to the local C drive.)
 
