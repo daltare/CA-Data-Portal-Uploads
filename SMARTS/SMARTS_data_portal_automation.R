@@ -122,14 +122,15 @@ dataset_list <- list(dataset1 = list(filename = 'Industrial_Ad_Hoc_Reports_-_Par
                                      date_fields = c('INSPECTION_DATE'),
                                      time_fields = c('INSPECTION_START_TIME', 'INSPECTION_END_TIME'),
                                      timestamp_fields = c(),
-                                     numeric_fields = c('COUNT_OF_VIOLATIONS')),
+                                     numeric_fields = c('COUNT_OF_VIOLATIONS', 'PLACE_LATITUDE', 
+                                                        'PLACE_LONGITUDE', 'PLACE_TOTAL_SIZE')),
                      dataset6 = list(filename = 'Violations', 
                                      html_id = 'intDataFileDowloaddataFileForm:violationLink',
                                      resource_id = '9b69a654-0c9a-4865-8d10-38c55b1b8c58',
                                      date_fields = c('OCCURRENCE_DATE', 'DISCOVERY_DATE'),
                                      time_fields = c(),
                                      timestamp_fields = c(),
-                                     numeric_fields = c()),
+                                     numeric_fields = c('PLACE_LATITUDE', 'PLACE_LONGITUDE', 'PLACE_TOTAL_SIZE')),
                      dataset7 = list(filename = 'Enforcement_Actions', 
                                      html_id = 'intDataFileDowloaddataFileForm:enfocementActionLink',
                                      resource_id = '9cf197f4-f1d5-4d43-b94b-ccb155ef14cf',
@@ -140,7 +141,8 @@ dataset_list <- list(dataset1 = list(filename = 'Industrial_Ad_Hoc_Reports_-_Par
                                      timestamp_fields = c(),
                                      numeric_fields = c('ECONOMIC_BENEFITS', 'TOTAL_MAX_LIABILITY', 'STAFF_COSTS', 
                                                         'INITIAL_ASSESSMENT', 'TOTAL_ASSESSMENT', 'RECEIVED_AMOUNT', 
-                                                        'SPENT_AMOUNT', 'BALANCE_DUE', 'COUNT_OF_VIOLATIONS'))
+                                                        'SPENT_AMOUNT', 'BALANCE_DUE', 'COUNT_OF_VIOLATIONS', 
+                                                        'PLACE_LATITUDE', 'PLACE_LONGITUDE', 'PLACE_TOTAL_SIZE'))
 )
 
 
@@ -600,23 +602,21 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         #     dataset[[fields_times[counter]]] <- as.character(dataset[[fields_times[counter]]])
         # }
         
-        # convert numeric fields to numeric
-        for (counter in seq_along(fields_numeric)) {
-            dataset[[fields_numeric[counter]]] <- as.numeric(dataset[[fields_numeric[counter]]])
-        }
-        
         # get location data (from the datasets: Industrial_Application_Specific_Data and Construction_Application_Specific_Data)
         if (!exists('location_data')) {
-            ind_site_data <- read_csv(paste0(download_dir, '\\', 'Industrial_Application_Specific_Data_', 
+            ind_site_data <- read_csv(paste0(download_dir, '\\', 
+                                             'Industrial_Application_Specific_Data_', 
                                              Sys.Date(), '.csv'), 
-                                      guess_max = 999999) 
+                                      col_types = cols(.default = col_character()))
             names(ind_site_data) <- gsub('FACILITY', 'PLACE', names(ind_site_data))
             ind_site_data <- ind_site_data %>% rename(REGIONAL_BOARD = REGION_BOARD)
-            con_site_data <- read_csv(paste0(download_dir, '\\', 'Construction_Application_Specific_Data_', 
+            con_site_data <- read_csv(paste0(download_dir, '\\', 
+                                             'Construction_Application_Specific_Data_', 
                                              Sys.Date(), '.csv'), 
-                                      guess_max = 999999)
+                                      col_types = cols(.default = col_character()))
             names(con_site_data) <- gsub('SITE', 'PLACE', names(con_site_data))
-            con_site_data <- con_site_data %>% rename(REGIONAL_BOARD = REGION)
+            con_site_data <- con_site_data %>% 
+                rename(REGIONAL_BOARD = REGION)
             
             tf_1 <- names(ind_site_data) %in% names(con_site_data)
             ind_site_data <- ind_site_data %>% select(names(ind_site_data)[tf_1])
@@ -624,7 +624,11 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             tf_2 <- names(con_site_data) %in% names(ind_site_data)
             con_site_data <- con_site_data %>% select(names(con_site_data)[tf_2])
             
-            location_data <- bind_rows(ind_site_data, con_site_data)
+            
+            location_data <- bind_rows(ind_site_data, # %>% mutate(APP_ID = as.character(APP_ID)), 
+                                       con_site_data) # %>% mutate(APP_ID = as.character(APP_ID)))
+
+            
             location_data <- location_data %>% 
                 select(-c('PLACE_CONTACT_FIRST_NAME', 'PLACE_CONTACT_LAST_NAME', 'PLACE_TITLE',
                           'PLACE_PHONE', 'PLACE_EMAIL', 'CERTIFIER_BY', 'CERTIFIER_TITLE',
@@ -632,10 +636,16 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
                           'CERTIFICATION_DATE', 'NOI_PROCESSED_TIMESTAMP', 
                           'NOT_EFFECTIVE_TIMESTAMP',
                           'COUNTY', 'CERTIFICATION_TIMESTAMP'))
-            location_data <- location_data %>% filter(!is.na(APP_ID) & !is.na(WDID))
-            location_data <- location_data %>% distinct()
             location_data <- location_data %>% 
-                mutate(APP_ID = as.character(APP_ID))
+                filter(!is.na(APP_ID) & !is.na(WDID))
+            location_data <- location_data %>% 
+                distinct()
+            location_data <- location_data %>% 
+                mutate(PLACE_LATITUDE = as.numeric(PLACE_LATITUDE),
+                       PLACE_LONGITUDE = as.numeric(PLACE_LONGITUDE),
+                       PLACE_TOTAL_SIZE = as.numeric(PLACE_TOTAL_SIZE))
+            # location_data <- location_data %>% 
+            #     mutate(APP_ID = as.character(APP_ID))
             # check whether the combination of APP_ID and WDID are unique in the location data
             # check_loc_data <- location_data %>%
             #     group_by(APP_ID, WDID) %>%
@@ -647,6 +657,11 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         dataset <- left_join(x = dataset, 
                              y = location_data, 
                              by = c('APP_ID', 'WDID'))
+        
+        # convert numeric fields to numeric
+        for (counter in seq_along(fields_numeric)) {
+            dataset[[fields_numeric[counter]]] <- as.numeric(dataset[[fields_numeric[counter]]])
+        }
         
         # re-arrange some fields so that WDID and APP_ID are always the first two columns
         if (filename == 'Inspections') {
@@ -669,12 +684,16 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # Convert missing values in text fields to 'NA' (to avoid converting to NaN) !!!!!!!!!!!
     # from: https://community.rstudio.com/t/using-case-when-over-multiple-columns/17206/2
     # dataset <- dataset %>% mutate_if(is.character, list(~case_when(is.na(.) ~ 'NA', TRUE ~ .)))
-    dataset <- dataset %>% mutate_if(is.character, ~replace(., is.na(.), 'NA'))
+    dataset <- dataset %>% 
+        mutate_if(is.character, ~replace(., is.na(.), 'NA'))
     
     
     # write the revised dataset to a csv file
     write_csv(x = dataset, 
-              path = paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv'), na = 'NaN')
+              path = paste0(download_dir, '\\', 
+                            filename, '_', Sys.Date(), 
+                            '.csv'), 
+              na = 'NaN')
     rm(dataset_lines, problems, dataset, t)
 }
 
