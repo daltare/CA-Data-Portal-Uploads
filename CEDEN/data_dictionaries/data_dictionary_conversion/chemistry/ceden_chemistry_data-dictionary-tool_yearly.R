@@ -45,7 +45,8 @@ dataset_resources <- dataset_resources$resources %>%
     filter(format %in% c('CSV')) %>% # filter for just the resources containing csv files
     select(name, id)
 
-data_resource_id_list <-  list('year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c'#,
+data_resource_id_list <-  list('year-2024' = '9dcf551f-452d-4257-b857-30fbcc883a03'#,
+                               #'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
                                # 'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
                                #'2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
                                # '2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234', 

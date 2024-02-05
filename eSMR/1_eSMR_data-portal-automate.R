@@ -97,6 +97,7 @@
     
     ## define data portal resource IDs for all years in the dataset
     data_resource_id_list <-  list(
+        '2024' = '7adb8aea-62fb-412f-9e67-d13b0729222f',
         '2023' = '65eb7023-86b6-4960-b714-5f6574d43556',
         '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2',
         '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
@@ -120,7 +121,7 @@
     ## define data portal resource IDs for zipped files
     zip_resource_id_list <- list(
         'ziped_csv' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-                           dataset_id = '5901c092-20e9-4614-b22b-37ee1e5c29a5',
+                           dataset_id = '9146a0f0-cee1-4088-acd2-c1e870da52df',
                            data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{file_date}.zip')),
         'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
                          dataset_id = 'cce982b3-719f-4852-8979-923c3a639a25',
@@ -246,7 +247,7 @@ tryCatch(
         error_message <- 'deleting old versions of dataset'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -288,7 +289,7 @@ tryCatch(
         error_message <- 'downloading flat file data'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -335,7 +336,7 @@ tryCatch(
         error_message <- 'reading flat file data into R'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -376,7 +377,7 @@ tryCatch(
         error_message <- 'reading flat file data into R'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -423,9 +424,9 @@ if (!exists('df_esmr')) {
 #         error_message <- 'downloading supplemental flat file data'
 #         error_message_r <- capture.output(cat(as.character(e)))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                               pattern = 'ca.epa.local'))
+#                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                               pattern = 'ca.epa.local'))
+#                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
 #             if (vpn == FALSE) {
 #                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
@@ -458,7 +459,7 @@ if (!exists('df_esmr')) {
 #         error_message <- 'reading supplemental flat file data into R'
 #         error_message_r <- capture.output(cat(as.character(e)))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                               pattern = 'ca.epa.local'))
+#                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
 #             if (vpn == FALSE) {
 #                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
@@ -491,7 +492,7 @@ if (!exists('df_esmr')) {
 #         error_message <- 'reading flat file data into R'
 #         error_message_r <- capture.output(cat(as.character(e)))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                               pattern = 'ca.epa.local'))
+#                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
 #             if (vpn == FALSE) {
 #                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
@@ -607,7 +608,7 @@ if (!exists('df_esmr')) {
 #         error_message <- 'adding supplemental data'
 #         error_message_r <- capture.output(cat(as.character(e)))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                               pattern = 'ca.epa.local'))
+#                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
 #             if (vpn == FALSE) {
 #                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
@@ -637,7 +638,7 @@ tryCatch(
         error_message <- 'removing duplicates'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -667,7 +668,7 @@ tryCatch(
         error_message <- 'formatting data (rename fields)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -694,6 +695,8 @@ tryCatch(
             dates_iso <- mdy(df_esmr[[fields_dates[counter]]])
             # check NAs: sum(is.na(dates_iso))
             
+            # code below is commented out so that the parquet file has the date fields 
+            # formatted as dates - the conversion to the portal format is now done after that
             # # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
             # dates_iso <- as.character(dates_iso)
             # # check: sum(is.na(dates_iso))
@@ -711,7 +714,7 @@ tryCatch(
         error_message <- 'formatting data (converting date fields)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -742,7 +745,7 @@ tryCatch(
         error_message <- 'formatting data (converting numeric fields)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -786,7 +789,7 @@ tryCatch(
         error_message <- 'formatting data (removing special characters)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -822,7 +825,7 @@ tryCatch(
         error_message <- 'formatting data (converting to UTF-8)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -930,7 +933,7 @@ tryCatch(
         error_message <- 'writing parquet file'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -966,7 +969,9 @@ tryCatch(
         ## convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
         for (col in fields_dates) {
             df_esmr <- df_esmr %>%
-                mutate("{col}" := as.character(df_esmr[[col]]))
+                mutate("{col}" := as.character(df_esmr[[col]]) %>% 
+                           str_pad(width = 10, pad = '0'))
+            
             df_esmr <- df_esmr %>% 
                 mutate("{col}" := replace_na(df_esmr[[col]], ''))
         }
@@ -982,7 +987,7 @@ tryCatch(
         error_message <- 'formatting data for portal (converting date fields)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -1007,7 +1012,8 @@ tryCatch(
         ## convert data to text, and for NAs store as 'NaN' - this converts to 'null' in Postgres
         for (col in fields_numeric) {
             df_esmr <- df_esmr %>%
-                mutate("{col}" := as.character(df_esmr[[col]]))
+                mutate("{col}" := as.character(df_esmr[[col]])
+                )
             df_esmr <- df_esmr %>% 
                 mutate("{col}" := replace_na(df_esmr[[col]], 'NaN'))
         }
@@ -1023,7 +1029,7 @@ tryCatch(
         error_message <- 'formatting data for portal (converting numeric fields)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -1062,7 +1068,7 @@ tryCatch(
 #         error_message <- 'formatting data (text fields)'
 #         error_message_r <- capture.output(cat(as.character(e)))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                               pattern = 'ca.epa.local'))
+#                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
 #             if (vpn == FALSE) {
 #                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
@@ -1133,7 +1139,7 @@ tryCatch(
         error_message <- 'writing output data files (individual year csv files)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -1227,7 +1233,7 @@ tryCatch(
         error_message <- 'writing output data files (all years zip file)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -1353,7 +1359,7 @@ tryCatch(
 #         error_message <- 'writing output data files (parquet file)'
 #         error_message_r <- capture.output(cat(as.character(e)))
 # vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-#                       pattern = 'ca.epa.local'))
+#                       pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 # if (send_failure_email == TRUE) {
 #     if (vpn == FALSE) {
 #         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -1381,7 +1387,7 @@ tryCatch(
         error_message <- 'uploading zip files to data portal (combined data file and parquet file)'
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -1408,7 +1414,7 @@ tryCatch(
 #              error_message <- 'Uploading data to portal'
 #              error_message_r <- capture.output(cat(as.character(e)))
 #              vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
-#                                    pattern = 'ca.epa.local'))
+#                                    pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #              if (send_failure_email == TRUE) {
 #                  if (vpn == FALSE) {
 #                      fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
@@ -1453,7 +1459,7 @@ tryCatch(
         error_message <- glue('Uploading data to portal | last successful year uploaded: {last_year} (data loaded from newest to oldest)')
         error_message_r <- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  

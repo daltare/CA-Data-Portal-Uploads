@@ -45,8 +45,9 @@ dataset_name <- 'water-quality-effluent-electronic-self-monitoring-report-esmr-d
 #     filter(format %in% c('CSV')) %>% # filter for just the resources containing csv files
 #     select(name, id)
 
-data_resource_id_list <-  list('2023' = '65eb7023-86b6-4960-b714-5f6574d43556'#,
-                               # '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2'#,
+data_resource_id_list <-  list('2024' = '7adb8aea-62fb-412f-9e67-d13b0729222f'#,
+                               # '2023' = '65eb7023-86b6-4960-b714-5f6574d43556',
+                               # '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2',
                                # '2021' = '28d3a164-7cec-4baf-9b11-7a9322544cd6',
                                # '2020' = '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
                                # '2019' = '2eaa2d55-9024-431e-b902-9676db949174',

@@ -16,6 +16,7 @@ library(httr)
 ## conflicts ----
 library(conflicted)
 conflicts_prefer(magrittr::extract)
+conflicts_prefer(dplyr::filter)
 
 
 

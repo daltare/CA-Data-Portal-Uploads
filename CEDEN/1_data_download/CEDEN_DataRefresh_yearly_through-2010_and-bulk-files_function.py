@@ -354,8 +354,10 @@ def python_get_data_through_2010_and_bulk_files(saveLocation, tables, SERVER1, U
 				# Check to see if datum is in the column headers, add two new column names
 				if 'Datum' in columns:
 					columns += ['DataQuality'] + ['DataQualityIndicator']
+					columns.remove('isQA')
 				else:
 					columns += ['DataQuality'] + ['DataQualityIndicator'] + ['Datum']
+					columns.remove('isQA')
 			##############################################################################
 			########################## SQL Statement  ####################################
 			##############################################################################

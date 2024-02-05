@@ -358,8 +358,10 @@ def python_get_data_2011_2022(saveLocation, tables, SERVER1, UID, PWD, today):
 				# Check to see if datum is in the column headers, add two new column names
 				if 'Datum' in columns:
 					columns += ['DataQuality'] + ['DataQualityIndicator']
+					columns.remove('isQA')
 				else:
 					columns += ['DataQuality'] + ['DataQualityIndicator'] + ['Datum']
+					columns.remove('isQA')
 			else:
 				sql = "SELECT * FROM %s WHERE SampleDate BETWEEN '%s' AND '%s'" % (table, min_date, max_date)
 				cursor.execute(sql)
@@ -367,8 +369,10 @@ def python_get_data_2011_2022(saveLocation, tables, SERVER1, UID, PWD, today):
 				# Check to see if datum is in the column headers, add two new column names
 				if 'Datum' in columns:
 					columns += ['DataQuality'] + ['DataQualityIndicator']
+					columns.remove('isQA')
 				else:
 					columns += ['DataQuality'] + ['DataQualityIndicator'] + ['Datum']
+					columns.remove('isQA')
 			##############################################################################
 			########################## SQL Statement  ####################################
 			##############################################################################

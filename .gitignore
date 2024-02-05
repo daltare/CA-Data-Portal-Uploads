@@ -8,6 +8,7 @@ rsconnect
 ignore/
 RSelenium_testing/
 flowchart_what_to_publish/
+_email/
 
 datastore-dump_&_persistent-link-to-csv.docx
 

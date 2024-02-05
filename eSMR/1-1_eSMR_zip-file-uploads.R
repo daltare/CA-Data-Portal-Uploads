@@ -41,7 +41,7 @@ library(here)
 ## list files / resources
 # zip_resource_id_list <- list(
 #     'ziped_csv' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-#                       dataset_id = '5901c092-20e9-4614-b22b-37ee1e5c29a5',
+#                       dataset_id = '9146a0f0-cee1-4088-acd2-c1e870da52df',
 #                       data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{Sys.Date()}.zip')),
 #     'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
 #                      dataset_id = 'cce982b3-719f-4852-8979-923c3a639a25',
