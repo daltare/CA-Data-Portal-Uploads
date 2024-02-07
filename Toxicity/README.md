@@ -1,8 +1,14 @@
 # Instructions - CEDEN Toxicity Summary / Replicate Open Data Portal Updates
 
-These scripts update the CEDEN Toxicity [Summary](https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8) and [Replicate](https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8) data resources on the CA open data portal. 
+These scripts update the CEDEN Toxicity [Summary](https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8) and [Replicate](https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8) data resources on the CA open data portal.
 
 The only required step is to run the `Toxicity-Summary-Replicate-Data-Pull.R` script (e.g., run `source('Toxicity-Summary-Replicate-Data-Pull.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process.
+
+------------------------------------------------------------------------
+
+***NOTE:** This process pulls Toxicity data from the CEDEN datamart. However, unlike the other CEDEN datasets published to the open data portal, this process pulls data from the `WebSvc_Tox` table in the datamart (the other CEDEN datasets pull from the `[datatype]Dmart_MV` tables - e.g., `ToxDmart_MV`), because the `WebSvc_Tox` table contains fields needed for this process that are not available in the `ToxDmart_MV` table.*
+
+------------------------------------------------------------------------
 
 To automatically run this update process on a set schedule on a Windows computer, you can create a task in "Task Scheduler" that runs the `Call_Toxicity_Summary_Replicate.bat` file on a specified day and time (the `Call_Toxicity_Summary_Replicate.bat` file is in the `_Call-Scripts` directory at the top level of this repository).
 
@@ -17,7 +23,7 @@ There are a few additional things to be aware of, which will likely require some
 -   The process assumes that you have an account on the data.ca.gov portal (with rights to edit datasets managed by the [California State Water Resources Control Board](https://data.ca.gov/organization/california-state-water-resources-control-board) organizational account), and that you have the necessary credentials saved as Environment Variables on your computer (in Windows, search for "edit environment variables for your account"), which are accessed in the `user inputs` part of the script. The variables are:
 
     -   `portal_key`: API key for your personal data.ca.gov account (available on data.ca.gov by going to your user profile)
-    
+
 -   The process also assumes that you have access to the CEDEN data warehouse, and that you have the necessary credentials saved as Environment Variables on your computer (in Windows, search for "edit environment variables for your account"), which are accessed in the `user inputs` part of the script. The variables are:
 
     -   `ceden_server`: CEDEN data warehouse name

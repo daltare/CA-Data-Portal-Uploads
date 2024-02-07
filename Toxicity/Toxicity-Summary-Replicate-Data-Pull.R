@@ -1,3 +1,10 @@
+# !!!! NOTE: This script uses the WebSvc_Tox table in the datamart, because the
+# !!! table typically used for CEDEN data retrieval (ToxDmart_MV) doesn't 
+# !!! contain all of the fields needed to create the Toxicity summary / replicate 
+# !!! outputs (the WebSvc_Tox table contains ~115 fields, whereas the ToxDmart_MV 
+# !!! table contains ~86 fields)
+
+
 # NOTE: To schedule this script to run automatically, go to 'Addins' and 'Schedule R scripts on...', then select 
 # the file that calls this script ("C:\\David\\Open_Data_Project\\__CA_DataPortal\\_Call_Scripts\\Call_SurfWater_Script.R")
 # and set the time/date option (make sure the date format is %m/%d/%Y)
