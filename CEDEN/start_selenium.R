@@ -52,29 +52,42 @@ vpn <- any(
                                intern = TRUE), 
                pattern = 'ca.epa.local')
     )
-if (vpn == FALSE) {
+# if (vpn == FALSE) {
     selenium(
         check = TRUE,
         retcommand = TRUE,
         port = port_use
     )  
-}
+# }
 
 ### get chrome driver directly from google ---- 
 #### (https://googlechromelabs.github.io/chrome-for-testing/#stable)
 #### see: https://support.google.com/chrome/thread/230521170/requires-version-116-of-the-google-chrome-driver%EF%BC%8Cplease?hl=en
 #### for web scraping example, see: https://dcl-wrangle.stanford.edu/rvest.html
 driver_url <- 'https://googlechromelabs.github.io/chrome-for-testing/#stable'
-css_selector <- 'body > div > table'
 
-#### read table of drivers from google website
-driver_table <- driver_url %>% 
+#### read summary table of drivers from google website
+# css_selector_summary <- 'body > div > table'
+css_selector_summary <- '.summary'
+driver_table_summary <- driver_url %>% 
     read_html() %>% 
-    html_element(css = css_selector) %>% 
+    html_element(css = css_selector_summary) %>% 
     html_table()
 
+#### read 'Stable' table of drivers from google website - to get driver URL
+# css_selector_stable <- 'body > section > div > table'
+css_selector_stable <- '#stable'
+driver_table_stable <- driver_url %>% 
+    read_html() %>% 
+    html_element(css = css_selector_stable) %>%
+    html_table()
+driver_download_url <- driver_table_stable %>% 
+    filter(Binary == 'chromedriver', 
+           Platform == 'win32') %>% 
+    pull(URL)
+
 #### get current stable driver version number from table
-driver_version_number <- driver_table %>% 
+driver_version_number <- driver_table_summary %>% 
     filter(Channel == 'Stable') %>% 
     pull(Version)
 
@@ -88,21 +101,23 @@ if (!dir.exists(driver_dir)) {
     # create directory
     dir.create(driver_dir)
     
-    #### construct link to new driver zip file
-    driver_zip_file <- paste0('https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/',
-                              driver_version_number,
-                              '/win32/chromedriver-win32.zip')
+    zip_name <- basename(driver_download_url)
+    zip_folder <- str_remove(zip_name, '.zip')
     
     # download zip file to new directory
-    GET(url = driver_zip_file, 
-        write_disk(file.path(driver_dir, 
-                             'chromedriver-win32.zip'),
-                   overwrite = TRUE))
+    driver_download <- GET(url = driver_download_url, 
+                           write_disk(file.path(driver_dir, 
+                                                zip_name),
+                                      overwrite = TRUE))
+    
+    if(driver_download$status_code != 200) {
+        stop('Chrome driver not downloaded successfully')
+    }
     
     # unzip the chromedriver.exe file 
     unzip(zipfile = file.path(driver_dir, 
-                              'chromedriver-win32.zip'), 
-          files = 'chromedriver-win32/chromedriver.exe', 
+                              zip_name), 
+          files = file.path(zip_folder, 'chromedriver.exe'), 
           junkpaths = TRUE,
           exdir = driver_dir)    
 }
