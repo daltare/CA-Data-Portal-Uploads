@@ -36,7 +36,7 @@
 # 1 - user input --------------------------------------------------------------
 ## set download directory ----
 ##(i.e., where to save any downloaded files)
-download_dir <- 'C:\\David\\_CA_data_portal\\SMARTS'
+download_dir <- 'C:/Users/daltare/Documents/ca_data_portal_temp/SMARTS/'
 
 ## delete old files
 delete_old_versions = TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
@@ -789,7 +789,7 @@ tryCatch(
             fileToUpload <- paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv')
             file_upload <- resource_update(id = resourceID, path = fileToUpload)
             
-            Sys.sleep(1)
+            Sys.sleep(60)
             
             # # output the result of the upload process to a log file called: _DataPortalUpload-Log.txt
             # # check to see if the log file exists - if not, create it

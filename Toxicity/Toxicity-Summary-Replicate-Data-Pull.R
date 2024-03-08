@@ -38,7 +38,7 @@
   portal_key <- Sys.getenv('data_portal_key')
   
   ## define location where files will be saved
-  file_save_location <- 'C:\\David\\_CA_data_portal\\Toxicity\\'
+  file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/toxicity/'
   
   ## delete old versions of the datasets
   delete_old_versions <- TRUE

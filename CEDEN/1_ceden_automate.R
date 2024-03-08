@@ -28,15 +28,20 @@
 
 # 1 - user input --------------------------------------------------------------
 {
-    ## send email if process fails? ----
+    ## set path to save data files ----
+    data_files_date <- Sys.Date() %>% as.character()
+    data_files_path <- glue('C:/Users/daltare/Documents/ca_data_portal_temp/CEDEN/{data_files_date}/')
+    
+    ## automated email ----
+    ### send email if process fails? ----
     send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
     
-    ## email address (to send warning emails to/from) ----
+    ### email address (to send warning emails to/from) ----
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
     ### email address to send warning emails from
     email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
     
-    ## create credentials file (only need to do this once) ----
+    ### create credentials file (only need to do this once) ----
     ### gmail credentials ----
     #### NOTE - for gmail, you have to create an 'App Password' and use that 
     #### instead of your normal password - see: 
@@ -70,10 +75,6 @@
     
     ## python info ----
     # python_path <- 'C:\\Anaconda-3.7'
-    
-    ### path to data files ----
-    data_files_date <- Sys.Date() %>% as.character()
-    data_files_path <- glue('C:\\David\\_CA_data_portal\\CEDEN\\{data_files_date}\\')
     
     ## define location of python script to upload chunked data (relative path)
     python_upload_script <- here('2_portal-upload-ckan-chunked_CEDEN', 

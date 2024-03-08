@@ -31,7 +31,7 @@
 {
     ## set download directory ----
     ##(i.e., where to save any downloaded files)
-    download_dir <- 'C:\\David\\_CA_data_portal\\eSMR\\'
+    download_dir <- 'C:/Users/daltare/Documents/ca_data_portal_temp/eSMR/'
     
     # define file name for output csv files
     file_name <- 'esmr-analytical-export'
@@ -1445,7 +1445,8 @@ tryCatch(
         #### get function
         source_python(python_upload_script)
         
-        for (i in as.character(rev(years_write))) {
+        for (i in 2023) {
+        # for (i in as.character(rev(years_write))) {
             print(glue('Updating Year: {i}'))
             ckanUploadFile(data_resource_id_list[[as.character(i)]],
                            paste0(download_dir, file_name, '_year-', as.character(i), '_', file_date, '.csv'),
