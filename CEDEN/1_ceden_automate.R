@@ -310,6 +310,13 @@ tables_list = c(
 tryCatch(
     {
         gc()
+        
+        ### get python function
+        #### install dependent python packages
+        setwd(here('1_data_download'))
+        shell('pip install -r requirements_CEDEN.txt')
+        setwd('..')
+        
         ### get python function
         source_python(here('1_data_download', 
                            'CEDEN_DataRefresh_yearly_2023-to-present_function.py')) 
@@ -336,7 +343,7 @@ tryCatch(
         error_message <<- glue('Downloading data from 2023 to present (failed at: {data_type})')
         error_message_r <<- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -386,7 +393,7 @@ tryCatch(
         error_message <<- glue('Downloading data from 2011 to 2022 (failed at: {data_type})')
         error_message_r <<- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -437,7 +444,7 @@ tryCatch(
         error_message <<- glue('Downloading data through 2010 (failed at: {data_type})')
         error_message_r <<- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -498,7 +505,7 @@ tryCatch(
         tryCatch(
             {
                 vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                                      pattern = 'ca.epa.local'))
+                                      pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
                 if (send_failure_email == TRUE) {
                     if (vpn == FALSE) {
                         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -556,7 +563,7 @@ tryCatch(
         error_message <<- glue('Uploading zip files (error uploading: {ifelse(exists("data_file"), data_file, "NA")})')
         error_message_r <<- capture.output(cat(as.character(e)))
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -631,7 +638,7 @@ tryCatch(
         error_message_r <<- capture.output(cat(as.character(e)))
         Sys.sleep(2)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
@@ -665,7 +672,7 @@ tryCatch(
         error_message_r <<- capture.output(cat(as.character(e)))
         Sys.sleep(2)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                              pattern = 'ca.epa.local'))
+                              pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
             if (vpn == FALSE) {
                 fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
