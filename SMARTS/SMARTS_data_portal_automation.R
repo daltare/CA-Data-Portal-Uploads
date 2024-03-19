@@ -216,6 +216,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'setting up and connecting to Selenium'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
         # remDr$close()
@@ -308,6 +309,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'navigating to data download page'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
         remDr$close()
@@ -713,6 +715,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'downloading files'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
         remDr$close()
@@ -733,6 +736,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'navigating after downloads'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
         remDr$close()
@@ -756,6 +760,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'closing Selenium connection/server'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
         stop(e)
@@ -812,6 +817,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'uploading data (sending data to portal)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
         print(glue('Error: {error_message}'))
         stop(e)

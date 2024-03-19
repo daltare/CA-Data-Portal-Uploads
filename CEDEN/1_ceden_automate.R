@@ -340,8 +340,9 @@ tryCatch(
         # rm('python_get_data_2023_present')
     },
     error = function(e) {
-        error_message <<- glue('Downloading data from 2023 to present (failed at: {data_type})')
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Downloading data from 2023 to present (failed at: {data_type})')
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -390,8 +391,9 @@ tryCatch(
         # rm('python_get_data_2011_2022')
     },
     error = function(e) {
-        error_message <<- glue('Downloading data from 2011 to 2022 (failed at: {data_type})')
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Downloading data from 2011 to 2022 (failed at: {data_type})')
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -441,8 +443,9 @@ tryCatch(
         # rm('python_get_data_through_2010_and_bulk_files')
     },
     error = function(e) {
-        error_message <<- glue('Downloading data through 2010 (failed at: {data_type})')
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Downloading data through 2010 (failed at: {data_type})')
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -499,8 +502,9 @@ tryCatch(
         }
     },
     error = function(e) {
-        error_message <<- glue('Uploading csv file(s) to data portal (failed at: {upload_data_type} | {upload_file})')
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Uploading csv file(s) to data portal (failed at: {upload_data_type} | {upload_file})')
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         Sys.sleep(2)
         tryCatch(
             {
@@ -560,8 +564,9 @@ tryCatch(
         print('Finished uploading zip files to data portal')
     },
     error = function(e) {
-        error_message <<- glue('Uploading zip files (error uploading: {ifelse(exists("data_file"), data_file, "NA")})')
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Uploading zip files (error uploading: {ifelse(exists("data_file"), data_file, "NA")})')
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -634,8 +639,9 @@ tryCatch(
         print('Finished creating parquet files')
     },
     error = function(e) {
-        error_message <<- glue('Creating parquet files (error creating: {ifelse(exists("file_name"), file_name, "NA")})')
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Creating parquet files (error creating: {ifelse(exists("file_name"), file_name, "NA")})')
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         Sys.sleep(2)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
@@ -668,8 +674,9 @@ tryCatch(
         print('Finished uploading parquet files to data portal')
     },
     error = function(e) {
-        error_message <<- glue('Uploading parquet files (error uploading: {ifelse(exists("data_file"), data_file, "NA")})') 
-        error_message_r <<- capture.output(cat(as.character(e)))
+        error_message <- glue('Uploading parquet files (error uploading: {ifelse(exists("data_file"), data_file, "NA")})') 
+        error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         Sys.sleep(2)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))

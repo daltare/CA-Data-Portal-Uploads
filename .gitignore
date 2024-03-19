@@ -9,6 +9,7 @@ ignore/
 RSelenium_testing/
 flowchart_what_to_publish/
 _email/
+upload_log.txt
 
 # ignore files that start with "scratch" in any directory
 **/scratch*.R 

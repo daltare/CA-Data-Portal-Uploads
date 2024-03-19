@@ -163,6 +163,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'deleting old versions of dataset'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -189,6 +190,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'downloading flat file data'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -220,6 +222,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'reading flat file data into R'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -252,6 +255,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'filtering flat file data'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -291,6 +295,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'selecting fields'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -318,6 +323,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (converting to UTF-8)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -351,6 +357,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (removing special characters)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -391,6 +398,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting date fields'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -421,6 +429,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting numeric fields'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -448,6 +457,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting text fields'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -474,6 +484,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'writing output csv file'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {
@@ -506,6 +517,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'writing dataset to data.ca.gov portal'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ' ', filename_dataset, ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'ca.epa.local'))
         if (send_failure_email == TRUE) {

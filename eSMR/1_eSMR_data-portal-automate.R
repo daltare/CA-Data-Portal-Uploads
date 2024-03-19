@@ -246,6 +246,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'deleting old versions of dataset'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -288,6 +289,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'downloading flat file data'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -335,6 +337,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'reading flat file data into R'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -376,6 +379,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'reading flat file data into R'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -423,6 +427,7 @@ if (!exists('df_esmr')) {
 #     error = function(e) {
 #         error_message <- 'downloading supplemental flat file data'
 #         error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
 #                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
@@ -458,6 +463,7 @@ if (!exists('df_esmr')) {
 #     error = function(e) {
 #         error_message <- 'reading supplemental flat file data into R'
 #         error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
 #                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
@@ -491,6 +497,7 @@ if (!exists('df_esmr')) {
 #     error = function(e) {
 #         error_message <- 'reading flat file data into R'
 #         error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
 #                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
@@ -607,6 +614,7 @@ if (!exists('df_esmr')) {
 #     error = function(e) {
 #         error_message <- 'adding supplemental data'
 #         error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
 #                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
@@ -637,6 +645,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'removing duplicates'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -667,6 +676,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (rename fields)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -713,6 +723,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (converting date fields)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -744,6 +755,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (converting numeric fields)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -788,6 +800,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (removing special characters)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -824,6 +837,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data (converting to UTF-8)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -932,6 +946,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'writing parquet file'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -986,6 +1001,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data for portal (converting date fields)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -1028,6 +1044,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'formatting data for portal (converting numeric fields)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -1067,6 +1084,7 @@ tryCatch(
 #     error = function(e) {
 #         error_message <- 'formatting data (text fields)'
 #         error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 #         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
 #                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #         if (send_failure_email == TRUE) {
@@ -1138,6 +1156,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'writing output data files (individual year csv files)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -1232,6 +1251,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'writing output data files (all years zip file)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -1358,6 +1378,7 @@ tryCatch(
 #     error = function(e) {
 #         error_message <- 'writing output data files (parquet file)'
 #         error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 # vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
 #                       pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 # if (send_failure_email == TRUE) {
@@ -1386,6 +1407,7 @@ tryCatch(
     error = function(e) {
         error_message <- 'uploading zip files to data portal (combined data file and parquet file)'
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
@@ -1413,6 +1435,7 @@ tryCatch(
 #          error = function(e) {
 #              error_message <- 'Uploading data to portal'
 #              error_message_r <- capture.output(cat(as.character(e)))
+# write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
 #              vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE),
 #                                    pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
 #              if (send_failure_email == TRUE) {
@@ -1458,6 +1481,7 @@ tryCatch(
     error = function(e) {
         error_message <- glue('Uploading data to portal | last successful year uploaded: {last_year} (data loaded from newest to oldest)')
         error_message_r <- capture.output(cat(as.character(e)))
+        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
         vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
                               pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
         if (send_failure_email == TRUE) {
