@@ -51,7 +51,7 @@
   dm_server <- Sys.getenv('ceden_server')
   
   ## send email if process fails?
-  send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
+  send_failure_email <- FALSE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
   
   ## enter the email address to send warning emails from
   ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below

@@ -335,26 +335,35 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
 
     
     # this automatically downloads the file to the default download location for the browser, set above
-    # NOTE: Files downloaed from SMARTS are automatically named file.txt, so check to make sure there isn't already an un-named file (file.txt) in 
+    # NOTE: Files downloaed from SMARTS are automatically named file.tsv, so check to make sure there isn't already an un-named file (file.tsv) in 
     # this location  - if so, delete it (otherwise the newly downloaded file will be appended with a number, and the versions might get confused)
-    if (file.exists(paste0(download_dir, '\\', 'file.txt'))) {
-        unlink(paste0(download_dir, '\\', 'file.txt'))
+    if (file.exists(paste0(download_dir, 'file.tsv'))) {
+        unlink(paste0(download_dir, 'file.tsv'))
     }
     # select the file using the id
     webElem <- remDr$findElement(using = 'id', value = html_id)
     webElem$clickElement()
     # pause until the file finishes downloading
     i <- 1
-    while (!file.exists(paste0(download_dir, '\\', 'file.txt')) & i <= 900) { # check to see if the file exists (but only up to 300 times)
+    while (!file.exists(paste0(download_dir, 'file.tsv')) & i <= 900) { # check to see if the file exists (but only up to 300 times)
         Sys.sleep(time = 1) # if the file doesn't exist yet, wait 1 second then check again
         i <- i + 1 # to keep track of how many times the loop runs, to prevent an infinite loop
     }
     Sys.sleep(sleep_time)
     # Rename the file, and append with the date for easier identification (may want to add in the time too?)
-    file.rename(from = paste0(download_dir, '\\', 'file.txt'), to = paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'))
+    if (file.exists(paste0(download_dir, 'file.tsv'))) {
+        file.rename(from = paste0(download_dir, 'file.tsv'), 
+                    to = paste0(download_dir, 
+                                filename, '_', 
+                                Sys.Date(), 
+                                '_Raw.txt'))
+    } else {
+        stop('File does not exist')
+    }
+    
     Sys.sleep(sleep_time)
     # to add the time to the filename
-    # file.rename(from = 'file.txt', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', hour(Sys.time()),'.', minute(Sys.time()), '.', if(am(Sys.time())) {'AM'} else {'PM'}))
+    # file.rename(from = 'file.tsv', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', hour(Sys.time()),'.', minute(Sys.time()), '.', if(am(Sys.time())) {'AM'} else {'PM'}))
     # Delete old versions of the files (if desired)
     if (delete_old_versions == TRUE) {
         files_list <- grep(pattern = paste0('^', filename, '_'), x = list.files(download_dir), value = TRUE) # get a list of all of the files of this type (including the new one) (NOTE: ^ means: starts with..)

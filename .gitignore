@@ -1,52 +1,102 @@
-.Rproj.user
+# History files
 .Rhistory
+.Rapp.history
+
+# Session Data files
 .RData
+.RDataTmp
+
+# User-specific files
 .Ruserdata
 
-rsconnect
+# Example code in package build process
+*-Ex.R
 
-ignore/
-RSelenium_testing/
-flowchart_what_to_publish/
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/
+
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+
+# R Environment Variables
+.Renviron
+
+# pkgdown site
+docs/
+
+# translation temp files
+po/*~
+
+# RStudio Connect folder
+rsconnect/
+
+# -------------------------------------------------
+
+# Personal / Misc Files
 _email/
-upload_log.txt
+_ignore/
+ignore/
+*/email/
 
+# directories that include the word "scratch"
+*scratch*/ 
+
+# files with "scratch" in the filename any directory
+**/*scratch*.R 
+**/*scratch*.qmd
 # ignore files that start with "scratch" in any directory
-**/scratch*.R 
+# **/scratch*.R 
 
-datastore-dump_&_persistent-link-to-csv.docx
+# creds
+outlook_creds
+gmail_creds
 
+# files with certain extensions
 *.msg
 *.7z
 *.zip
 *.gz
-
 # *.csv
 # *.xls
 # *.xlsx
 # *.pdf
 
+# Project Specific Files / Directories
+_error_log.docx
+upload_log.txt
+RSelenium_testing/
+flowchart_what_to_publish/
+datastore-dump_&_persistent-link-to-csv.docx
 .checkpoint
-
 water-rights-master-flat-file_GIS-server.R
-
-*/email/
 */Original_Dataset_(From_MarkE)/
-
 SMARTS/A Request for Real-time Open Data APIs for Specific SMARTS and CIWQS Data Sets.pdf
 SMARTS/_DataPortalUpload-Log.txt
-
 xNotUsed/
 _CKAN_Testing/
 _API_queries_examples/
-
-outlook_creds
-gmail_creds
-
 */old
 */old/
 old/
 old
 */xOld
-
 WebSvc_Tox-fields-check.R
+CIWQS Data SQL Query.pbix

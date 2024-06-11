@@ -3,6 +3,16 @@
 # https://gist.github.com/jthomasmock/b8a1c6e90a199cf72c6c888bd899e84e
 #####################################################################################
 
+# !!!!!!! NOTE !!!!!!!  
+# If new fields are added to the CEDEN dataset, this process may break.
+# When new fields are added, make sure that the excel files containing the data 
+# dictionaries (located in the data_dictionaries\data_dictionary_conversion\[data_type] 
+# directories) are updated; in particular, the 'type' field needs to be included 
+# for each field. That information is used in this script to make sure the data 
+# in the parquet files is formatted correctly.
+# !!!!!!!!!!!!!!!!!!!
+
+
 # NOTE: if this routinely fails, try using the checkpoint function below (arrow version 5
 # seems to fail repeatedly but unpredictably - it causes R to become unresponsive 
 # when writing parquet files with the write_parquet() function, and is difficult

@@ -15,8 +15,9 @@ library(httr)
 
 ## conflicts ----
 library(conflicted)
-conflicts_prefer(magrittr::extract)
-conflicts_prefer(dplyr::filter)
+conflicts_prefer(dplyr::filter,
+                 magrittr::extract,
+                 utils::unzip)
 
 
 
@@ -114,12 +115,14 @@ if (!dir.exists(driver_dir)) {
         stop('Chrome driver not downloaded successfully')
     }
     
-    # unzip the chromedriver.exe file 
-    unzip(zipfile = file.path(driver_dir, 
-                              zip_name), 
-          files = file.path(zip_folder, 'chromedriver.exe'), 
-          junkpaths = TRUE,
-          exdir = driver_dir)    
+    # unzip the chromedriver.exe file
+    if (!file.exists(file.path(driver_dir, 'chromedriver.exe'))) {
+        unzip(zipfile = file.path(driver_dir, 
+                                  zip_name), 
+              files = file.path(zip_folder, 'chromedriver.exe'), 
+              junkpaths = TRUE,
+              exdir = driver_dir) 
+    }
 }
 
 Sys.sleep(1)

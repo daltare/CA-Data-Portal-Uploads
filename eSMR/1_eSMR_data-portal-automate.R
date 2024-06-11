@@ -24,7 +24,9 @@
     ## conflicts ----
     library(conflicted)
     conflicts_prefer(dplyr::filter, 
-                     lubridate::year)
+                     lubridate::year,
+                     zip::zip,
+                     zip::unzip)
 }
 
 # 1 - user input --------------------------------------------------------------------------------------------------------------------------------------------
