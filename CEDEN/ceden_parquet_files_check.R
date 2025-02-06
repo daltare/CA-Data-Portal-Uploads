@@ -15,7 +15,7 @@ library(here)
 
 ## parquet file paths ----
 file_type <- 'Habitat'
-file_date <- '2024-05-08'
+file_date <- '2024-08-01'
 parquet_dir <- glue('C:/Users/daltare/Documents/ca_data_portal_temp/CEDEN/{file_date}/parquet_datasets/{file_type}Data_Parquet_{file_date}.zip')
 
 ## unzip file to temporary directory ----
@@ -43,3 +43,13 @@ test_analytes <- ds_con %>%
     count(Analyte) %>% 
     collect()
 View(test_analytes)
+
+### CSCI scores ----
+df_csci <- ds_con %>% 
+    filter(Analyte == 'CSCI') %>% 
+    collect()
+#### count CSCI records by year (of sample date) ----
+df_csci %>% 
+    mutate(sample_year = year(SampleDate)) %>% 
+    count(sample_year) %>% 
+    View()

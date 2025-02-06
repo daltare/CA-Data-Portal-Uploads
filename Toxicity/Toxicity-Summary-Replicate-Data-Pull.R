@@ -18,11 +18,12 @@
   library(tidyverse)
   library(lubridate)
   library(ckanr) # for working with CKAN data portal
-  library(reticulate)
   library(glue)
   library(blastula)
   library(sendmailR)
   library(gmailr)
+  library(here)
+  library(reticulate)
 }
 
 
@@ -42,8 +43,12 @@
   
   ## delete old versions of the datasets
   delete_old_versions <- TRUE
+  
+  ## define output filenames ----
   filename_summary <- 'Toxicity-Summary-Records_'
   filename_replicate <- 'Toxicity-Replicate-Records_'
+  out_file_summary <- paste0(file_save_location, filename_summary, Sys.Date(), '.csv')
+  out_file_replicate <- paste0(file_save_location, filename_replicate, Sys.Date(), '.csv')
   
   ## get user ID and Password for CEDEN Data Mart
   dm_user <- Sys.getenv('ceden_user_id')
@@ -78,8 +83,11 @@
   # email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
   
   ## define location of python script to upload chunked data (relative path)
-  python_upload_script <- 'portal-upload-ckan-chunked_Tox\\main_Tox_function.py'
-  chunked_upload_directory <- 'portal-upload-ckan-chunked_Tox'
+  # python_upload_script <- here('portal-upload-ckan-chunked_Tox', 
+  #                              'main_Tox_function.py')
+  python_upload_process <- here('portal-upload-ckan-chunked_Tox', 
+                                'Call_Tox_Upload.bat')
+  # chunked_upload_directory <- here('portal-upload-ckan-chunked_Tox')
 }
 
 
@@ -1040,20 +1048,25 @@ tryCatch(
 
 tryCatch(
   {
-    ## define output filenames ----
-    out_file_summary <- paste0(file_save_location, 'Toxicity-Summary-Records_', Sys.Date(), '.csv')
-    out_file_replicate <- paste0(file_save_location, 'Toxicity-Replicate-Records_', Sys.Date(), '.csv')
+    
+    write_excel_csv(x = summary_records_output, 
+                    file = out_file_summary, 
+                    na = 'NaN')
+    
+    write_excel_csv(x = replicate_records_output, 
+                    file = out_file_replicate, 
+                    na = 'NaN')
     
     ## write to file using base write.csv, and specify encoding ----
-    write.csv(x = summary_records_output, file = out_file_summary, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
-    write.csv(x = replicate_records_output, file = out_file_replicate, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+    # write.csv(x = summary_records_output, file = out_file_summary, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
+    # write.csv(x = replicate_records_output, file = out_file_replicate, row.names = FALSE, fileEncoding = 'UTF-8', na = 'NaN')
     
     ## then, read the results back to R using readr
     #     summary_records_output <-  readr::read_csv(file = out_file_summary, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
     #     replicate_records_output <- readr::read_csv(file = out_file_replicate, guess_max = 999999, na = character(), col_types = cols(.default = 'c'))
     # # last, overwrite the original file using readr::write_csv
-    #     readr::write_csv(x = summary_records_output, path = out_file_summary, na = 'NaN')
-    #     readr::write_csv(x = replicate_records_output, path = out_file_replicate, na = 'NaN')
+    #     readr::write_excel_csv(x = summary_records_output, path = out_file_summary, na = 'NaN')
+    #     readr::write_excel_csv(x = replicate_records_output, path = out_file_replicate, na = 'NaN')
     
     # # check
     #     summary_check <- readr::read_csv(file = paste0('Toxicity-Summary-Records_', Sys.Date(), '.csv'), guess_max = 500000, na = 'NaN')
@@ -1133,50 +1146,58 @@ tryCatch(
 
 
 ## python - function ----
-tryCatch(
-  {
-    gc()
-    
-    ### get the python function ----
-    #### install dependent python packages
-    setwd(chunked_upload_directory)
-    shell('pip install -r requirements.txt')
-    setwd('..')
-    #### get function
-    source_python(python_upload_script)
-    
-    ### summary data ----
-    file_type <- 'Summary'
-    print(glue('Updating {file_type} Data'))
-    ckanUploadFile(resourceID_summary,
-                   out_file_summary,
-                   portal_key)
-    print(glue('Finished Updating {file_type} Data'))
-    gc()
-    
-    ### replicate data ----
-    file_type <- 'Replicate'
-    print(glue('Updating {file_type} Data'))
-    ckanUploadFile(resourceID_replicate,
-                   out_file_replicate,
-                   portal_key)
-    print(glue('Finished Updating {file_type} Data'))
-  },
-  error = function(e) {
-    error_message <- glue('Uploading data to portal (error occured in uploading the {file_type} Data)')
-    error_message_r <- capture.output(cat(as.character(e)))
-    write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
-    vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
-                          pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
-    if (send_failure_email == TRUE) {
-      if (vpn == FALSE) {
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
-      } else {
-        ## attempt to use gmailr if on the VPN
-        fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
-      } 
-    }
-    print(glue('Error: {error_message}'))
-    stop(e)
-  }
-)
+# tryCatch(
+#   {
+#     gc()
+#     
+#     shell.exec(python_upload_process)
+#     
+#     # ### get the python function ----
+#     # #### have to call the reticulate package explicitly (using `reticulate::`) to be able to run as scheduled task 
+#     # #### see: https://stackoverflow.com/a/70067336
+#     # python_path <- reticulate::py_config()$pythonhome
+#     # reticulate::use_python(python = python_path,
+#     #                        required = T)
+#     # 
+#     # #### install dependent python packages
+#     # # setwd(chunked_upload_directory)
+#     # # shell('pip install -r requirements.txt')
+#     # # setwd('..')
+#     # #### get function
+#     # reticulate::source_python(python_upload_script)
+#     # 
+#     # ### summary data ----
+#     # file_type <- 'Summary'
+#     # print(glue('Updating {file_type} Data'))
+#     # ckanUploadFile(resourceID_summary,
+#     #                out_file_summary,
+#     #                portal_key)
+#     # print(glue('Finished Updating {file_type} Data'))
+#     # gc()
+#     # 
+#     # ### replicate data ----
+#     # file_type <- 'Replicate'
+#     # print(glue('Updating {file_type} Data'))
+#     # ckanUploadFile(resourceID_replicate,
+#     #                out_file_replicate,
+#     #                portal_key)
+#     print(glue('Finished Updating {file_type} Data'))
+#   },
+#   error = function(e) {
+#     error_message <- glue('Uploading data to portal (error occured in uploading the {file_type} Data)')
+#     error_message_r <- capture.output(cat(as.character(e)))
+#     write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
+#     vpn <- any(str_detect(string = system("ipconfig /all", intern=TRUE), 
+#                           pattern = 'Ethernet adapter Ethernet 2|PANGP Virtual Ethernet Adapter Secure'))
+#     if (send_failure_email == TRUE) {
+#       if (vpn == FALSE) {
+#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)  
+#       } else {
+#         ## attempt to use gmailr if on the VPN
+#         fn_email_gmailr(error_msg = error_message, error_msg_r = error_message_r)
+#       } 
+#     }
+#     print(glue('Error: {error_message}'))
+#     stop(e)
+#   }
+# )

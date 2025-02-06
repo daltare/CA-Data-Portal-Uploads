@@ -25,6 +25,7 @@
     library(ckanr)
     library(wdman)
     library(here)
+    library(reticulate)
     
     ## conflicts
     library(conflicted)
@@ -34,41 +35,49 @@
 
 
 # 1 - user input --------------------------------------------------------------
-## set download directory ----
-##(i.e., where to save any downloaded files)
-download_dir <- 'C:/Users/daltare/Documents/ca_data_portal_temp/SMARTS/'
-
-## delete old files
-delete_old_versions = TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
-# NOTE: currently set to keep the versions from the previous 7 days if TRUE
-
-## enter the email address to send warning emails from
-### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
-email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
-
-## create credentials file (only need to do this once) ----
-### gmail credentials ----
-#### NOTE - for gmail, you have to create an 'App Password' and use that 
-#### instead of your normal password - see: 
-#### (https://support.google.com/accounts/answer/185833?hl=en) 
-#### Background here:
-#### https://github.com/rstudio/blastula/issues/228 
-# create_smtp_creds_file(file = credentials_file,
-#                        user = email_from,
-#                        provider = 'gmail'
-#                        )
-credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
-
-## enter the email address (or addresses) to send warning emails to ----
-email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
-
-## get data portal API key (saved in the local environment) ----
-### (it's available on data.ca.gov by going to your user profile)
-portal_key <- Sys.getenv('data_portal_key')
-
-## set times for Sys.sleep() arguments
-sleep_time <- 0.5
-
+{
+    ## set download directory ----
+    ##(i.e., where to save any downloaded files)
+    download_dir <- 'C:/Users/daltare/Documents/ca_data_portal_temp/SMARTS/'
+    
+    ## delete old files
+    delete_old_versions = TRUE # whether or not to delete previous versions of each dataset - FALSE means to keep the old versions
+    # NOTE: currently set to keep the versions from the previous 7 days if TRUE
+    
+    ## enter the email address to send warning emails from
+    ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
+    email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
+    
+    ## create credentials file (only need to do this once) ----
+    ### gmail credentials ----
+    #### NOTE - for gmail, you have to create an 'App Password' and use that 
+    #### instead of your normal password - see: 
+    #### (https://support.google.com/accounts/answer/185833?hl=en) 
+    #### Background here:
+    #### https://github.com/rstudio/blastula/issues/228 
+    # create_smtp_creds_file(file = credentials_file,
+    #                        user = email_from,
+    #                        provider = 'gmail'
+    #                        )
+    credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
+    
+    ## enter the email address (or addresses) to send warning emails to ----
+    email_to <- 'david.altare@waterboards.ca.gov' # c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov')
+    
+    ## get data portal API key (saved in the local environment) ----
+    ### (it's available on data.ca.gov by going to your user profile)
+    portal_key <- Sys.getenv('data_portal_key')
+    
+    ## define location of python script to upload chunked data (relative path)
+    # python_upload_script <- here('portal-upload-ckan-chunked_SMARTS', 
+    #                              'main_SMARTS_function.py')
+    python_upload_process <- here('portal-upload-ckan-chunked_SMARTS', 
+                                  'Call_SMARTS_Upload.bat')
+    # chunked_upload_directory <- here('portal-upload-ckan-chunked_SMARTS')
+    
+    ## set times for Sys.sleep() arguments
+    sleep_time <- 0.5
+}
 
 
 # 2- enter info about datasets to be downloaded ------------------------------
@@ -332,7 +341,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # fields_times = dataset_list[[j]]$time_fields
     # fields_timestamps = dataset_list[[j]]$timestamp_names
     # fields_numeric = dataset_list[[j]]$numeric_fields
-
+    
     
     # this automatically downloads the file to the default download location for the browser, set above
     # NOTE: Files downloaed from SMARTS are automatically named file.tsv, so check to make sure there isn't already an un-named file (file.tsv) in 
@@ -340,12 +349,17 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     if (file.exists(paste0(download_dir, 'file.tsv'))) {
         unlink(paste0(download_dir, 'file.tsv'))
     }
+    if (file.exists(paste0(download_dir, 'file.txt'))) {
+        unlink(paste0(download_dir, 'file.txt'))
+    }
     # select the file using the id
     webElem <- remDr$findElement(using = 'id', value = html_id)
     webElem$clickElement()
     # pause until the file finishes downloading
     i <- 1
-    while (!file.exists(paste0(download_dir, 'file.tsv')) & i <= 900) { # check to see if the file exists (but only up to 300 times)
+    while (!file.exists(paste0(download_dir, 'file.tsv')) & 
+           !file.exists(paste0(download_dir, 'file.txt')) & 
+           i <= 300) { # check to see if the file exists (but only up to set number of times)
         Sys.sleep(time = 1) # if the file doesn't exist yet, wait 1 second then check again
         i <- i + 1 # to keep track of how many times the loop runs, to prevent an infinite loop
     }
@@ -353,6 +367,12 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # Rename the file, and append with the date for easier identification (may want to add in the time too?)
     if (file.exists(paste0(download_dir, 'file.tsv'))) {
         file.rename(from = paste0(download_dir, 'file.tsv'), 
+                    to = paste0(download_dir, 
+                                filename, '_', 
+                                Sys.Date(), 
+                                '_Raw.txt'))
+    } else if (file.exists(paste0(download_dir, 'file.txt'))) {
+        file.rename(from = paste0(download_dir, 'file.txt'), 
                     to = paste0(download_dir, 
                                 filename, '_', 
                                 Sys.Date(), 
@@ -436,7 +456,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # dataset <- dataset %>% distinct()
     
     # # FOR TESTING
-    #     write_csv(x = dataset, path = 'TEST_Dataset.csv')
+    #     write_excel_csv(x = dataset, path = 'TEST_Dataset.csv')
     #     dataset <- read_csv('TEST_Dataset.csv')
     
     
@@ -463,7 +483,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             
             # convert dates and times into a timestamp field ----
             ## ADDED 2019-09-18
-
+            
             # Create a vector of timestamps for any date (plus associated time) fields in the dataset
             if (fields_times[counter] == '') {
                 timestamps <- dates_iso
@@ -533,7 +553,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             
             
             # convert the date fields to dates (added 2020-07-20) ----
-
+            
             ## adjust for incorrect years
             dates_iso_text <- as.character(dates_iso)
             # sum(is.na(dates_iso_text))
@@ -559,7 +579,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             dates_iso_text[is.na(dates_iso_text)] <- ''
             # sum(is.na(dates_iso_text))
             # tabyl(nchar(dates_iso_text)) # should only be zero or 10
-
+            
             dataset[[fields_dates[counter]]] <- dates_iso_text
             
             
@@ -638,7 +658,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             
             location_data <- bind_rows(ind_site_data, # %>% mutate(APP_ID = as.character(APP_ID)), 
                                        con_site_data) # %>% mutate(APP_ID = as.character(APP_ID)))
-
+            
             
             location_data <- location_data %>% 
                 select(-c('PLACE_CONTACT_FIRST_NAME', 'PLACE_CONTACT_LAST_NAME', 'PLACE_TITLE',
@@ -700,11 +720,17 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     
     
     # write the revised dataset to a csv file
-    write_csv(x = dataset, 
-              path = paste0(download_dir, '\\', 
-                            filename, '_', Sys.Date(), 
-                            '.csv'), 
-              na = 'NaN')
+    write_excel_csv(x = dataset, 
+                    path = paste0(download_dir, '\\', 
+                                  filename, '_', Sys.Date(), 
+                                  '.csv'), 
+                    na = 'NaN')
+    # write_csv(x = dataset, 
+    #           path = paste0(download_dir, '\\', 
+    #                         filename, '_', Sys.Date(), 
+    #                         '_2', 
+    #                         '.csv'), 
+    #           na = 'NaN')
     rm(dataset_lines, problems, dataset, t)
 }
 
@@ -761,7 +787,7 @@ tryCatch(
     {
         remDr$close()
         # rsD$server$stop(e) # from the old method
-        rm(list = c('remDr'))#'eCaps', , 'SMARTS_url', 'rsD'))
+        rm(list = c('remDr'))#'eCaps', , 'SMARTS_url', 'rsD'
         gc()
         
         shell.exec(file = here('Stop.bat')) # this closes the java window
@@ -781,54 +807,80 @@ tryCatch(
 
 # 7 - load data to portal -----------------------------------------------------
 
-## run function to upload the formatted data from SMARTS to the data.ca.gov portal ----
-### loops through all of the datasets defined in the 'dataset_list' variable in the script: 1_FilesList.R
-tryCatch(
-    {
-        print('Uploading datasets to the CA open data portal (data.ca.gov)')
-        
-        ### set the ckan defaults ----
-        ckanr_setup(url = 'https://data.ca.gov/', key = portal_key) 
-        
-        for (i in seq(length(dataset_list))) {
-            resourceID <- dataset_list[[i]]$resource_id
-            filename <- dataset_list[[i]]$filename
-            
-            print(glue('Uploading file: {filename}'))
-            
-            ckan_resource_info <- resource_show(id = resourceID, as = 'table') # resource
-            # check the connection
-            # current_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = ckan_resource_info$url)
-            # print(current_dataportal_filename) # this is just a test to make sure the API connection is successful
-            fileToUpload <- paste0(download_dir, '\\', filename, '_', Sys.Date(), '.csv')
-            file_upload <- resource_update(id = resourceID, path = fileToUpload)
-            
-            Sys.sleep(60)
-            
-            # # output the result of the upload process to a log file called: _DataPortalUpload-Log.txt
-            # # check to see if the log file exists - if not, create it
-            # if (file.exists('_DataPortalUpload-Log.txt') == FALSE) {
-            #     file.create('_DataPortalUpload-Log.txt')
-            # }
-            # # write the result to the log file, depending on the current data portal filename
-            # file_name_check <- paste0(filename, '_', Sys.Date(), '.csv')
-            # new_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = file_upload$url)
-            # if (tolower(new_dataportal_filename) == tolower(file_name_check)) {
-            #     write_lines(x = paste0(Sys.time(), ' - ', file_name_check, ': ', 'Completed Upload'), 
-            #                 file = '_DataPortalUpload-Log.txt', append = TRUE)   
-            # } else {
-            #     write_lines(x = paste0(Sys.time(), ' - ', file_name_check, ': ', 'Upload NOT completed'), 
-            #                 file = '_DataPortalUpload-Log.txt', append = TRUE)
-            # }
-        }
-        print('Upload complete')
-    },
-    error = function(e) {
-        error_message <- 'uploading data (sending data to portal)'
-        error_message_r <- capture.output(cat(as.character(e)))
-        write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
-        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-        print(glue('Error: {error_message}'))
-        stop(e)
-    } 
-)
+# ## run function to upload the formatted data from SMARTS to the data.ca.gov portal ----
+# ### loops through all of the datasets defined in the 'dataset_list' variable in the script: 1_FilesList.R
+# tryCatch(
+#     {
+#         print('Uploading datasets to the CA open data portal (data.ca.gov)')
+#         
+#         shell.exec(python_upload_process)
+#         
+#         # # ### set the ckan defaults ----
+#         # # ckanr_setup(url = 'https://data.ca.gov/', key = portal_key)
+#         # 
+#         # ### get the python function ----
+#         # #### have to call the reticulate package explicitly (using `reticulate::`) to be able to run as scheduled task 
+#         # #### see: https://stackoverflow.com/a/70067336
+#         # python_path <- reticulate::py_config()$pythonhome
+#         # reticulate::use_python(python = python_path, 
+#         #                        required = T)
+#         # 
+#         # #### install dependent python packages
+#         # # setwd(chunked_upload_directory)
+#         # # shell('pip install -r requirements.txt')
+#         # # setwd('..')
+#         # #### get function
+#         # reticulate::source_python(python_upload_script)
+#         # 
+#         # for (i in seq(length(dataset_list))) {
+#         #     resourceID <- dataset_list[[i]]$resource_id
+#         #     filename <- dataset_list[[i]]$filename
+#         #     
+#         #     print(glue('Uploading file: {filename}'))
+#         #     
+#         #     # ckan_resource_info <- resource_show(id = resourceID, as = 'table') # resource
+#         #     # check the connection
+#         #     # current_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = ckan_resource_info$url)
+#         #     # print(current_dataportal_filename) # this is just a test to make sure the API connection is successful
+#         #     
+#         #     fileToUpload <- paste0(download_dir, filename, '_', Sys.Date(), '.csv')
+#         #     
+#         #     # file_upload <- resource_update(id = resourceID, path = fileToUpload)
+#         #     
+#         #     ckanUploadFile(resourceID,
+#         #                    fileToUpload,
+#         #                    portal_key)
+#         #     
+#         #     print(glue('Finished Updating {filename}\n'))
+#         #     
+#         #     Sys.sleep(1)
+#         #     
+#         #     # # output the result of the upload process to a log file called: _DataPortalUpload-Log.txt
+#         #     # # check to see if the log file exists - if not, create it
+#         #     # if (file.exists('_DataPortalUpload-Log.txt') == FALSE) {
+#         #     #     file.create('_DataPortalUpload-Log.txt')
+#         #     # }
+#         #     # # write the result to the log file, depending on the current data portal filename
+#         #     # file_name_check <- paste0(filename, '_', Sys.Date(), '.csv')
+#         #     # new_dataportal_filename <- gsub(pattern = '.*/download/', replacement = '', x = file_upload$url)
+#         #     # if (tolower(new_dataportal_filename) == tolower(file_name_check)) {
+#         #     #     write_lines(x = paste0(Sys.time(), ' - ', file_name_check, ': ', 'Completed Upload'), 
+#         #     #                 file = '_DataPortalUpload-Log.txt', append = TRUE)   
+#         #     # } else {
+#         #     #     write_lines(x = paste0(Sys.time(), ' - ', file_name_check, ': ', 'Upload NOT completed'), 
+#         #     #                 file = '_DataPortalUpload-Log.txt', append = TRUE)
+#         #     # }
+#         # }
+#         
+#         print('Upload complete')
+#     },
+#     error = function(e) {
+#         # error_message <- 'uploading data (sending data to portal)'
+#         error_message <- glue('Uploading data to portal (error occured in uploading the {filename} Data)')
+#         error_message_r <- capture.output(cat(as.character(e)))
+#         write(paste0(Sys.Date(), ': ', error_message, ' | ', error_message_r), file = 'upload_log.txt', append = TRUE)
+#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+#         print(glue('Error: {error_message}'))
+#         stop(e)
+#     } 
+# )

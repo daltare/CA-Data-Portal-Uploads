@@ -1,0 +1,650 @@
+'[
+    {
+        "id": "Program",
+        "type": "text",
+        "info": {
+        "label": "Program Name",
+        "notes": "The name of the program that is associated with the sample. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=ProgramLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "ParentProject",
+        "type": "text",
+        "info": {
+        "label": "Parent Project Name",
+        "notes": "A larger or on-going project in which the specific project that the samples were collected for is associated with. A list of possible options can be found at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=ParentProjectLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "Project",
+        "type": "text",
+        "info": {
+        "label": "Project Name",
+        "notes": "The project to which the sample result is associated. A list of\r\npossible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=ProjectLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "StationName",
+        "type": "text",
+        "info": {
+        "label": "Station Name",
+        "notes": "The name of the station at which the sample was collected. A complete list of stations and station information is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=StationLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "StationCode",
+        "type": "text",
+        "info": {
+        "label": "Station Code",
+        "notes": "An alphanumeric code that represents the sampling site at which the sample was collected. The format is ###ABC123, where ### is the Hydrologic Unit number and ABC123 is an alphanumeric description of the station. An example is \"111EELBRN\", which is Hydrologic Unit 111 and an abbreviated code to indicate “Eel River - South Fork near Branscomb.\" Some stations may have a code that deviates from this format because the program or organization collecting the sample has their own code system. A complete list of stations and station information is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=StationLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SampleDate",
+        "type": "timestamp",
+        "info": {
+        "label": "Sample Date",
+        "notes": "Refers to the date the sample was collected in the field. Default value equals \"01/01/1950\" for unknown or null values. For samples with collection times that last longer than one day, like autosamplers, the SampleDate is the date in which sampling\r\nbegan.",
+        "type_override": "timestamp"
+        }
+    },
+    {
+        "id": "CollectionTime",
+        "type": "text",
+        "info": {
+        "label": "Collection Time",
+        "notes": "Refers to the time when the first sample of a sampling event at a specific station was collected in the field. Format equals hh:mm in 24 hour time (e.g. 13:30 for 1:30 pm). Default value equals “00:00” if the time sampling started is unknown.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "LocationCode",
+        "type": "text",
+        "info": {
+        "label": "Location Code",
+        "notes": "Describes the physical location in the waterbody and the field survey method used where the sample was collected (e.g. \"Transect at 177m from start\", \"First instance where sample was collected in OpenWater\", \"second instance where a net (e.g. gill, fyke, dip) was used at the thalweg of the waterbody\", \"Bank, Left\", etc.). Default value equals \"Not Recorded\" if unknown. A list of possible options is available at this link:\r\nhttp://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=LocationLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "CollectionDepth",
+        "type": "numeric",
+        "info": {
+        "label": "Collection Depth",
+        "notes": "Records the depth or penetration, from the surface in the water or sediment column, at which the sample was collected. Default value equals \"-88\" if unknown or not recorded.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "UnitCollectionDepth",
+        "type": "text",
+        "info": {
+        "label": "Unit Collection Depth",
+        "notes": "The units used to measure the CollectionDepth. A list of possible options can be found at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=UnitLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SampleTypeCode",
+        "type": "text",
+        "info": {
+        "label": "Sampling Type",
+        "notes": "Refers to the type or purpose of the sample that is collected or analyzed (i.e. indicates if the sample was used as a control, for calibration purposes, is a combination of multiple samples, used for algae bioassessment, etc.) Default value equals \"Not Recorded\" if unknown. A list of possible options is at this link:\r\nhttp://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=SampleTypeLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "CollectionReplicate",
+        "type": "numeric",
+        "info": {
+        "label": "Collection Replicate",
+        "notes": "Used to distinguish between replicates created at a single collection in the field. Replicate samples that are collected at the same station and date should either have a value of \"2\" or \"3.\" Samples collected on different dates, even if they are from the same station, should both have a value of \"1.\" Default value is also \"1.\"",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "ResultsReplicate",
+        "type": "numeric",
+        "info": {
+        "label": "Lab Replicate",
+        "notes": "Used to distinguish between replicates created in the laboratory. It differentiates the original field sample that was analyzed from all subsequent laboratory duplicates. Default value is \"1.\"",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "LabBatch",
+        "type": "text",
+        "info": {
+        "label": "Lab Batch",
+        "notes": "A unique code, provided by the laboratory, that represents a group of samples processed together. It groups all environmental samples with their supporting QC samples and is used to verify completeness based on the SWAMP QAPrP. It also identifies all samples digested or extracted together in one batch. When a digestion or extraction is not performed as part of the method, the LabBatch represents all samples within a unique analysis run.\r\nFormat is \"Batch#-AgencyCode\" (e.g. \"Batch1‐SCCWRP\").",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "LabSampleID",
+        "type": "text",
+        "info": {
+        "label": "Lab Sample ID",
+        "notes": "An ID assigned by the lab; intended to provide lab-specific identification for an analyzed sample. The format and content is determined by the lab. May have \"- Dup,\" \"-MS,\" or \"-MSD\" to the end of the ID to help confirm the SampleType and the LabSampleID of the native sample. If the lab does not assign the samples an ID, this column is left blank.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "MatrixName",
+        "type": "text",
+        "info": {
+        "label": "Matrix Name",
+        "notes": "Refers to the sample matrix; the substance in which the analyte is evaluated in or the components of a sample other than the analyte of interest (e.g. \"samplewater\", \"tissue\"). Default value equals \"Not Recorded\" if unknown. A list of possible options is\r\navailable at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=MatrixLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "MethodName",
+        "type": "text",
+        "info": {
+        "label": "Method Name",
+        "notes": "Refers to the method used by the laboratory to analyze the sample. Default value equals \"Not Recorded\" if unknown. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=MethodLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "Analyte",
+        "type": "text",
+        "info": {
+        "label": "-",
+        "notes": "-",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "Unit",
+        "type": "text",
+        "info": {
+        "label": "Unit",
+        "notes": "Indicates the units used in the measurement of the analyte. Chemistry results are indicated by weight of analyte/volume of sample (e.g. \"ng/L\"). Results from sediment and tissue samples are indicated by weight/weight and includes whether the sample result is reported as wet weight (ww) or dry weight (dw) (e.g. \"ng/g ww\"). Surrogate recovery results use a unit of \"%\". Toxicity test results are recorded as percent that survived (\"%\"), weight of surviving individuals (\"mg/ind\"), cells per volume (\"cells/ml\"), reproduction rate (\"neonates/adults\"), etc. Taxonomic units are indicated by \"count\" or volume/area (e.g. \"um3/cm2\"). A list of\r\npossible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=UnitLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "Result",
+        "type": "numeric",
+        "info": {
+        "label": "Result",
+        "notes": "Final numeric result of a given analyte, stored as text to retain trailing zeros. The result should be reported with the appropriate number of significant figures. Result may be left blank as long as\r\nan appropriate ResQualCode is provided.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "Observation",
+        "type": "text",
+        "info": {
+        "label": "Observation",
+        "notes": "Observations made in the field where samples were collected.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "MDL",
+        "type": "numeric",
+        "info": {
+        "label": "Method Detection Limit",
+        "notes": "The Method Detection Limit (MDL) is the detection limit associated with the method used to measure the analyte in the sample. This is the lowest possible calculated level, or the minimum concentration of an analyte that can be reported with a stated level of confidence that the analyte concentration is greater than zero. If an MDL is unknown, then the default value\r\nis \"‐ 88\" with a QACode of \"NMDL.\"",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "RL",
+        "type": "numeric",
+        "info": {
+        "label": "Reporting Limit",
+        "notes": "Stands for \"Reporting Limits\" of the sample analyzed is the\r\nminimum value below which data are documented as non‐ quantifiable, as determined by the laboratory. The default value of “‐88” is utilized for surrogates, grain size samples, or if no RL\r\nwas used.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "ResultQualCode",
+        "type": "text",
+        "info": {
+        "label": "Result Qualifier Code",
+        "notes": "A code that indicates specific details about the analytical result of the sample, such as if the analyte was detected but not quantifiable or if the result was a field estimation. Default value is “=”, which means that the recorded result is the actual result. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=ResQualLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "QACode",
+        "type": "text",
+        "info": {
+        "label": "Quality Assurance Code",
+        "notes": "Codes that indicate data quality by describing any special conditions, situations or outliers that occurred during or prior to the analysis to achieve the result. The default code, indicating no special conditions, is \"None.\" A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=QALookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "BatchVerification",
+        "type": "text",
+        "info": {
+        "label": "-",
+        "notes": "-",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "ComplianceCode",
+        "type": "text",
+        "info": {
+        "label": "Compliance Code",
+        "notes": "Unique code referencing the compliance with the associated Quality Assurance Project Plan (QAPP). \"Com\" is used when all standards are met for the associated QAPP. Default value equals \"NR\" if unknown. A list of possible options and definitions is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=ComplianceLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SampleComments",
+        "type": "text",
+        "info": {
+        "label": "Sample Comments",
+        "notes": "Used for any notes or comments specifically related to the sampling event at a particular station and/or the verification of GIS station information.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "CollectionComments",
+        "type": "text",
+        "info": {
+        "label": "Collection Comments",
+        "notes": "Comments referring to the lab collection of the sample.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "ResultsComments",
+        "type": "text",
+        "info": {
+        "label": "Result Comments",
+        "notes": "Any comments related to the results or analysis of the sample.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "BatchComments",
+        "type": "text",
+        "info": {
+        "label": "-",
+        "notes": "-",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "EventCode",
+        "type": "text",
+        "info": {
+        "label": "Event Code",
+        "notes": "Represents the primary reason for the sampling event at a particular station and date (e.g. for water quality, a time series, or bioassessment sampling). A list of possible options is available\r\nat this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=EventLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "ProtocolCode",
+        "type": "text",
+        "info": {
+        "label": "Protocol",
+        "notes": "Represents the sampling protocol used, which includes the set of methods, methodology and/or specifications, such as \"MPSL- DFG_Field_v1.0.\" Default value is \"Not Recorded.\" LabQA samples will have \"Not Applicable.\" A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=ProtocolLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SampleAgency",
+        "type": "text",
+        "info": {
+        "label": "Sampling Agency",
+        "notes": "Refers to the organization or agency that collected the sample. Default value equals \"Not Recorded\" if unknown. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=AgencyLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "GroupSamples",
+        "type": "text",
+        "info": {
+        "label": "Group Samples",
+        "notes": "An Identifier used to group samples by the project staff. Not a required field.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "CollectionMethodName",
+        "type": "text",
+        "info": {
+        "label": "Collection Method Name",
+        "notes": "Refers to the general method used to collect the sample, organism, or field observation. Depending on the data types, different types of collection methods will be stated. Some examples are: \"Algae_SWAMP,\" \"BMI_CSBP_Transect\", \"Sed_Core\", \"Water_Grab\", \"Autosampler24h\", \"Habitat_Generic\", etc. The default value of \"Not Recorded\" is utilized if method is unknown. LabQA samples utilize \"Not Applicable.\" A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=CollectionMethodLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "Latitude",
+        "type": "numeric",
+        "info": {
+        "label": "Target Latitude",
+        "notes": "The latitude in decimal degrees of the sample site (should be\r\npositive).",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "Longitude",
+        "type": "numeric",
+        "info": {
+        "label": "Target Longitude",
+        "notes": "The longitude in decimal degrees of the sample site (should be negative).",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "CollectionDeviceDescription",
+        "type": "text",
+        "info": {
+        "label": "Collection Device",
+        "notes": "Name of the device used to collect the sample (e.g. \"MPSL- Eboat_(BigE)\", \"WPCL-DFG Gill Net 1(50m,1.5\")\", \"Individual Collection by bucket sampler\", etc.). Default value equals \"Not Recorded\" if unknown. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=CollectionDeviceLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "CalibrationDate",
+        "type": "timestamp",
+        "info": {
+        "label": "-",
+        "notes": "-",
+        "type_override": "timestamp"
+        }
+    },
+    {
+        "id": "PositionWaterColumn",
+        "type": "text",
+        "info": {
+        "label": "Position Water Column",
+        "notes": "Position in water column where the sample was taken (e.g.\r\n\"Surface\", \"Midcolumn\", \"Nearbottom\"). Use “Not Applicable” if unknown. A list of possible options is available at the following site (Note: search the first column in the table for\r\n\"PositionWaterColumnList\"): http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=VariableCodesLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "PrepPreservationName",
+        "type": "text",
+        "info": {
+        "label": "Preparation Preservation Name",
+        "notes": "References the preparation or preservation method performed on the samples prior to analysis. Default value equals \"Not Recorded\" if unknown. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=PrepPreservationLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "PrepPreservationDate",
+        "type": "timestamp",
+        "info": {
+        "label": "Preparation Preservation Date",
+        "notes": "Date and time the preparation or preservation was started.\r\nFormat is \"dd/mmm/yyyy hh:mm.\" Deflaut value is “01/Jan/1950 00:00” if the date and time the process started isn’t known or if no process was performed.",
+        "type_override": "timestamp"
+        }
+    },
+    {
+        "id": "DigestExtractMethod",
+        "type": "text",
+        "info": {
+        "label": "Digest/ Extraction Method",
+        "notes": "References the type of digestion or extraction method performed on the sample prior to analysis. Default value equals \"Not Recorded\" if unknown or if no digestion or extraction method was performed. A list of possible options is available at\r\nthis link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=DigestExtractLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "DigestExtractDate",
+        "type": "timestamp",
+        "info": {
+        "label": "Digest/ Extraction Method Date",
+        "notes": "The start date and time the digestion or extraction was performed on the sample. Default value equals \"01/Jan/1950 00:00\" if unknown or if no digestion or extraction method was performed.",
+        "type_override": "timestamp"
+        }
+    },
+    {
+        "id": "AnalysisDate",
+        "type": "timestamp",
+        "info": {
+        "label": "-",
+        "notes": "-",
+        "type_override": "timestamp"
+        }
+    },
+    {
+        "id": "DilutionFactor",
+        "type": "numeric",
+        "info": {
+        "label": "Dilution Factor",
+        "notes": "Factor by which a sample was diluted and is reported as a whole number. This is equal to the final volume divided by the initial volume of solution (i.e. DF = Vf ÷ Vi). For example, if the DilutionFactor is 100, for every 100 parts of the diluted sample, 1 part is the original sample. The default value is “1,” which means no dilution was performed.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "ExpectedValue",
+        "type": "numeric",
+        "info": {
+        "label": "Expected Value",
+        "notes": "The concentration of the analyte in a reference standard, laboratory control sample, matrix spike sample, or the value expected to be obtained from analysis of the QC sample. This consists of the native sample result concentration plus the spike amount. For surrogate samples, the expected value should be\r\n\"100\", representing 100%.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "LabAgency",
+        "type": "text",
+        "info": {
+        "label": "Lab Agency",
+        "notes": "The organization, agency, or laboratory that performed the analysis on the sample. Default value equals \"Not Recorded\" if unknown. A list of possible agencies is available at this link:\r\nhttp://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=AgencyLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SubmittingAgency",
+        "type": "text",
+        "info": {
+        "label": "Submitting Agency",
+        "notes": "The organization or agency that is responsible for submission of the data to the database. A list of possible options is available at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=AgencyLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SubmissionCode",
+        "type": "text",
+        "info": {
+        "label": "Lab Submission Code",
+        "notes": "A unique batch qualifier code assigned to the LabBatch as a whole by the analyzing laboratory which references the quality of the data in the entire batch. The SubmissionCode should be reviewed by the Project Manager, or other appropriate person, to ensure that the code has been applied based on project- specific data quality objectives and criteria. Default value equals \"NR\" if unknown. A list of possible options can be found at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=LabSubmissionLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "OccupationMethod",
+        "type": "text",
+        "info": {
+        "label": "Occupation Method",
+        "notes": "The means by which a crew entered or occupied the sampling\r\nlocation and collected a sample (e.g. \"Walk In\", \"RV Questuary\", \"From Bridge\", etc.)",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "StartingBank",
+        "type": "text",
+        "info": {
+        "label": "Starting Bank",
+        "notes": "The bank of the stream from which measurements began (i.e. on the left bank or right bank) A list of possible options is available at the following site (Note: search the first column in the table for \"StartingBankList\"): http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=VariableCodesLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "DistanceFromBank",
+        "type": "numeric",
+        "info": {
+        "label": "Distance From Bank",
+        "notes": "The measured distance from the stream bank where the sample was taken. Default value is \"None\" if not applicable, or \"-88\" if\r\nnot recorded.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "UnitDistanceFromBank",
+        "type": "text",
+        "info": {
+        "label": "Unit Distance From Bank",
+        "notes": "The units used to measure the DistanceFromBank. A list of possible options can be found at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=UnitLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "StreamWidth",
+        "type": "numeric",
+        "info": {
+        "label": "Stream Width",
+        "notes": "Width of the stream where the sample was collected. Default value is \"-88\" if unknown.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "UnitStreamWidth",
+        "type": "text",
+        "info": {
+        "label": "Unit Stream Width",
+        "notes": "The units used to measure the StreamWidth. A list of possible options can be found at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=UnitLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "StationWaterDepth",
+        "type": "numeric",
+        "info": {
+        "label": "Station Water Depth",
+        "notes": "Depth of the water at the area where the sampling station is located. Default value is \"None\" if unknown or not applicable.",
+        "type_override": "numeric"
+        }
+    },
+    {
+        "id": "UnitStationWaterDepth",
+        "type": "text",
+        "info": {
+        "label": "Unit Station Water Depth",
+        "notes": "The units used to measure the StationWaterDepth. A list of possible options can be found at this link: http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=UnitLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "HydroMod",
+        "type": "text",
+        "info": {
+        "label": "Hydrological Modification",
+        "notes": "Indicates if there is any type of alterations in the natural watershed hydrology associated with changes in land cover and use, or notes any observed hydrological modification on the waterbody that was sampled (e.g. \"Pipes\", \"bridges\", \"ConcreteChannel\", etc.). Default value is \"NR\" if unknown. A list of possible options is available at the following site (Note: search the first column in the table for \"HydromodList\"): http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=VariableCodesLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "HydroModLoc",
+        "type": "text",
+        "info": {
+        "label": "Hydrological Modification Location",
+        "notes": "Codes that refer to the location of the hydrological modification (HydroMod field). A list of possible options is available at the following site (Note: search the first column in the table for \"HydromodLocList\"): http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=VariableCodesLookUp",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "LocationDetailWQComments",
+        "type": "text",
+        "info": {
+        "label": "Location Detail WQ Comments",
+        "notes": "Comments regarding observations about the location from which samples were taken, how the samples were taken, or comments about the samples themselves.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "ChannelWidth",
+        "type": "text",
+        "info": {
+        "label": "Channel Width",
+        "notes": "The width of the channel where the sample was collected. Default value equals \"none\" if unknown or not recorded. This\r\nfield is optional so it could be blank.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "UpstreamLength",
+        "type": "text",
+        "info": {
+        "label": "Upstream Length",
+        "notes": "The measured distance upstream where the recorded sample was taken. Default value is \"None\" if not applicable.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "DownStreamLength",
+        "type": "text",
+        "info": {
+        "label": "Down Stream Length",
+        "notes": "The measured distance downstream where the recorded sample was taken. Default value is \"None\" if not applicable.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "TotalReach",
+        "type": "text",
+        "info": {
+        "label": "Total Reach",
+        "notes": "Transposed value of the analyte \"Length, Reach\" which records\r\nthe total length of a reach that was sampled for bioassessment. If this value was not recorded, then value will be blank or \"-88.\"",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "LocationDetailBAComments",
+        "type": "text",
+        "info": {
+        "label": "Location Detail BA Comments",
+        "notes": "Comments regarding the location from which bioassesment measures were taken.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "SampleID",
+        "type": "text",
+        "info": {
+        "label": "Sample ID",
+        "notes": "A unique identifier supplied by the sampling agency, and is used to track the sample throughout the sampling and analysis processes. This field can be used to tie a result to the sample.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "DW_AnalyteName",
+        "type": "text",
+        "info": {
+        "label": "DW Analyte Name",
+        "notes": "A more detailed name for the analyte. This field is included to assist with data reporting.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "DataQuality",
+        "type": "text",
+        "info": {
+        "label": "Data Quality",
+        "notes": "Describes the overall quality of the record by taking the QACode, ResultQACode, ComplicanceCode, BatchVerificationCode, and special circumstances into account to assign it to one of the following categories:\r\n     \"Metadata, QC record”- Not a measurement of environmental conditions\r\n     \"Passed QC\"- Data passed all QC checks\r\n     \"Some review needed\"- Data did not pass minor QC checks, some effort needed to review and defend data if used\r\n     \"Spatial Accuracy Unknown\"- Data missing spatial datum information, data should not be used for fine scale spatial analysis\r\n     \"Extensive review needed\"- Data did not pass QC some critical checks, high level of effort needed to defend data if used\r\n     \"Unknown Data Quality\"- Data was not reviewed by the project. Data will need review before use\r\n     \"Reject Data\"- Data was rejected by the project or data did not pass all critical QC checks. Data deemed unusable\r\nThe assignments and categories are provisional. A working explanation of the data quality ranking can be found at the following link. This link is open to public comments as well: https://docs.google.com/spreadsheets/d/1q-tGulvO9jyT2dR9GGROdy89z3W6xulYaci5-ezWAe0/edit?usp=sharing.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "DataQualityIndicator",
+        "type": "text",
+        "info": {
+        "label": "Data Quality Indicator",
+        "notes": "Explains the reason for the DataQuality value by indicating which quality assurance check the data did not pass (e.g.\r\nBatchVerificationCode, ResultQACode, etc.). If this field contains “Special Rule,” this indicates that the data falls into a special circumstance that decreases data quality. This field is left blank for values \"Metadata, QC record\" and \"Passed QC.\"\r\nThe assignments and categories are provisional. A working explanation of the data quality ranking can be found at the following link. This link is open to public comments as well:\r\nhttps://docs.google.com/spreadsheets/d/1q-tGulvO9jyT2dR9GGROdy89z3W6xulYaci5-ezWAe0/edit?usp=sharing.",
+        "type_override": "text"
+        }
+    },
+    {
+        "id": "Datum",
+        "type": "text",
+        "info": {
+        "label": "Datum",
+        "notes": "Represents the associated model of the Earth from which reference points are used to calculate position measurements.\r\nGPS devices commonly use datums such as \"NAD83\" and\r\n\"WGS84.\" Default value equals “NR” if unknown. A list of possible options is available at the following site (Note: search the first column in the table for \"DatumList\"): http://ceden.org/CEDEN_Checker/Checker/DisplayCEDENLookUp.php?List=VariableCodesLookUp",
+        "type_override": "text"
+        }
+    }
+]'

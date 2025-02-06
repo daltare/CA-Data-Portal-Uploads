@@ -13,7 +13,7 @@ library(gmailr)
 
 # user inputs -------------------------------------------------------------
 # define direct link to the data
-file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=reg_meas_export.txt' 
+file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/flatFilesCiwqs.xhtml?fileName=reg_meas_export.txt' 
 
 # define location where files will be saved
 file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/surface_water_datasets/'
@@ -70,7 +70,7 @@ fn_send_email <- function(error_msg, error_msg_r) {
     
     #### body ----
     body <- glue(
-                "Hi,
+        "Hi,
 There was an error uploading the Wastewater Facilities Permits & Orders regulatory data (from CIWQS) to the data.ca.gov portal on {Sys.Date()}.
                 
 ------
@@ -84,7 +84,7 @@ Here's the error message from R: *{glue_collapse(error_msg_r, sep = ' | ')}*
 Here's the link to the dataset on the data portal: https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950
                 
 Here's the link to the flat file with the source data: https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml  (Export Type = Regulatory Measures)"                
-            )
+    )
     
     #### footer ----
     footer <- glue("Email sent on {date_time}.")
@@ -179,7 +179,7 @@ tryCatch(
         stop(e)
     }
 )
-    
+
 
 
 # download flat file ------------------------------------------------------
@@ -207,7 +207,7 @@ tryCatch(
     }
 )
 
-    
+
 
 # read data into R --------------------------------------------------------
 tryCatch(
@@ -236,7 +236,7 @@ tryCatch(
         stop(e)
     }
 )
-    
+
 
 
 # format data -------------------------------------------------------------
@@ -367,7 +367,7 @@ tryCatch(
     }
 )
 
-    
+
 ## format date fields ----
 # glimpse(df_data_filter)
 tryCatch(
@@ -415,7 +415,7 @@ tryCatch(
     }
 )
 
-  
+
 ## format numeric fields ----
 #### ensure all records are compatible with numeric format 
 tryCatch(
@@ -481,8 +481,13 @@ tryCatch(
 # write revised dataset to csv file ---------------------------------------
 tryCatch(
     {
-        out_file <- paste0(file_save_location, filename_dataset, Sys.Date(), '.csv')
-        write_csv(x = df_data_filter, file = out_file, na = 'NaN')
+        out_file <- paste0(file_save_location, 
+                           filename_dataset, 
+                           Sys.Date(), 
+                           '.csv')
+        write_excel_csv(x = df_data_filter, 
+                        file = out_file, 
+                        na = 'NaN')
     },
     error = function(e) {
         error_message <- 'writing output csv file'
@@ -502,7 +507,7 @@ tryCatch(
         stop(e)
     }
 )
-  
+
 
 
 # write to open data portal -----------------------------------------------

@@ -63,7 +63,7 @@
     
     ## send email if process fails?
     send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
-        
+    
     ## enter the email address to send warning emails from
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
     email_from <- 'daltare.swrcb@gmail.com' # 'david.altare@waterboards.ca.gov' # "gisscripts-noreply@waterboards.ca.gov"
@@ -84,7 +84,7 @@
     #                        provider = 'gmail'
     #                        )
     credentials_file <- 'gmail_creds' # this is the credentials file to be used (corresponds to the email_from address)
-
+    
     ## enter the email address (or addresses) to send warning emails to
     email_to <- 'david.altare@waterboards.ca.gov' 
     # email_to <- c('david.altare@waterboards.ca.gov', 'waterdata@waterboards.ca.gov') # for GIS scripting server
@@ -99,6 +99,7 @@
     
     ## define data portal resource IDs for all years in the dataset
     data_resource_id_list <-  list(
+        '2025' = '176a58bf-6f5d-4e3f-9ed9-592a509870eb',
         '2024' = '7adb8aea-62fb-412f-9e67-d13b0729222f',
         '2023' = '65eb7023-86b6-4960-b714-5f6574d43556',
         '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2',
@@ -334,7 +335,7 @@ tryCatch(
         if (nrow(df_esmr) < 18 * 10^6) { # >18M rows as of 2022-02
             stop('full dataset likely not downloaded (dataset is smaller than expected)')
         }
-
+        
     },
     error = function(e) {
         error_message <- 'reading flat file data into R'
@@ -362,9 +363,9 @@ tryCatch(
 tryCatch(
     {
         gc()
-        write_csv(x = df_esmr,
-                  progress = TRUE,
-                  file = glue('{download_dir}{file_name}_all-data_raw_{file_date}.csv.gz'))
+        write_excel_csv(x = df_esmr,
+                        progress = TRUE,
+                        file = glue('{download_dir}{file_name}_all-data_raw_{file_date}.csv.gz'))
         
         # ## data.table
         # fwrite(df_esmr, 
@@ -488,7 +489,7 @@ if (!exists('df_esmr')) {
 # tryCatch(
 #     {
 #         gc()
-#         write_csv(x = df_smr,
+#         write_excel_csv(x = df_smr,
 #                   progress = TRUE,
 #                   file = glue('{download_dir}{file_name_smr}_raw_{file_date}.csv.gz'))
 #         
@@ -539,7 +540,7 @@ if (!exists('df_esmr')) {
 #            analysis_year = year(analysis_date_rev))
 # df_dates_summary <- df_dates %>% count(sampling_year)
 # View(df_dates_summary)
-# write_csv(df_dates_summary,
+# write_excel_csv(df_dates_summary,
 #           file = paste0(download_dir, 'esmr_sampling-date_summary_', file_date, '.csv'))
 
 ## look at invalid dates (missing, future, far past) ----
@@ -547,21 +548,21 @@ if (!exists('df_esmr')) {
 #     filter(is.na(sampling_date)) %>% 
 #     select(analysis_date, report_name, smr_document_id)
 # View(df_invalid_missing)
-# write_csv(df_invalid_missing,
+# write_excel_csv(df_invalid_missing,
 #           file = paste0(download_dir, 'esmr_sampling-date_missing_', file_date, '.csv'))
 
 # df_invalid_future <- df_esmr %>% 
 #     filter(year(mdy(sampling_date)) > year(file_date)) %>% 
 #     select(sampling_date, analysis_date, report_name, smr_document_id)
 # View(df_invalid_future)
-# write_csv(df_invalid_future,
+# write_excel_csv(df_invalid_future,
 #           file = paste0(download_dir, 'esmr_sampling-date_invalid_future_', file_date, '.csv'))
 
 # df_invalid_past <- df_esmr %>% 
 #     filter(year(mdy(sampling_date)) < 2006) %>% 
 #     select(sampling_date, analysis_date, report_name, smr_document_id)
 # View(df_invalid_past)
-# write_csv(df_invalid_past,
+# write_excel_csv(df_invalid_past,
 #           file = paste0(download_dir, 'esmr_sampling-date_invalid_past_', file_date, '.csv'))
 
 # df_year <- df_esmr %>% 
@@ -868,7 +869,7 @@ tryCatch(
         df_esmr <- df_esmr %>% 
             mutate(sampling_year = year(ymd(sampling_date)))
         ## save dataset first in case someting goes wrong
-        # write_csv(x = df_esmr, 
+        # write_excel_csv(x = df_esmr, 
         #           file = paste0(download_dir, 
         #                         file_name,
         #                         '_parquet-formatted',
@@ -926,7 +927,7 @@ tryCatch(
                  # files = glue('{directory_name}/{list.files(directory_name, recursive = TRUE)}'),
                  files = list.files(recursive = TRUE),
                  # compression_level = 0
-                 )
+        )
         gc()
         Sys.sleep(2)
         
@@ -1129,21 +1130,21 @@ tryCatch(
         # View(df_esmr %>% count(sampling_year)) # to see how many records there are per year
         for (i_year in years_download) { # 2006 is the first (reasonable) year with a substantial (>1000) number of records
             gc()
-            write_csv(x = df_esmr %>% 
-                          filter(sampling_year == i_year) %>% 
-                          select(-sampling_year) %>% 
-                          {.}, 
-                      file = paste0(download_dir, 
-                                    file_name,
-                                    '_year-', i_year,
-                                    '_', file_date,
-                                    '.csv')) #, 
+            write_excel_csv(x = df_esmr %>% 
+                                filter(sampling_year == i_year) %>% 
+                                select(-sampling_year) %>% 
+                                {.}, 
+                            file = paste0(download_dir, 
+                                          file_name,
+                                          '_year-', i_year,
+                                          '_', file_date,
+                                          '.csv')) #, 
             # na = 'NaN')
         }
         
         gc()
         ## optionally, write the full dataset to a zip file
-        # write_csv(x = df_esmr %>% 
+        # write_excel_csv(x = df_esmr %>% 
         #               select(-sampling_year) %>% 
         #               {.}, 
         #           file = paste0(download_dir, 
@@ -1192,23 +1193,44 @@ tryCatch(
     {
         gc()
         
-        write_csv(x = df_esmr %>% 
-                      filter(sampling_year %in% years_download) %>% 
-                      select(-sampling_year),
-                  file = archive_write(archive = paste0(download_dir, file_name,
-                                                        '_years-', min(years_download), 
-                                                        '-', year(file_date),
-                                                        '_', file_date,
-                                                        '.zip'), 
-                                       file = paste0(file_name,
-                                                     '_years-', min(years_download), 
-                                                     '-', year(file_date),
-                                                     '_', file_date,
-                                                     '.csv'))
-        )
+        # write_excel_csv(x = df_esmr %>% 
+        #                     filter(sampling_year %in% years_download) %>% 
+        #                     select(-sampling_year),
+        #                 file = archive_write(archive = paste0(download_dir, file_name,
+        #                                                       '_years-', min(years_download), 
+        #                                                       '-', year(file_date),
+        #                                                       '_', file_date,
+        #                                                       '.zip'), 
+        #                                      file = paste0(file_name,
+        #                                                    '_years-', min(years_download), 
+        #                                                    '-', year(file_date),
+        #                                                    '_', file_date,
+        #                                                    '.csv'))
+        # )
+        
+        
+        ## define file name ----
+        output_filename <- glue('{file_name}_years-{min(years_download)}-{year(file_date)}_{file_date}')
+        
+        ## write raw csv ----
+        temp_dir <- tempdir()
+        temp_file_path <- file.path(temp_dir, glue('{output_filename}.csv'))
+        write_excel_csv(x =  df_esmr %>% 
+                            filter(sampling_year %in% years_download) %>% 
+                            select(-sampling_year),
+                        file = temp_file_path)
+        
+        ## zip csv ----
+        zip::zip(zipfile = glue('{download_dir}{output_filename}.zip'), 
+                 files = temp_file_path, 
+                 mode = 'cherry-pick')
+        
+        ## remove raw csv ----
+        unlink(temp_file_path)
+        
         
         ### write csv ----
-        # write_csv(x = df_esmr %>% 
+        # write_excel_csv(x = df_esmr %>% 
         #               filter(sampling_year %in% years_download) %>% 
         #               select(-sampling_year) %>% 
         #               # mutate(analysis_date = analysis_date_rev,
@@ -1463,12 +1485,17 @@ tryCatch(
         last_year <- NA
         
         ### get python function
+        python_path <- reticulate::py_config()$pythonhome
+        reticulate::use_python(python = python_path, # required to run as scheduled task - see: https://stackoverflow.com/a/70067336
+                               required = T)
+        
         #### install dependent python packages
-        setwd(chunked_upload_directory)
-        shell('pip install -r requirements.txt')
-        setwd('..')
+        # setwd(chunked_upload_directory)
+        # shell('pip install -r requirements.txt')
+        # setwd('..')
+        
         #### get function
-        source_python(python_upload_script)
+        reticulate::source_python(python_upload_script)
         
         for (i in as.character(rev(years_write))) {
             print(glue('Updating Year: {i}'))

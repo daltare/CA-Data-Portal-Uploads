@@ -17,24 +17,28 @@ ckan_api_key = os.environ.get('data_portal_key')
 
 
 ####### DAA - CONFIGURE UPLOAD FILES LOCATION AND LIST #######
-upload_files_location = 'C:/David/_CA_data_portal/Surface-Water-Datasets/esmr/'
-uploads = {#'esmr_analytical_export_year-2021' + '_' + today + '.csv': '28d3a164-7cec-4baf-9b11-7a9322544cd6',  
-           # 'esmr_analytical_export_year-2020' + '_' + today + '.csv': '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
-		   # 'esmr_analytical_export_year-2019' + '_' + today + '.csv': '2eaa2d55-9024-431e-b902-9676db949174',
-           # 'esmr_analytical_export_year-2018' + '_' + today + '.csv': 'bb3b3d85-44eb-4813-bbf9-ea3a0e623bb7',
-           # 'esmr_analytical_export_year-2017' + '_' + today + '.csv': '44d1f39c-f21b-4060-8225-c175eaea129d',
-           # 'esmr_analytical_export_year-2016' + '_' + today + '.csv': 'aacfe728-f063-452c-9dca-63482cc994ad',
-		   # 'esmr_analytical_export_year-2015' + '_' + today + '.csv': '81c399d4-f661-4808-8e6b-8e543281f1c9',
-		   # 'esmr_analytical_export_year-2014' + '_' + today + '.csv': 'c0f64b3f-d921-4eb9-aa95-af1827e5033e',
-		   # 'esmr_analytical_export_year-2013' + '_' + today + '.csv': '8fefc243-9131-457f-b180-144654c1f481',
-		   'esmr_analytical_export_year-2012' + '_' + today + '.csv': '67fe1c01-1c1c-416a-92e1-ee8437db615a',
-		   'esmr_analytical_export_year-2011' + '_' + today + '.csv': 'c495ca93-6dbe-4b23-9d17-797127c28914',
-		   'esmr_analytical_export_year-2010' + '_' + today + '.csv': '4eb833b3-f8e9-42e0-800e-2b1fe1e25b9c',
-		   'esmr_analytical_export_year-2009' + '_' + today + '.csv': '3607ae5c-d479-4520-a2d6-3112cf92f32f',
-		   'esmr_analytical_export_year-2008' + '_' + today + '.csv': 'c0e3c8be-1494-4833-b56d-f87707c9492c',
-		   'esmr_analytical_export_year-2007' + '_' + today + '.csv': '7b99f591-23ac-4345-b645-9adfaf5873f9',
-		   'esmr_analytical_export_year-2006' + '_' + today + '.csv': '763e2c90-7b7d-412e-bbb5-1f5327a5f84e',
-		   }
+upload_files_location = 'C:/Users/daltare/Documents/ca_data_portal_temp/eSMR'
+uploads = {'esmr_analytical_export_year-2025' + '_' + today + '.csv': '176a58bf-6f5d-4e3f-9ed9-592a509870eb',
+            'esmr_analytical_export_year-2024' + '_' + today + '.csv': '7adb8aea-62fb-412f-9e67-d13b0729222f',
+            'esmr_analytical_export_year-2023' + '_' + today + '.csv': '65eb7023-86b6-4960-b714-5f6574d43556',
+            'esmr_analytical_export_year-2022' + '_' + today + '.csv': '8c6296f7-e226-42b7-9605-235cd33cdee2',
+            'esmr_analytical_export_year-2021' + '_' + today + '.csv': '28d3a164-7cec-4baf-9b11-7a9322544cd6',
+            'esmr_analytical_export_year-2020' + '_' + today + '.csv': '4fa56f3f-7dca-4dbd-bec4-fe53d5823905',
+            'esmr_analytical_export_year-2019' + '_' + today + '.csv': '2eaa2d55-9024-431e-b902-9676db949174',
+            'esmr_analytical_export_year-2018' + '_' + today + '.csv': 'bb3b3d85-44eb-4813-bbf9-ea3a0e623bb7',
+            'esmr_analytical_export_year-2017' + '_' + today + '.csv': '44d1f39c-f21b-4060-8225-c175eaea129d',
+            'esmr_analytical_export_year-2016' + '_' + today + '.csv': 'aacfe728-f063-452c-9dca-63482cc994ad',
+            'esmr_analytical_export_year-2015' + '_' + today + '.csv': '81c399d4-f661-4808-8e6b-8e543281f1c9',
+            'esmr_analytical_export_year-2014' + '_' + today + '.csv': 'c0f64b3f-d921-4eb9-aa95-af1827e5033e',
+            'esmr_analytical_export_year-2013' + '_' + today + '.csv': '8fefc243-9131-457f-b180-144654c1f481',
+            'esmr_analytical_export_year-2012' + '_' + today + '.csv': '67fe1c01-1c1c-416a-92e1-ee8437db615a',
+            'esmr_analytical_export_year-2011' + '_' + today + '.csv': 'c495ca93-6dbe-4b23-9d17-797127c28914',
+            'esmr_analytical_export_year-2010' + '_' + today + '.csv': '4eb833b3-f8e9-42e0-800e-2b1fe1e25b9c',
+            'esmr_analytical_export_year-2009' + '_' + today + '.csv': '3607ae5c-d479-4520-a2d6-3112cf92f32f',
+            'esmr_analytical_export_year-2008' + '_' + today + '.csv': 'c0e3c8be-1494-4833-b56d-f87707c9492c',
+            'esmr_analytical_export_year-2007' + '_' + today + '.csv': '7b99f591-23ac-4345-b645-9adfaf5873f9',
+            'esmr_analytical_export_year-2006' + '_' + today + '.csv': '763e2c90-7b7d-412e-bbb5-1f5327a5f84e',
+            }
 ####### END OF UPLOAD FILES CONFIGURATION #######
 
 chunk_size = 1024 * 1024 * 64 # 64MB

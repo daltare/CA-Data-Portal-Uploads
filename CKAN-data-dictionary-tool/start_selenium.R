@@ -84,7 +84,9 @@ driver_table_stable <- driver_url %>%
     html_table()
 driver_download_url <- driver_table_stable %>% 
     filter(Binary == 'chromedriver', 
-           Platform == 'win32') %>% 
+           Platform == 'win32', 
+           `HTTP status` == 200) %>% 
+    slice(1) %>% 
     pull(URL)
 
 #### get current stable driver version number from table
@@ -98,7 +100,13 @@ driver_dir <- file.path(app_dir("chromedriver", FALSE),
                         driver_version_number)
 
 #### if driver not already saved locally, download and unzip
-if (!dir.exists(driver_dir)) {
+redownload_driver <- FALSE
+if (dir.exists(driver_dir))  {
+    if (!"chromedriver.exe" %in% list.files(driver_dir)) {
+        redownload_driver == TRUE
+    }
+}
+if (!dir.exists(driver_dir) | redownload_driver == TRUE) {
     # create directory
     dir.create(driver_dir)
     

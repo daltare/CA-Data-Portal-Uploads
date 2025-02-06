@@ -16,7 +16,7 @@
 # user inputs -------------------------------------------------------------
 {
     # define direct link to the data
-    file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesWaterBoard.xhtml?fileName=enf_actions_export.txt' 
+    file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/flatFilesWaterBoard.xhtml?fileName=enf_actions_export.txt' 
     
     # define location where files will be saved
     file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/surface_water_datasets/'
@@ -242,7 +242,7 @@ tryCatch(
                    'REGION' = 'REGION...73',
                    'ENF ACTION TERM. DATE' = 'TERMINATION DATE...79',
                    'TERMINATION DATE' = 'TERMINATION DATE...57'
-                   ) %>%
+            ) %>%
             # clean_names() %>%
             # select(-starts_with(c('X', 'x'))) %>%
             {.}
@@ -477,8 +477,13 @@ tryCatch(
 # write revised dataset to csv file ---------------------------------------
 tryCatch(
     {
-        out_file <- paste0(file_save_location, filename_dataset, Sys.Date(), '.csv')
-        write_csv(x = df_data_filter, file = out_file, na = 'NaN')
+        out_file <- paste0(file_save_location, 
+                           filename_dataset, 
+                           Sys.Date(), 
+                           '.csv')
+        write_excel_csv(x = df_data_filter, 
+                        file = out_file, 
+                        na = 'NaN')
     },
     error = function(e) {
         error_message <- 'writing output csv file'

@@ -93,6 +93,7 @@
             'all_years' = '3dfee140-47d5-4e29-99ae-16b9b12a404f'
         ),
         WaterChemistryData = list(
+            'year-2025' = '97b8bb60-8e58-4c97-a07f-d51a48cd36d4',
             'year-2024' = '9dcf551f-452d-4257-b857-30fbcc883a03',
             'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
             'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
@@ -121,6 +122,7 @@
             'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
         ),
         TissueData = list(
+            'year-2024' = 'fe359a58-d785-4d45-af72-5e8b0f5428ff',
             'year-2023' = '1512aa84-f18d-4c60-89a0-50c2d1cd1d0c',
             'year-2022' = '6754e8b7-9136-44aa-b65c-bf3a8af6be77',
             'year-2021' = '02e2e832-fa46-4ecb-98e8-cdb70fe3902d',

@@ -17,7 +17,7 @@ library(glue)
 
 # user inputs -------------------------------------------------------------
 ## define direct link to the data
-file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesEwrims.xhtml?fileName=ewrims_flat_file.csv'
+file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/flatFilesEwrims.xhtml?fileName=ewrims_flat_file.csv'
 
 ## define data portal resource ID
 resourceID <- '151c067a-088b-42a2-b6ad-99d84b48fb36' # https://data.ca.gov/dataset/water-rights/resource/151c067a-088b-42a2-b6ad-99d84b48fb36
@@ -28,7 +28,7 @@ portal_key <- Sys.getenv('data_portal_key')
 # portal_key <- '' # for GIS scripting server, enter key here
 
 ## define location where files will be saved
-file_save_location <- 'C:\\David\\_CA_data_portal\\Water-Rights\\'
+file_save_location <- 'C:\\Users\\daltare\\Documents\\ca_data_portal_temp\\Water-Rights\\'
 # file_save_location <- 'D:\\Data\\Scripts\\R\\water_rights_update\\' # for GIS scripting server
 
 ## enter the email address to send warning emails from
@@ -148,7 +148,9 @@ tryCatch(
 tryCatch(
     {
         temp <- tempfile()
-        download.file(url = file_link, destfile = temp, method = 'curl')
+        download.file(url = file_link, 
+                      destfile = temp, 
+                      method = 'curl')
     },
     error = function(e) {
         error_message <- 'downloading source data file'
@@ -202,11 +204,11 @@ tryCatch(
 ## clean field names / remove some fields ----
 tryCatch(
     {
-        df_data <- clean_names(df_data)
+        # df_data <- clean_names(df_data)
         df_data_filter <- df_data %>% 
-            select(-c(application_number_party, pwss_id, fee_due, num_comments, 
-                      num_attachments, last_update_date, primary_owner_entity_type_p, 
-                      current_status, appl_id, permit_permit_id, license_license_id))
+            select(-c(APPLICATION_NUMBER_PARTY, PWSS_ID, FEE_DUE, NUM_COMMENTS, 
+                      NUM_ATTACHMENTS, LAST_UPDATE_DATE, PRIMARY_OWNER_ENTITY_TYPE_P, 
+                      CURRENT_STATUS, APPL_ID, PERMIT_PERMIT_ID, LICENSE_LICENSE_ID))
     },
     error = function(e) {
         error_message <- 'formatting data (selecting fields and cleaning field names)'
@@ -266,17 +268,14 @@ tryCatch(
 tryCatch(
     {
         # dplyr::glimpse(df_data_filter)
-        fields_dates <- c('priority_date', 'receipt_date', 'rejection_date', 
-                          'application_recd_date', 'application_acceptance_date', 'effective_from_date',
-                          'effective_to_date', 'effective_date', 
-                          # 'update_datetime',
-                          # 'pod_last_update_date',
-                          'permit_original_issue_date', 'complete_construction_date',
-                          'complete_applic_water_date', 'license_original_issue_date','license_requested_date',
-                          'inspection_date', 'report_date', 'offer_sent_date', 
-                          'accepted_offer_date', 'date_received', 'date_completed',
-                          # 'pet_last_update_date', 
-                          'enf_case_start_date', 'enf_case_closure_date')
+        fields_dates <- c('PRIORITY_DATE', 'RECEIPT_DATE', 'REJECTION_DATE', 
+                          'APPLICATION_RECD_DATE', 'APPLICATION_ACCEPTANCE_DATE', 'EFFECTIVE_FROM_DATE', 
+                          'EFFECTIVE_TO_DATE', 'EFFECTIVE_DATE', 
+                          'PERMIT_ORIGINAL_ISSUE_DATE', 'COMPLETE_CONSTRUCTION_DATE', 'COMPLETE_APPLIC_WATER_DATE', 
+                          'LICENSE_ORIGINAL_ISSUE_DATE', 'LICENSE_REQUESTED_DATE', 'INSPECTION_DATE', 
+                          'REPORT_DATE', 'OFFER_SENT_DATE', 'ACCEPTED_OFFER_DATE', 
+                          'DATE_RECEIVED', 'DATE_COMPLETED',
+                          'ENF_CASE_START_DATE', 'ENF_CASE_CLOSURE_DATE')
         
         for (counter in seq(length(fields_dates))) {
             # convert the date field to ISO format
@@ -300,33 +299,60 @@ tryCatch(
     }
 )
 
+
+## format timestamp fields ----
+### (convert dates into a timestamp field that can be read by the portal)
+tryCatch(
+    {
+        # dplyr::glimpse(df_data_filter)
+        fields_timestamp <- c('UPDATE_DATETIME', 'POD_LAST_UPDATE_DATE', 'PET_LAST_UPDATE_DATE')
+        
+        for (counter in seq(length(fields_timestamp))) {
+            # convert the date field to ISO format
+            dates_iso <- dmy_hms(df_data_filter[[fields_timestamp[counter]]])
+            # check NAs: sum(is.na(dates_iso))
+            # Convert dates to text, and for NAs store as '' (empty text string) - this converts to 'null' in Postgres
+            dates_iso <- as.character(dates_iso)
+            # Check: sum(is.na(dates_iso))
+            dates_iso[is.na(dates_iso)] <- ''
+            # check NAs: sum(is.na(dates_iso))
+            # Insert the revised date field back into the dataset
+            df_data_filter[,fields_timestamp[counter]] <- dates_iso
+        }
+    }, 
+    error = function(e) {
+        error_message <- 'formatting timestamp fields'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
+
+
+
 ## format numeric fields ----
 ### (ensure all records are compatible with numeric format)
 tryCatch(
     {
-        fields_numeric <- c('number_of_protests', 'ini_reported_div_amount',
-                            'face_value_amount', 'fee_received', 'appl_fee_amount', 
-                            'appl_fee_amt_recd', 'max_dd_appl', 'max_dd_ann', 
-                            'max_storage', 'max_taken_from_source', 'year_diversion_commenced', 
-                            'max_beneficially_used', 'quantity_of_water_diverted', 'quantity_measurement_year',
-                            'max_rate_of_diversion', 'recent_water_use_min', 'recent_water_use_max',
-                            'drilled_well_year', 'depth_of_well', 'count_npo_or_other', 
-                            'number_of_residences', 'use_population', 'use_population_people',
-                            'estimated_use_per_person', 'use_population_stock', 'area_for_inci_irrigation',
-                            'use_net_acreage', 'use_gross_acreage', 'use_direct_div_annual_amount',
-                            'use_direct_diversion_rate', 'use_storage_amount', 'season_direct_div_rate', 
-                            'season_storage_amount', 'season_direct_div_aa', 'use_count',
-                            'pod_number', 'direct_div_amount',
-                            'direct_diversion_rate', 'storage_amount', 'diversion_rate_to_off_stream',
-                            'pod_count',  
-                            'sp_zone', 'north_coord',
-                            'east_coord', 'latitude', 'longitude',
-                            'section_number', 'township_number', 'range_number',
-                            'huc_12_number', 'huc_8_number', 'num_of_petitions', 
-                            'number_of_enforcement_case')
+        fields_numeric <- c('NUMBER_OF_PROTESTS', 'INI_REPORTED_DIV_AMOUNT', 'FACE_VALUE_AMOUNT', 
+                            'FEE_RECEIVED', 'APPL_FEE_AMOUNT', 'APPL_FEE_AMT_RECD', 'MAX_DD_APPL', 
+                            'MAX_DD_ANN', 'MAX_STORAGE', 'MAX_TAKEN_FROM_SOURCE', 'YEAR_DIVERSION_COMMENCED', 
+                            'MAX_BENEFICIALLY_USED', 'QUANTITY_OF_WATER_DIVERTED', 'QUANTITY_MEASUREMENT_YEAR', 
+                            'MAX_RATE_OF_DIVERSION', 'RECENT_WATER_USE_MIN', 'RECENT_WATER_USE_MAX', 
+                            'DRILLED_WELL_YEAR', 'DEPTH_OF_WELL', 'COUNT_NPO_OR_OTHER', 'NUMBER_OF_RESIDENCES', 
+                            'USE_POPULATION', 'USE_POPULATION_PEOPLE', 'ESTIMATED_USE_PER_PERSON', 
+                            'USE_POPULATION_STOCK', 'AREA_FOR_INCI_IRRIGATION', 'USE_NET_ACREAGE', 
+                            'USE_GROSS_ACREAGE', 'USE_DIRECT_DIV_ANNUAL_AMOUNT', 'USE_DIRECT_DIVERSION_RATE', 
+                            'USE_STORAGE_AMOUNT', 'SEASON_DIRECT_DIV_RATE', 'SEASON_STORAGE_AMOUNT', 
+                            'SEASON_DIRECT_DIV_AA', 'USE_COUNT', 'POD_NUMBER', 'DIRECT_DIV_AMOUNT', 
+                            'DIRECT_DIVERSION_RATE', 'STORAGE_AMOUNT', 'DIVERSION_RATE_TO_OFF_STREAM', 
+                            'POD_COUNT', 'SP_ZONE', 'NORTH_COORD', 'EAST_COORD', 'LATITUDE', 
+                            'LONGITUDE', 'SECTION_NUMBER', 'TOWNSHIP_NUMBER', 'RANGE_NUMBER', 
+                            'HUC_12_NUMBER', 'HUC_8_NUMBER', 'NUM_OF_PETITIONS', 'NUMBER_OF_ENFORCEMENT_CASE')
         
         # fields not converted to numeric but could be:
-        # 'wr_water_right_id', 'pod_id', 'objectid', 'pod_number_gis', 'pod_id_gis', 
+        # 'WR_WATER_RIGHT_ID', 'POD_ID', 'OBJECTID', 'POD_NUMBER_GIS', 'POD_ID_GIS'
         
         # convert to numeric
         for (counter in seq(length(fields_numeric))) {
@@ -365,8 +391,13 @@ tryCatch(
 # write revised dataset to csv file ---------------------------------------
 tryCatch(
     {
-        out_file <- paste0(file_save_location, 'water_rights_list_', Sys.Date(), '.csv')
-        write_csv(x = df_data_filter, file = out_file, na = 'NaN')
+        out_file <- paste0(file_save_location, 
+                           'water_rights_list_', 
+                           Sys.Date(), 
+                           '.csv')
+        write_excel_csv(x = df_data_filter, 
+                        file = out_file, 
+                        na = 'NaN')
     },
     error = function(e) {
         fn_send_email(error_msg = 'writing output file')
@@ -379,21 +410,22 @@ tryCatch(
 
 
 # write to open data portal -----------------------------------------------
-# tryCatch(
-#     {
-#         ckanr_setup(url = 'https://data.ca.gov/',
-#                     key = portal_key)
-#         # get resource info (just as a check)
-#         # ckan_resource_info <- resource_show(id = resourceID, as = 'table')
-#         file_upload <- resource_update(id = resourceID, path = out_file)
-#     },
-#     error = function(e) {
-#         error_message <- 'uploading data to data.ca.gov portal'
-#         error_message_r <- capture.output(cat(as.character(e)))
-#         fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
-#         print(glue('Error: {error_message}'))
-#         stop(e)
-#     }
-# )
+tryCatch(
+    {
+        ckanr_setup(url = 'https://data.ca.gov/',
+                    key = portal_key)
+        # get resource info (just as a check)
+        # ckan_resource_info <- resource_show(id = resourceID, as = 'table')
+        file_upload <- resource_update(id = resourceID, 
+                                       path = out_file)
+    },
+    error = function(e) {
+        error_message <- 'uploading data to data.ca.gov portal'
+        error_message_r <- capture.output(cat(as.character(e)))
+        fn_send_email(error_msg = error_message, error_msg_r = error_message_r)
+        print(glue('Error: {error_message}'))
+        stop(e)
+    }
+)
 
 print('Completed Water Rights Data Upload Script')
