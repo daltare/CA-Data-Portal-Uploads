@@ -1,13 +1,13 @@
 # This uses the CKAN `datastore_create` API call to update the data dictionary 
-# of an existing resouce on the data.ca.gov portal. This process does not impact 
+# of an existing resource on the data.ca.gov portal. This process does not impact 
 # the data in that resource. For more information, see: 
 # <https://stackoverflow.com/a/66698935>.
 # 
 # The process defined here assumes that the data dictionary information is saved 
 # in an existing file (like an Excel workbook or CSV file - it's currently designed
 # to accept an Excel file, and slight modifications will need to be made if using 
-# it with a CSV). For more information about how the information in the  data 
-# dictionary file should be strutured, see the documentation for the 
+# it with a CSV). For more information about how the information in the data 
+# dictionary file should be structured, see the documentation for the 
 # `upload_ckan_data_dictionary` function.
 
 
@@ -57,7 +57,7 @@ def upload_ckan_data_dictionary(resource_id: str,
         base_url: The base of the URL used to execute the API call, including the URL of the data portal (e.g., 'data.ca.gov') and the 'datastore_create' API action (for more information, see <https://docs.ckan.org/en/2.9/maintaining/datastore.html#ckanext.datastore.logic.action.datastore_create>).
 
     Returns:
-        The result of the API request. The status code is accessable using `.status_code`, and the full text of the API response is available using `.response`.
+        The result of the API request. The status code is accessible using `.status_code`, and the full text of the API response is available using `.response`.
     """
     
     # format data dictionary for portal API upload
@@ -143,7 +143,7 @@ def execute_data_dictionary_api_call(data_dictionary_formatted: list[dict[str, s
         base_url: The base of the URL used to execute the API call, including the URL of the data portal (e.g., 'data.ca.gov') and the 'datastore_create' API action (for more information, see <https://docs.ckan.org/en/2.9/maintaining/datastore.html#ckanext.datastore.logic.action.datastore_create>).
 
     Returns:
-        The result of the API request. The status code is accessable using `.status_code`, and the full text of the API response is available using `.response`.
+        The result of the API request. The status code is accessible using `.status_code`, and the full text of the API response is available using `.response`.
     """
     
     ## Define headers ----
