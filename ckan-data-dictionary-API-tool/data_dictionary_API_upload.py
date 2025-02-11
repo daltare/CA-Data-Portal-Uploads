@@ -130,11 +130,10 @@ def execute_data_dictionary_api_call(data_dictionary_formatted: list[dict[str, s
                                      ) -> requests.models.Response:
     
     """
-    Execute the API call to upload a data dictionary to a CKAN data portal.
-    Upload a data dictionary stored in a spreadsheet to a CKAN data portal. This function calls two helper functions, including 'format_data_dictionary' which transforms the data dictionary information into the format required for the API call, and 'execute_data_dictionary_api_call' which executes the API call and returns the response.
+    Execute the API call to upload a formatted data dictionary to a CKAN data portal.
     
     Args:
-        data_dictionary_formatted: The data dictionary information to be uploaded, as a list of dictionaries. Generated with the `format_data_dictionary` function.
+        data_dictionary_formatted: The data dictionary information to be uploaded, formatted as a list of dictionaries. Generated with the `format_data_dictionary` function.
         
         resource_id: The ID of the data resource the data dictionary will be loaded to (this is the alphanumeric code at the end of a resource's URL). 
             
