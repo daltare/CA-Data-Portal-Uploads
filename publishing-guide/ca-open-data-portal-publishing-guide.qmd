@@ -60,7 +60,7 @@ In the context of the open data portal, a dataset is a collection of data resour
 
         ![](screenshots/06A2_add_pdf_dictionary.png)
 
-    B.  Add the data dictionary directly to the data resource by going to the data resource and clicking on the **Manage** button. (**NOTE**: After uploading a new data resource, before you can add data dictionary information you'll need to wait until the data table appears on the resource's page, as shown in the screenshot below; this could take a few minutes, depending on the size of the resource.)
+    B.  Add the data dictionary directly to the data resource by going to the data resource's page and clicking on the **Manage** button. (**NOTE**: After uploading a new data resource, before you can add data dictionary information you'll need to wait until the data table appears on the resource's page, as shown in the screenshot below; this could take a few minutes, depending on the size of the resource.)
 
         ![](screenshots/06B1_manage_resource.png)
 
