@@ -1,17 +1,17 @@
 ---
 title: California Open Data Portal Publishing Guide for the State Water Board 
 format:
-  # html:
-  #   toc: true
-  #   number-sections: true
-  #   css: style.css
-  #   embed-resources: true
-  pdf:
+  html:
     toc: true
     number-sections: true
     css: style.css
-    colorlinks: true
-    fig-pos: 'h'
+    embed-resources: true
+  # pdf:
+  #   toc: true
+  #   number-sections: true
+  #   css: style.css
+  #   colorlinks: true
+  #   fig-pos: 'h'
 format-links: false
 ---
 
