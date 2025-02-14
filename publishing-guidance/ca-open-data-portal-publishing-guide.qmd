@@ -1,0 +1,118 @@
+---
+title: California Open Data Portal Publishing Guide for the State Water Board 
+format:
+  # html:
+  #   toc: true
+  #   number-sections: true
+  #   css: style.css
+  #   embed-resources: true
+  pdf:
+    toc: true
+    number-sections: true
+    css: style.css
+    colorlinks: true
+    fig-pos: 'h'
+format-links: false
+---
+
+This document describes the basics of how to publish a data on the [California Open Data Portal](https://data.ca.gov/) for staff at the California State Water Resources Control Board.
+
+In the context of the open data portal, a dataset is a collection of data resources (such as files), together with a description and other information, at a fixed URL. A data resource is any file or link to a file containing useful data. The instructions below demonstrate how to create a new dataset, then add one or more data resources to that dataset. If you want to manage an existing dataset (including adding a new resource, updating an existing resource, or editing dataset metadata), skip to the [Managing an Existing Dataset or Data Resource](#managing_existing_datasets) section.
+
+## Creating a New Dataset
+
+1.  Go to <https://data.ca.gov/> and click on the **Log in** button at the top right of the window to log in to your user account.
+
+    ![](screenshots/01_login.png)
+
+2.  In your account dashboard, click on the **My Organizations** tab, then click on the **California State Water Resources Control Board** icon (if you're not already a member of this organization, you'll need to work with Office of Information Management and Analysis (OIMA) staff to be added to it).
+
+    ![](screenshots/02_account_dashboard.png)
+
+3.  On the organization page, click on the **Add Dataset** button.
+
+    ![](screenshots/03_add_dataset.png)
+
+4.  Fill in the dataset metadata (e.g., Title, Description, etc.). Guidance on how to populate the metadata is available [here](https://docs.data.ca.gov/california-open-data-publishers-handbook/3.-create-metadata-and-data-dictionary "California Open Data Publisher's Handbook - Create Metadata and Data Dictionary") and [here](https://data.ca.gov/pages/creating-metadata-and-data-dictionary "California Open Data Portal Publisher's Guide - Creating Metadata and a Data Dictionary").
+
+    ![](screenshots/04_dataset_metadata.png)
+
+    When you're finished, click on the **Next: Add Data** button at the bottom of the page.
+
+    ![](screenshots/04_add_data_button.png)
+
+5.  Add a file containing your data using either the **Upload** or **Link** buttons, add a title and description for the resource, then click the **Finish** button, or click the **Save & add another** button to add another data resource. Guidance on how to format a data file for publication on the open data portal is available [here](https://docs.data.ca.gov/california-open-data-publishers-handbook/2.-prepare-data-for-publishing "California Open Data Publisher's Handbook - Prepare Data for Publishing") and [here](https://data.ca.gov/pages/preparing-data-publication-datastore "California Open Data Portal Publisher's Guide - Preparing Data for Publication").
+
+    ![](screenshots/05_add_data_resource.png)
+
+6.  ::: {#data-dict}
+    Add a data dictionary for the data resource you just created using one or both of the following methods. Guidance on how to populate the data dictionary is available [here](https://docs.data.ca.gov/california-open-data-publishers-handbook/3.-create-metadata-and-data-dictionary#create-your-data-dictionary "California Open Data Publisher's Handbook - Create your data dictionary"), [here](https://data.ca.gov/pages/creating-metadata-and-data-dictionary "California Open Data Portal Publisher's Guide - Creating Metadata and a Data Dictionary"), and [here](https://docs.google.com/document/d/1GMD9CplnCgX723ot3yOLkXVnuexZdO2X00VLInidiws/edit#heading=h.lcji112b1gb9 "California State Water Board's Recommendations and Guidelines for Data Dictionary Development").
+
+    A.  Upload a PDF containing the data dictionary to the dataset (as a separate resource), by going to the dataset homepage and clicking on the **Manage** button.
+
+        ![](screenshots/06_add_more_resources.png)
+
+        Then click on the **Resources** tab, and click on the **Add new resource** button.
+
+        ![](screenshots/06A1_add_resource.png)
+
+        Upload the PDF file by clicking the **Upload** button, then click on the **Add** button.
+
+        ![](screenshots/06A2_add_pdf_dictionary.png)
+
+    B.  Add the data dictionary directly to the data resource by going to the data resource and clicking on the **Manage** button. (**NOTE**: After uploading a new data resource, before you can add data dictionary information you'll need to wait until the data table appears on the resource's page, as shown in the screenshot below; this could take a few minutes, depending on the size of the resource.)
+
+        ![](screenshots/06B1_manage_resource.png)
+
+        Go to the **Data Dictionary** tab, then fill in the available information for each field in the data resource.
+
+        ![](screenshots/06B2_edit_resource_data_dictionary.png)
+
+        Click the **Save** button when finished.
+
+        ![](screenshots/06B3_save_resource_data_dictionary.png)
+
+        After saving the data dictionary information, the data dictionary will appear below the data table on the resource's page. (**NOTE**: you may need to update the resource's **DataStore** to make sure all of the changes to the data dictionary are applied to the resource; to do this, see the instructions in [Step 2](#manage-existing-resource) of the *Managing an Existing Dataset or Data Resource* section below.)
+
+        ![](screenshots/06B4_view_resource_data_dictionary.png)
+
+        **NOTE:** Setting the data type for each field by selecting a value in the **Type Override** box is especially useful if your users will be accessing the data via the API, but you'll need to ensure that all of the data in the given field is compatible with that data type before setting a data type other than 'text'. If there are problems with the data types, you can find more information by following the instructions in [Step 2](#manage-existing-resource) of the *Managing an Existing Dataset or Data Resource* section below, and going to the **DataStore** tab.
+
+        If you need to add data dictionary information for data resources with many fields and/or datasets with large numbers of resources, you can contact OIMA staff for assistance with automating the process of uploading that data dictionary information (to avoid the need for manual entry of the data dictionary information).
+    :::
+
+## Managing an Existing Dataset or Data Resource {#managing_existing_datasets}
+
+1.  To add an additional data resource to an existing dataset, or to update the metadata for an existing dataset, go to the dataset and click on the **Manage** button.
+
+    ![](screenshots/07A_manage_resource.png)
+
+    To update the dataset's metadata, click on the **Edit metadata** tab, or to add a new data resource to the dataset click on the **Resources** tab then click on the **Add new resource** button.
+
+    ![](screenshots/07B_edit_dataset_add_resource.png)
+
+    If you're adding a new data resource that doesn't already have an associated data dictionary available on the portal, you'll need to add a data dictionary for your resource. See [Step #6](#data-dict) above for information on how to do this.
+
+2.  ::: {#manage-existing-resource}
+    To manage an existing data resource (i.e., an existing file within a dataset and the file's associated metadata), go to the data resource's page, then click on the **Manage** button.
+    :::
+
+    ![](screenshots/08A_manage_resource.png)
+
+    From here, got to the **Edit Resource** tab to update the data file or update the resource's title or description, go to the **DataStore** tab to ensure that the data has been correctly uploaded to the database that feeds the resource's API, or go to the **Data Dictionary** tab to add information about each field and set the fields' data types.
+
+    ![](screenshots/08B_manage_resource_tabs.png)
+
+## Additional Resources
+
+For more information about publishing open data resources on the California Open Data Portal, see the following resources:
+
+-   [California Open Data Publisher's Handbook](https://docs.data.ca.gov/california-open-data-publishers-handbook)
+
+-   [California Open Data Portal Publisher's Guide](https://data.ca.gov/pages/open-data-publisher-guide-contents)
+
+-   [California State Water Board's Open Data Publishing Guide](https://cawaterboards.sharepoint.com/:w:/r/sites/oimadatateam2/_layouts/15/Doc.aspx?sourcedoc=%7bF5900D88-D94B-4CD4-8ACE-7AC34549EC1D%7d&file=California%20Water%20Board%20Open%20Data%20Publishing%20Guide.docx&action=default&mobileredirect=true&cid=6bb97bb8-35da-4457-a55e-887013d78912)
+
+-   [California State Water Board's Recommendations and Guidelines for Data Dictionary Development](https://docs.google.com/document/d/1GMD9CplnCgX723ot3yOLkXVnuexZdO2X00VLInidiws/edit#heading=h.lcji112b1gb9)
+
+-   [California State Water Board's Open Data Handbook](https://www.waterboards.ca.gov/resources/oima/cowi/open_data_handbook.html)

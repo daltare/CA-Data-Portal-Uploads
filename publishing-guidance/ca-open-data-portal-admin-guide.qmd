@@ -1,0 +1,46 @@
+---
+title: California Open Data Portal Administration Guide for OIMA Staff 
+format:
+  html:
+    toc: true
+    number-sections: true
+    css: style.css
+    embed-resources: true
+  # pdf:
+  #   toc: true
+  #   number-sections: true
+  #   css: style.css
+  #   colorlinks: true
+  #   fig-pos: 'h'
+format-links: false
+---
+
+This document describes how OIMA staff at the California State Water Resources Control Board can manage users and permissions in the Water Board's organization on the [California Open Data Portal](https://data.ca.gov/). These instructions assume that you are already a member of the Water Board's organizational account and have administrative rights for the account.
+
+1.  Go to <https://data.ca.gov/> and click on the **Log in** button at the top right of the window to log in to your user account.
+
+    ![](screenshots/01_login.png)
+
+2.  In your account dashboard, click on the **My Organizations** tab, then click on the **California State Water Resources Control Board** icon.
+
+    ![](screenshots/02_account_dashboard.png)
+
+3.  On the organization page, click on the **Manage** button.
+
+    ![](screenshots/portal_admin/03_manage_organization.png)
+
+4.  Click on the **Members** tab to manage members of the organization.
+
+    ![](screenshots/portal_admin/04_members_tab.png)
+
+5.  In the Members tab, click on the **Add Member** button.
+
+    ![](screenshots/portal_admin/05_add_member.png)
+
+6.  On the **Add Member** page, you can add a member with an existing portal account by searching for an existing user (based on their username), or you can invite a new member by sending them an email invite. Select the user's access rights by selecting an option in the **Role** dropdown ('*Member*' can view private datasets but can't add or edit data; '*Editor*' can view private datasets and add/edit data; '*Admin*' can view private datasets, add/edit data, and manage organization members). When finished, click the **Add Member** button.
+
+    ![](screenshots/portal_admin/06_add_member_details.png)
+
+7.  To change a member's access rights (i.e., Role), click on the wrench icon next to the user's name. To remove a member from the organizational account, click the red box with the '*x*' icon next to the user's name.
+
+    ![](screenshots/portal_admin/07_edit_member_role.png)
