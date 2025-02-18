@@ -15,6 +15,10 @@ format:
 format-links: false
 ---
 
+::: callout-note
+This is a copy of the original guide that was published on Sharepoint [here](https://cawaterboards.sharepoint.com/:w:/r/sites/oimadatateam2/_layouts/15/Doc.aspx?sourcedoc=%7bF5900D88-D94B-4CD4-8ACE-7AC34549EC1D%7d&file=California%20Water%20Board%20Open%20Data%20Publishing%20Guide.docx&action=default&mobileredirect=true&cid=6bb97bb8-35da-4457-a55e-887013d78912).
+:::
+
 ## Introduction
 
 This document provides guidance to staff of the California State Water Resources Control Board (State Water Board) on the process of publishing data in an open data format, with the aim of creating a consistent and repeatable set of guidelines and procedures for staff to follow. It is a living document that will be updated as new issues are identified or new workflows are created. The guide is being developed by the State Water Board’s Office of Information Management and Analysis (OIMA), which is leading the State Water Board’s Open Data Initiative, and will serve as a resource to facilitate open data publishing efforts and coordinate open data efforts across the State Water Board’s departments and programs.
@@ -110,7 +114,7 @@ In general (see exception discussed below), the title should consist of two part
 To facilitate consistency in the first part of the title, the following list of Water Board business areas should be used whenever possible:
 
 | Business Area Name | Description |
-|----|----|
+|------------------------------------|------------------------------------|
 | Drinking Water | Data involving the protection of drinking water. Typically, data related to the regulation of drinking water systems. |
 | Financial Assistance | Data related to financial assistance programs for infrastructure improvement and environmental protection projects. Typically, data involved in the administration of loans and grants. |
 | Water Quality | Data involving the protection of the environment, public health, and all beneficial uses. Typically, data related to the regulation of discharges of waste to the environment. |

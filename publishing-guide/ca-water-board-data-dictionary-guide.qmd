@@ -15,6 +15,10 @@ format:
 format-links: false
 ---
 
+::: callout-note
+This is a copy of the original guide that was published on Google Docs [here](https://docs.google.com/document/d/1GMD9CplnCgX723ot3yOLkXVnuexZdO2X00VLInidiws/edit?tab=t.0#heading=h.lcji112b1gb9).
+:::
+
 This document provides a set of generic guidelines recommended for use in the development of a data dictionary for any dataset managed by the California State Water Resources Control Board (Water Board). These recommendations were developed by the Water Board’s Office of Information Management and Analysis (OIMA), and are intended to help the State Board’s data managers understand the purpose and structure of a data dictionary while also encouraging a level of consistency of metadata structure and contents across datasets.
 
 A data dictionary is a part of a dataset’s metadata which provides a description of each of the fields or variables contained within that dataset. Its purpose is to thoroughly document the dataset and provide consumers, suppliers, managers, and/or administrators of the data with specific information about each variable that they may need in their given role (note that a data dictionary describes the repository of the data, but not necessarily the interface used to collect it, so other types of documentation may be required to describe and manage the interface).
