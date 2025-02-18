@@ -1,5 +1,5 @@
 ---
-title: California Open Data Portal Publishing Guide for the State Water Board 
+title: California State Water Resources Control Board’s Guide to Publishing on the California Open Data Portal
 format:
   html:
     toc: true

@@ -114,7 +114,7 @@ In general (see exception discussed below), the title should consist of two part
 To facilitate consistency in the first part of the title, the following list of Water Board business areas should be used whenever possible:
 
 | Business Area Name | Description |
-|------------------------------------|------------------------------------|
+|:----------------------------------:|:----------------------------------:|
 | Drinking Water | Data involving the protection of drinking water. Typically, data related to the regulation of drinking water systems. |
 | Financial Assistance | Data related to financial assistance programs for infrastructure improvement and environmental protection projects. Typically, data involved in the administration of loans and grants. |
 | Water Quality | Data involving the protection of the environment, public health, and all beneficial uses. Typically, data related to the regulation of discharges of waste to the environment. |

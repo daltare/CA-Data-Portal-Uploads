@@ -86,5 +86,5 @@ These are examples of fields which could be included in applications for interna
 ## Example Data Dictionary Format
 
 | Column | Label | Type | Description | Data Categorization | Valid Values / Examples | Known Issues | Condition / Source | Required / Optional | Collection Period | \<Other Fields\> |
-|-------|------|------|---------|-----------|-----------|--------|---------|---------|---------|---------|
-| ... |  |  |  |  |  |  |  |  |  |  |
+|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
+| \- | \- | \- | \- | \- | \- | \- | \- | \- | \- | \- |
