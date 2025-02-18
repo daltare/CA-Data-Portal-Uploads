@@ -85,8 +85,10 @@ These are examples of fields which could be included in applications for interna
 
 ## Example Data Dictionary Format
 
-The table below shows the suggested structure of the data dictionary file. You can download a template data dictionary file in Excel format [here](https://github.com/daltare/CA-Data-Portal-Uploads/raw/refs/heads/main/publishing-guide/CA_Water_Board_Data_Dictionary_Template.xlsx).
+The table below shows the suggested structure of the data dictionary file.
 
 | Column | Label | Type | Description | Data Categorization | Valid Values / Examples | Known Issues | Condition / Source | Required / Optional | Collection Period | \<Other Fields\> |
 |:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|
 | \- | \- | \- | \- | \- | \- | \- | \- | \- | \- | \- |
+
+You can download a template data dictionary file in Excel format [here](https://github.com/daltare/CA-Data-Portal-Uploads/raw/refs/heads/main/publishing-guide/CA_Water_Board_Data_Dictionary_Template.xlsx).

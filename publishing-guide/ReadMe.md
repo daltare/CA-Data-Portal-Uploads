@@ -10,4 +10,4 @@ This repository contains a guide for publishing data on the California Open Data
 
 -   A copy of the original **Water Board Data Dictionary Guide** is available here: <https://daltare.github.io/CA-Data-Portal-Uploads/publishing-guide/ca-water-board-data-dictionary-guide.html>
 
-    -   **Data Dictionary Template** (link to download Excel file): <https://github.com/daltare/CA-Data-Portal-Uploads/raw/refs/heads/main/publishing-guide/CA_Water_Board_Data_Dictionary_Template.xlsx>
+    -   **Data Dictionary Template File** (link to download Excel file): <https://github.com/daltare/CA-Data-Portal-Uploads/raw/refs/heads/main/publishing-guide/CA_Water_Board_Data_Dictionary_Template.xlsx>
