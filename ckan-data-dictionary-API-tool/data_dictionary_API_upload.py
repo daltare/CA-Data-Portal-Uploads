@@ -15,6 +15,7 @@
 # setup --------------------------------------------------------------------
 import os
 import polars as pl
+import janitor.polars
 import requests
 # import json
 
@@ -46,11 +47,11 @@ def upload_ckan_data_dictionary(resource_id: str,
     Args:
         resource_id: The ID of the data resource the data dictionary will be loaded to (this is the alphanumeric code at the end of a resource's URL). 
         
-        data_dictionary_file: The filename of the workbook that contains the data dictionary information. The data dictionary should be in the first worksheet of the workbook, and the dictionary information should be in fields named: 'column', 'type', 'label', and 'description'. These fields should contain the following information:
-            - column: The name of the field as it's written in the source data table
-            - type: One of the data types available on the portal - either 'text', 'numeric', or 'timestamp' (for the data.ca.gov portal, as of 2025-02)
-            - label: The common English title for the data contained in this column.
-            - description: Full description of what information is included for the field.
+        data_dictionary_file: The filename of the workbook that contains the data dictionary information. The data dictionary should be in the first worksheet of the workbook, and the dictionary information should be in fields named: 'Column', 'Type', 'Label', and 'Description'. These fields should contain the following information:
+            - Column: The name of the field as it's written in the source data table
+            - Type: One of the data types available on the portal - either 'text', 'numeric', or 'timestamp' (for the data.ca.gov portal, as of 2025-02)
+            - Label: The common English title for the data contained in this column.
+            - Description: Full description of what information is included for the field.
             
         portal_key: The user's API key for the data portal. This is available by going to the user's profile on the data portal. The portal key should be stored in an environment variable.
         
@@ -80,21 +81,22 @@ def format_data_dictionary(data_dictionary_file: str) -> list[dict[str, str]]:
     Transforms a data dictionary into the format required for use in the CKAN datastore API's 'datastore_create' action.
     
     Args:
-        data_dictionary_file: The filename of the workbook that contains the data dictionary information. The data dictionary should be in the first worksheet of the workbook, and the dictionary information should be in fields named: 'column', 'type', 'label', and 'description'. These fields should contain the following information:
-            - column: The name of the field as it's written in the source data table
-            - type: One of the data types available on the portal - either 'text', 'numeric', or 'timestamp' (for the data.ca.gov portal, as of 2025-02)
-            - label: The common English title for the data contained in this column.
-            - description: Full description of what information is included for the field.
+        data_dictionary_file: The filename of the workbook that contains the data dictionary information. The data dictionary should be in the first worksheet of the workbook, and the dictionary information should be in fields named: 'Column', 'Type', 'Label', and 'Description'. These fields should contain the following information:
+            - Column: The name of the field as it's written in the source data table
+            - Type: One of the data types available on the portal - either 'text', 'numeric', or 'timestamp' (for the data.ca.gov portal, as of 2025-02)
+            - Label: The common English title for the data contained in this column.
+            - Description: Full description of what information is included for the field.
 
     Returns:
         The formatted data dictionary information, as a list of dictionaries.
     """
     
     ## read dictionary data from file ----
-    df_data_dict = pl.read_excel(data_dictionary_file)
+    df_data_dict = pl.read_excel(data_dictionary_file).clean_names()
 
     ## select needed columns ----
     df_data_dict = df_data_dict.select(["column", "type", "label", "description"])
+    # print(df_data_dict.head()) # check
 
     ## reformat to nested structure ----
     df_data_dict_format = (
