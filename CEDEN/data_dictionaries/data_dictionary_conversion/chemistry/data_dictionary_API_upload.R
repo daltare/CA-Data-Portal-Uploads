@@ -33,9 +33,9 @@ library(httr2)
 portal_key <- Sys.getenv('data_portal_key') 
 
 ## define ID of resource to update ----
-resource_id <- '97b8bb60-8e58-4c97-a07f-d51a48cd36d4'
+resource_id <- '97b8bb60-8e58-4c97-a07f-d51a48cd36d4' # https://data.ca.gov/dataset/surface-water-chemistry-results/resource/97b8bb60-8e58-4c97-a07f-d51a48cd36d4
 
-## get data dictionary info (assumes this is in an Excel file) ----
+    ## get data dictionary info (assumes this is in an Excel file) ----
 dictionary_file <- here('data_dictionaries', 
                         'data_dictionary_conversion', 
                         'chemistry', 
@@ -109,7 +109,7 @@ req <- req |>
 ## send API request ----
 req |> req_dry_run() # test
 resp <- req_perform(req) # execute
-
+resp # print result
 
 
 
