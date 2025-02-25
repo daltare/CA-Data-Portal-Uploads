@@ -1,17 +1,9 @@
-# This uses the CKAN `datastore_create` API call to update the data dictionary 
-# of an existing resouce on the data.ca.gov portal. This process does not impact 
-# the data in that resource. For more information, see: 
-# <https://stackoverflow.com/a/66698935>.
-# 
-# The process defined here assumes that the data dictionary information is saved 
-# in an existing file (like an Excel workbook or CSV file - it's currently designed
-# to accept an Excel file, and slight modifications will need to be made if using 
-# it with a CSV). 
-#
-# Alternatively, if the data dictionary information has already been entered for 
-# one resource, and you want to copy the data dictionary from that resource into 
-# another resource (or multiple resources), there are two alternative methods at
-# the bottom of this file that can help with that (they are commented out).
+# Uses the CKAN `datastore_create` API call to update the data dictionary 
+# of an existing resouce on the data.ca.gov portal. Requires that the data 
+# dictionary information is saved in an existing Excel file. 
+
+# (Note: this process does not impact the data in that resource. For more 
+# information, see: <https://stackoverflow.com/a/66698935>.)
 
 
 
@@ -19,171 +11,69 @@
 
 ## load packages ----
 library(tidyverse)
-library(readxl)
 library(here)
-library(glue)
-library(janitor)
-library(ckanr)
-library(jsonlite)
-library(httr)
-library(httr2)
+
+## packages used by functions - shouldn't need to load
+# library(readxl)
+# library(glue)
+# library(janitor)
+# library(jsonlite)
+# library(httr2)
+
+
+## enter name of data dictionary file to use ----
+## (see the documentation for the `upload_ckan_data_dictionary` function for specifications on how this file should be structured)
+dictionary_file <- here("CEDEN_Chemistry_Data_Dictionary.xlsx")
+
+## list resources to update ----
+## list values are the resource IDs - this is the alphanumeric part at the end of a resource's URL
+## list names can be anything you want to use to label a resource (the keys aren't actually used for the API call; they're' just used to keep track of the API responses)
+resources_to_update <- list(
+  'year-2025' = '97b8bb60-8e58-4c97-a07f-d51a48cd36d4',
+  'year-2024' = '9dcf551f-452d-4257-b857-30fbcc883a03',
+  'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
+  'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
+  'year-2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
+  'year-2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234',
+  'year-2019' = '6cf99106-f45f-4c17-80af-b91603f391d9',
+  'year-2018' = 'f638c764-89d5-4756-ac17-f6b20555d694',
+  'year-2017' = '68787549-8a78-4eea-b5b9-ef719e65a05c',
+  'year-2016' = '42b906a2-9e30-4e44-92c9-0f94561e47fe',
+  'year-2015' = '7d9384fa-70e1-4986-81d6-438ce5565be6',
+  'year-2014' = '7abfde16-61b6-425d-9c57-d6bd70700603',
+  'year-2013' = '341627e6-a483-4e9e-9a85-9f73b6ddbbba',
+  'year-2012' = 'f9dd0348-85d5-4945-aa62-c7c9ad4cf6fd',
+  'year-2011' = '4d01a693-2a22-466a-a60b-3d6f236326ff',
+  'year-2010' = '572bf4d2-e83d-490a-9aa5-c1d574e36ae0',
+  'year-2009' = '5b136831-8870-46f2-8f72-fe79c23d7118',
+  'year-2008' = 'c587a47f-ac28-4f77-b85e-837939276a28',
+  'year-2007' = '13e64899-df32-461c-bec1-a4e72fcbbcfa',
+  'year-2006' = 'a31a7864-06b9-4a81-92ba-d8912834ca1d',
+  'year-2005' = '9538cbfa-f8be-4445-97dc-b931579bb927',
+  'year-2004' = 'c962f46d-6a7b-4618-90ec-3c8522836f28',
+  'year-2003' = 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
+  'year-2002' = '00c4ca34-064f-4526-8276-57533a1a36d9',
+  'year-2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
+  'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
+  'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
+)
 
 ## get data portal API key (saved in the local environment) ----
 ## (it's available on data.ca.gov by going to your user profile)
 portal_key <- Sys.getenv('data_portal_key') 
 
-## define ID of resource to update ----
-resource_id <- '97b8bb60-8e58-4c97-a07f-d51a48cd36d4' # https://data.ca.gov/dataset/surface-water-chemistry-results/resource/97b8bb60-8e58-4c97-a07f-d51a48cd36d4
-
-## get data dictionary info (assumes this is in an Excel file) ----
-dictionary_file <- here('ckan-data-dictionary-API-tool', 
-                        'CEDEN_Chemistry_Data_Dictionary.xlsx')
-dictionary_fields <- c('Column', 'Type', 'Label', 'Description') # has to be in order: Column, Type, Label, Description
-
-## (optional) get the resource IDs ----
-## NOTE: this is just a set of helper functions to retrieve resource IDs programmatically
-# package_id <- '28d7a81d-6458-47bd-9b79-4fcbfbb88671' # chemistry
-# dataset_resources <- package_show(package_id, as = 'table', url = "https://data.ca.gov/", key = Sys.getenv('data_portal_key'))
-# dataset_resources <- dataset_resources$resources %>% 
-#     filter(format %in% c('CSV')) %>% # filter for just the resources containing csv files
-#     select(name, id)
-
-## (optional) get data dictionary fields info ----
-## NOTE: use this if you already have the data dictionary info in the correct format, 
-## e.g. if the same info is already entered on the portal in a similar dataset, 
-## you can retrieve it using a 'https://data.ca.gov/api/3/action/datastore_search?...' API call
-# data_dict_fields_file <- (here('ckan-data-dictionary-API-tool',
-#                                'chem_data_dictionary_fields_API.txt'))
+## get functions
+source(here("data_dictionary_API_upload_functions.R"))
 
 
 
 
-# format data dictionary fields -------------------------------------------
+# upload dictionaries -----------------------------------------------------
+## Note: using `$status_code` just returns the HTTP status codes
+api_response <- map(.x = resources_to_update, 
+                    .f = \(id) upload_ckan_data_dictionary(resource_id = id, 
+                                                           data_dictionary_file = dictionary_file, 
+                                                           portal_key = portal_key)$status_code)
 
-## NOTE: this assumes all of the necessary data dictionary info is already saved 
-## in a separate file, like a CSV or Excel workbook
-
-## read dictionary info ----
-df_dictionary <- read_excel(dictionary_file) |> 
-  clean_names() |> 
-  select(all_of(tolower(dictionary_fields))) # just keep the relevant fields
-
-## reformat to nested structure ----
-df_dictionary_format <- df_dictionary |> 
-  rowwise() |> 
-  mutate(info = tibble('label' = label,
-                       'notes' = description,
-                       'type_override' = type)) |> 
-  ungroup() |> 
-  select(id = column,
-         type,
-         info)
-
-## convert to JSON ----
-json_dictionary <- df_dictionary_format |> 
-  toJSON()
-
-
-
-# create API call ---------------------------------------------------------
-
-## create base request ----
-req <- request("https://data.ca.gov/api/3/action/datastore_create")
-
-## add headers ----
-req <- req |> 
-  req_headers("Authorization" = portal_key,
-              "Content-Type" = "application/json")
-
-## create and add request body (with field info) ----
-request_body <- glue('{{"resource_id": "{resource_id}", "force": "True", "fields": {json_dictionary} }}')
-
-req <- req |>
-  req_body_raw(request_body)
-
-
-## send API request ----
-req |> req_dry_run() # test
-resp <- req_perform(req) # execute
-resp
-
-
-
-# Alternative 1 - Directly Get Dictionary Info From Existing Portal Resource -----------
-
-# ## get fields from existing resource ----
-# ### define ID of the existing resource whose dictionary will be copied
-# resource_id_reference <- "9dcf551f-452d-4257-b857-30fbcc883a03"
-# 
-# ### create query to retrieve dictionary info
-# query_url <- glue("https://data.ca.gov/api/3/action/datastore_search?resource_id={resource_id_reference}&limit=0")
-# 
-# ## retrieve dictionary from portal ----
-# ## NOTE: use either one of the methods below - they do the same thing (keeping them for reference)
-# 
-# ### method 1 - httr ----
-# url_encoded <- URLencode(query_url)
-# query_response <- GET(url_encoded)
-# query_char <- rawToChar(query_response$content)
-# query_content <- fromJSON(query_char)
-# resource_records <- query_content$result$records
-# resource_fields <- query_content$result$fields
-# resource_fields_json <- toJSON(resource_fields)
-# # resource_fields_json # view
-# 
-# 
-# ### method 2 - httr2 ----
-# req_search <- request(query_url)
-# resp_search <- req_perform(req_search)
-# resp_search_result <- resp_search |> resp_body_json()
-# resp_fields <- resp_search_result$result$fields
-# resource_fields_json <- jsonlite::toJSON(resp_fields) |> str_remove_all('\\[|\\]')
-# resource_fields_json <- glue("[{resource_fields_json}]") 
-# # resource_fields_json # view
-# 
-# 
-# ## create base request ----
-# req <- request("https://data.ca.gov/api/3/action/datastore_create")
-# 
-# ## add headers ----
-# req <- req |> 
-#     req_headers("Authorization" = portal_key,
-#                 "Content-Type" = "application/json")
-# 
-# ## create and add request body (with field info) ----
-# request_body <- glue('{{"resource_id": "{resource_id}", "force": "True", "fields": {resource_fields_json} }}')
-# 
-# req <- req |>
-#     req_body_raw(request_body)
-# 
-# ## send request ----
-# req |> req_dry_run() # test
-# resp <- req_perform(req) # execute 
-
-
-
-
-# Alternative 2 - Use Saved Info From Existing Portal Resource --------------------
-
-# ## assumes the formatted data dictionary is saved in a separate file, referred to 
-# ## as the `data_dict_fields_file` variable below
-# 
-# ## create base request ----
-# req <- request("https://data.ca.gov/api/3/action/datastore_create")
-# 
-# ## add headers ----
-# req <- req |> 
-#     req_headers("Authorization" = portal_key,
-#                 "Content-Type" = "application/json")
-# 
-# ## create and add request body (with field info) ----
-# chem_fields <- read_file(data_dict_fields_file)
-# request_body <- glue('{{"resource_id": "{resource_id}", "force": "True", "fields": {glue("{chem_fields}")} }}')
-# 
-# req <- req |>
-#     req_body_raw(request_body)
-# 
-# ## send request ----
-# req |> req_dry_run() # test
-# resp <- req_perform(req) # execute 
-
+## print responses (should be "200" if successful)
+api_response
