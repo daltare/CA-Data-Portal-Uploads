@@ -1,6 +1,9 @@
-# Uses the CKAN `datastore_create` API call to update the data dictionary 
-# of an existing resouce on the data.ca.gov portal. Requires that the data 
-# dictionary information is saved in an existing Excel file. 
+# Use the CKAN `datastore_create` API call to update the data dictionary 
+# of an existing resource on the data.ca.gov portal. Requires that the data 
+# dictionary information is saved in an existing Excel file. For more 
+# information about how the information in the data dictionary file should be 
+# structured, see the documentation for the `upload_ckan_data_dictionary` 
+# function.
 
 # (Note: this process does not impact the data in that resource. For more 
 # information, see: <https://stackoverflow.com/a/66698935>.)
