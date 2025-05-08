@@ -150,6 +150,7 @@
             'prior_to_2000' = '97786a54-1189-43e4-9244-5dcb241dfa58'
         ),
         HabitatData = list(
+            'year-2025' = '3e02cc4d-7a91-4348-9537-7597b0702f57',
             'year-2024' = 'a7bf7ff5-930e-417a-bc3e-1e1794cd2513',
             'year-2023' = '1f6b0641-3aac-48b2-b12f-fa2d4966adfd',
             'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',

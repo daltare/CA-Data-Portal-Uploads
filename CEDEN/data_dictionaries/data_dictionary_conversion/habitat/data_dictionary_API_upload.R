@@ -26,40 +26,40 @@ library(here)
 
 ## enter name of data dictionary file to use ----
 ## (see the documentation for the `upload_ckan_data_dictionary` function for specifications on how this file should be structured)
-dictionary_file <- here("data_dictionaries", "data_dictionary_conversion", "chemistry", 
-                        "CEDEN_Chemistry_Data_Dictionary.xlsx")
+dictionary_file <- here("data_dictionaries", "data_dictionary_conversion", "habitat", 
+                        "CEDEN_Habitat_Data_Dictionary.xlsx")
 
 ## list resources to update ----
 ## list values are the resource IDs - this is the alphanumeric part at the end of a resource's URL
 ## list names can be anything you want to use to label a resource (the keys aren't actually used for the API call; they're' just used to keep track of the API responses)
 resources_to_update <- list(
-  'year-2025' = '97b8bb60-8e58-4c97-a07f-d51a48cd36d4',
-  'year-2024' = '9dcf551f-452d-4257-b857-30fbcc883a03',
-  'year-2023' = '6f9dd0e2-4e16-46c2-bed1-fa844d92df3c',
-  'year-2022' = '5d7175c8-dfc6-4c43-b78a-c5108a61c053',
-  'year-2021' = 'dde19a95-504b-48d7-8f3e-8af3d484009f',
-  'year-2020' = '2eba14fa-2678-4d54-ad8b-f60784c1b234',
-  'year-2019' = '6cf99106-f45f-4c17-80af-b91603f391d9',
-  'year-2018' = 'f638c764-89d5-4756-ac17-f6b20555d694',
-  'year-2017' = '68787549-8a78-4eea-b5b9-ef719e65a05c',
-  'year-2016' = '42b906a2-9e30-4e44-92c9-0f94561e47fe',
-  'year-2015' = '7d9384fa-70e1-4986-81d6-438ce5565be6',
-  'year-2014' = '7abfde16-61b6-425d-9c57-d6bd70700603',
-  'year-2013' = '341627e6-a483-4e9e-9a85-9f73b6ddbbba',
-  'year-2012' = 'f9dd0348-85d5-4945-aa62-c7c9ad4cf6fd',
-  'year-2011' = '4d01a693-2a22-466a-a60b-3d6f236326ff',
-  'year-2010' = '572bf4d2-e83d-490a-9aa5-c1d574e36ae0',
-  'year-2009' = '5b136831-8870-46f2-8f72-fe79c23d7118',
-  'year-2008' = 'c587a47f-ac28-4f77-b85e-837939276a28',
-  'year-2007' = '13e64899-df32-461c-bec1-a4e72fcbbcfa',
-  'year-2006' = 'a31a7864-06b9-4a81-92ba-d8912834ca1d',
-  'year-2005' = '9538cbfa-f8be-4445-97dc-b931579bb927',
-  'year-2004' = 'c962f46d-6a7b-4618-90ec-3c8522836f28',
-  'year-2003' = 'd3f59df4-2a8d-4b40-b90f-8147e73335d9',
-  'year-2002' = '00c4ca34-064f-4526-8276-57533a1a36d9',
-  'year-2001' = 'cec6768c-99d3-45bf-9e56-d62561e9939e',
-  'year-2000' = '99402c9c-5175-47ca-8fce-cb6c5ecc8be6',
-  'prior_to_2000' = '158c8ca1-b02f-4665-99d6-2c1c15b6de5a'
+    'year-2025' = '3e02cc4d-7a91-4348-9537-7597b0702f57'#,
+    # 'year-2024' = 'a7bf7ff5-930e-417a-bc3e-1e1794cd2513',
+    # 'year-2023' = '1f6b0641-3aac-48b2-b12f-fa2d4966adfd',
+    # 'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',
+    # 'year-2021' = 'c82a3e83-a99b-49d8-873b-a39640b063fc',
+    # 'year-2020' = 'bd37df2e-e6a4-4c2b-b01c-ce7840cc03de',
+    # 'year-2019' = 'c0f230c5-3f51-4a7a-a3db-5eb8692654aa',
+    # 'year-2018' = 'd814ca0c-ace1-4cc1-a80f-d63f138e2f61',
+    # 'year-2017' = 'f7a33584-510f-46f8-a314-625f744ecbdd',
+    # 'year-2016' = '01e35239-6936-4699-b9db-fda4751be6e9',
+    # 'year-2015' = '115c55e3-40af-4734-877f-e197fdae6737',
+    # 'year-2014' = '082a7665-8f54-4e4f-9d24-cc3506bb8f3e',
+    # 'year-2013' = '3be276c3-9966-48de-b53a-9a98d9006cdb',
+    # 'year-2012' = '78d44ee3-65af-4c83-b75e-8a82b8a1db88',
+    # 'year-2011' = '2fa6d874-1d29-478a-a5dc-0c2d31230705',
+    # 'year-2010' = '2a8b956c-38fa-4a15-aaf9-cb0fcaf915f3',
+    # 'year-2009' = 'd025552d-de5c-4f8a-b2b5-a9de9e9c86c3',
+    # 'year-2008' = 'ce211c51-05a2-4a7c-be18-298099a0dcd2',
+    # 'year-2007' = '1659a2b4-21e5-4fc4-a9a4-a614f0321c05',
+    # 'year-2006' = '88b33d5b-5428-41e2-b77b-6cb46ca5d1e4',
+    # 'year-2005' = '1609e7ab-d913-4d24-a582-9ca7e8e82233',
+    # 'year-2004' = 'e5132397-69a5-46fb-b24a-cd3b7a1fe53a',
+    # 'year-2003' = '899f3ebc-538b-428e-8f1f-d591445a847c',
+    # 'year-2002' = 'a9d8302d-0d37-4cf3-bbeb-386f6bd948a6',
+    # 'year-2001' = 'ea8b0171-e226-4e80-991d-50752abea734',
+    # 'year-2000' = 'b3dba1ee-6ada-42d5-9679-1a10b44630bc',
+    # 'prior_to_2000' = 'a3dcc442-e722-495f-ad59-c704ae934848'
 )
 
 ## get data portal API key (saved in the local environment) ----
@@ -67,7 +67,7 @@ resources_to_update <- list(
 portal_key <- Sys.getenv('data_portal_key') 
 
 ## get functions
-source(here("data_dictionaries", "data_dictionary_conversion", "chemistry", 
+source(here("data_dictionaries", "data_dictionary_conversion", "habitat", 
             "data_dictionary_API_upload_functions.R"))
 
 

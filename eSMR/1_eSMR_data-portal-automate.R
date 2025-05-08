@@ -97,6 +97,8 @@
     portal_username <- Sys.getenv('portal_username')
     portal_password <- Sys.getenv('portal_password')
     
+    
+    ## portal resource IDs ----
     ## define data portal resource IDs for all years in the dataset
     data_resource_id_list <-  list(
         '2025' = '176a58bf-6f5d-4e3f-9ed9-592a509870eb',
@@ -127,7 +129,7 @@
                            dataset_id = '9146a0f0-cee1-4088-acd2-c1e870da52df',
                            data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{file_date}.zip')),
         'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-                         dataset_id = 'cce982b3-719f-4852-8979-923c3a639a25',
+                         dataset_id = '09b0cc76-f521-41bd-821a-b810d61d2e98',
                          data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_parquet_{file_date}.zip'))
     )
     

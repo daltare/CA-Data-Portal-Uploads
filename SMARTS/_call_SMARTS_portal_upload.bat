@@ -1,0 +1,1 @@
+Python "C:\\Users\\daltare\\OneDrive - Water Boards\\projects\\CA_data_portal\\SMARTS\\portal-upload-ckan-chunked_SMARTS\\main_SMARTS.py"

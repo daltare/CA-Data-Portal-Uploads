@@ -34,6 +34,7 @@
     library(lubridate)
     library(here)
     library(arrow)
+    library(janitor)
 }
 
 
@@ -92,6 +93,11 @@ convert_data <- function(year, directory_name, source_file_name) {
                              col_types = field_types,
                              na = c('NA', 'NaN','')) %>% 
             mutate(Year = year)
+        
+        if (ncol(df_ceden) - 1 != nchar(field_types)) {
+            stop(glue("Not all fields in the {source_file_name} are in the corresponding data dictionary"))
+        }
+        
         print(glue('finished reading year {year} data'))
         
         if (source_file_name == 'TissueData') { 
@@ -177,12 +183,16 @@ convert_data_pre2000 <- function(year, directory_name, source_data){
 
 # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 # loop through all of the datasets and create parquet files
-dir.create(parquet_file_save_location)
+if (!dir.exists(parquet_file_save_location)) {
+    dir.create(parquet_file_save_location)
+}
 for (i in seq_along(names(parquet_resource_id_list))) {
     gc()
     directory_name <- parquet_resource_id_list[[i]][['parquet_data_file']]
     # create a directory for the given data type
-    dir.create(glue('{parquet_file_save_location}\\{directory_name}'))
+    if (!dir.exists(glue('{parquet_file_save_location}\\{directory_name}'))) {
+        dir.create(glue('{parquet_file_save_location}\\{directory_name}'))
+    }
     latest_year <- year(as.Date(data_files_date))
     source_file_name <- parquet_resource_id_list[[i]][['source_file_name']]
     
@@ -191,11 +201,13 @@ for (i in seq_along(names(parquet_resource_id_list))) {
     # create a list of the column types, to use when reading in the data
     df_types <- read_xlsx(glue('{data_dictionaries_path}\\{parquet_resource_id_list[[i]][["data_dictionary"]]}')) #water_chemistry\\CEDEN_Chemistry_Data_Dictionary.xlsx")
     field_types <- df_types %>% 
+        clean_names() %>%  
         pull(type) %>% 
         str_replace(pattern = 'text', replacement = 'c') %>% 
         str_replace(pattern = 'numeric', replacement = 'n') %>% 
         str_replace(pattern = 'timestamp', replacement = 'T') %>% 
-        glue_collapse() %>%  
+        glue_collapse() %>% 
+        as.character() %>%
         {.}
     Sys.sleep(2)
     if (source_file_name == 'TissueData') { 
@@ -245,7 +257,6 @@ for (i in seq_along(names(parquet_resource_id_list))) {
     rm(df_ceden_pre2000)
     gc()
     Sys.sleep(2)
-    
     
     options(warn = 0) # this converts warnings back into regular warnings (not errors)
     
