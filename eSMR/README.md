@@ -1,8 +1,25 @@
-# Instructions - eSMR Open Data Portal Updates
+# eSMR Open Data Portal Updates
 
 This process updates the data resources on the CA open data portal that are contained in the [Water Quality - Effluent - Electronic Self-Monitoring Report (eSMR) Data](https://data.ca.gov/dataset/water-quality-effluent-electronic-self-monitoring-report-esmr-data) dataset.
 
-The only required step is to run the `1_eSMR_data-portal-automate.R` script (i.e., run `source('1_eSMR_data-portal-automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R` and `1-1_eSMR_zip-file-uploads.R`.
+## Package Management - {renv}
+
+This project uses [`renv`](https://rstudio.github.io/renv/articles/renv.html) for package management. When opening this project for the first time (ideally as an RStudio project, via the `eSMR.Rproj` file), run `renv::restore()` to install all package dependencies (`renv` should automatically install itself and prompt you to do this).
+
+In addition:
+
+-   Use [`renv::status()`](https://rstudio.github.io/renv/reference/status.html) to check the status and fix any issues that arise (using the commands below)
+-   Use [`renv::install()`](https://rstudio.github.io/renv/reference/install.html) to add packages, [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) to update package versions, and [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html) after packages are added or updated (which will record the packages and their sources in the lockfile)
+-   Use [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html) (to get the specific package versions recorded in the lockfile).
+-   The `renv` documentation notes that if you're making major changes to a project that you haven't worked on for a while, it's generally a good idea to start with an [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) before making any changes to the code.
+
+If you run into problems using `renv` and need to stop using it for this project, you can call [`renv::deactivate()`](https://rstudio.github.io/renv/reference/activate.html), as described [here](https://rstudio.github.io/renv/articles/renv.html#uninstalling-renv).
+
+For more information, see [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html).
+
+## Instructions
+
+In general, the only required step to execute the process is to run the `1_eSMR_data-portal-automate.R` script (i.e., run `source('1_eSMR_data-portal-automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R` and `1-1_eSMR_zip-file-uploads.R`. However, see below for some additional steps that may be needed when setting up this process for the first time on a new computer. 
 
 If the process fails at any point, it is set up to send an automated email alerting you that it has failed (and an attempt at telling you why it failed). If that happens, you may be able to diagnose / fix the problem and run the remaining parts of the `1_eSMR_data-portal-automate.R` script (without having to re-run the entire process).
 

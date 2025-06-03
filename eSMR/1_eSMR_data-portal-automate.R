@@ -126,7 +126,7 @@
     ## define data portal resource IDs for zipped files
     zip_resource_id_list <- list(
         'ziped_csv' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
-                           dataset_id = '9146a0f0-cee1-4088-acd2-c1e870da52df',
+                           dataset_id = '5ebbd97a-ffa9-4b75-8904-80e71a5e92c3',
                            data_file = glue('{download_dir}{file_name}_years-{min(years_download)}-{max(years_download)}_{file_date}.zip')),
         'parquet' = list(dataset_name = 'water-quality-effluent-electronic-self-monitoring-report-esmr-data',
                          dataset_id = '09b0cc76-f521-41bd-821a-b810d61d2e98',
