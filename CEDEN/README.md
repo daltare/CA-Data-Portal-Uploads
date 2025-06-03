@@ -1,4 +1,4 @@
-# Instructions - CEDEN Open Data Portal Updates
+# CEDEN Open Data Portal Updates
 
 This process updates the data resources on the CA open data portal that are contained in the following datasets:
 
@@ -8,6 +8,23 @@ This process updates the data resources on the CA open data portal that are cont
 -   [Surface Water - Aquatic Organism Tissue Sample Results](https://data.ca.gov/dataset/surface-water-aquatic-organism-tissue-sample-results)
 -   [Surface Water - Benthic Macroinvertebrate Results](https://data.ca.gov/dataset/surface-water-benthic-macroinvertebrate-results)
 -   [Surface Water - Sampling Location Information](https://data.ca.gov/dataset/surface-water-sampling-location-information)
+
+## Package Management - {renv}
+
+This project uses [`renv`](https://rstudio.github.io/renv/articles/renv.html) for package management. When opening this project for the first time (ideally as an RStudio project, via the `CEDEN.Rproj` file), run `renv::restore()` to install all package dependencies (`renv` should automatically install itself and prompt you to do this).
+
+In addition:
+
+-   Use [`renv::status()`](https://rstudio.github.io/renv/reference/status.html) to check the status and fix any issues that arise (using the commands below)
+-   Use [`renv::install()`](https://rstudio.github.io/renv/reference/install.html) to add packages, [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) to update package versions, and [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html) after packages are added or updated (which will record the packages and their sources in the lockfile)
+-   Use [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html) (to get the specific package versions recorded in the lockfile).
+-   The `renv` documentation notes that if you're making major changes to a project that you haven't worked on for a while, it's generally a good idea to start with an [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) before making any changes to the code.
+
+If you run into problems using `renv` and need to stop using it for this project, you can call [`renv::deactivate()`](https://rstudio.github.io/renv/reference/activate.html), as described [here](https://rstudio.github.io/renv/articles/renv.html#uninstalling-renv).
+
+For more information, see [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html).
+
+## Instructions
 
 The only required step is to run the `1_ceden_automate.R` script (i.e., run `source('1_ceden_automate.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including: `start_selenium.R`, `1-1_ceden-zip-file-upload.R`, `1-2_ceden-parquet-conversion`, and `1-2_ceden-parquet-conversion`. It also calls some python scripts contained in the `1_data_download` folder, including: `CEDEN_DataRefresh_yearly_through-2010_function.py`, `CEDEN_DataRefresh_yearly_2011-to-2022_function.py`, and `CEDEN_DataRefresh_yearly_2023-to-present_function.py`. \*\*NOTE: these python scripts take a long time to run, and at some point should be be re-written to make them more efficient (I made some rudimentary changes to the original scripts just to get them working to get data for each individual year, but the changes I made were very sub-optimal - currently, each time they are called, they re-download and re-process the entire CEDEN dataset).\*\*
 

@@ -293,7 +293,7 @@ The source data comes from the CEDEN data mart"
 ## set python version ----
 # use_python(python_path)
 # use_condaenv()
-# reticulate::py_config()
+# reticulate::py_config() # gets information about current python version being used
 
 Sys.sleep(1)
 
@@ -487,6 +487,7 @@ tryCatch(
         ### upload data
         for (upload_data_type in names(upload_files_list)) {
             for (upload_file in names(upload_files_list[[upload_data_type]])) {
+                # for data types where all data is contained in a single file
                 if (upload_data_type %in% c('BenthicData', 'ToxicityData', 'All_CEDEN_Sites')) {
                     print(glue('Uploading csv file(s) to data portal: {upload_data_type} | {upload_file}'))
                     ckanUploadFile(upload_files_list[[upload_data_type]][[upload_file]],
@@ -494,6 +495,8 @@ tryCatch(
                                    portal_key)
                     print(glue('Finished uploading csv file(s) to data portal: {upload_data_type} | {upload_file}'))
                 }
+                
+                # for data types where data is split into separate files by year
                 if (upload_data_type %in% c('WaterChemistryData', 'HabitatData', 'TissueData')) {
                     print(glue('Uploading csv file(s) to data portal: {upload_data_type} | {upload_file}'))
                     ckanUploadFile(upload_files_list[[upload_data_type]][[upload_file]],
