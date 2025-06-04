@@ -1,5 +1,7 @@
 # SMARTS Open Data Portal Updates
 
+This process updates the data resources on the CA open data portal that are contained in the [Stormwater - Regulatory (including Enforcement Actions) Information and Water Quality Results](https://data.ca.gov/dataset/stormwater-regulatory-including-enforcement-actions-information-and-water-quality-results) dataset.
+
 ## Package Management - {renv}
 
 This project uses [`renv`](https://rstudio.github.io/renv/articles/renv.html) for package management. When opening this project for the first time (ideally as an RStudio project, via the `CEDEN.Rproj` file), run `renv::restore()` to install all package dependencies (`renv` should automatically install itself and prompt you to do this).
@@ -17,11 +19,9 @@ For more information, see [Introduction to renv](https://rstudio.github.io/renv/
 
 ## Instructions
 
-This process updates the data resources on the CA open data portal that are contained in the [Stormwater - Regulatory (including Enforcement Actions) Information and Water Quality Results](https://data.ca.gov/dataset/stormwater-regulatory-including-enforcement-actions-information-and-water-quality-results) dataset.
-
 The only required step is to run the `SMARTS_data_portal_automation.R` script (i.e., run `source('SMARTS_data_portal_automation.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process - some parts of the process will call other scripts, including `start_selenium.R`.
 
-**NOTE: To just run the process which uploads data to the CA Data Portal (after the data has been downloaded from SMARTS and processed), run the `main_SMARTS.py` script in the `portal-upload-ckan-chunked_SMARTS` folder (i.e., go to that folder, open a terminal / command prompt, and type `python main_SMARTS.py`).**
+**NOTE: To just run the process which uploads data to the CA Data Portal (after the data has been downloaded from SMARTS and processed), run the `SMARTS_upload_to_portal_helper.R` script.**
 
 To automatically run the process on a set schedule on a Windows computer, you can create a task in "Task Scheduler" that runs the `Call_SMARTS.bat` file (which is in the `_Call-Scripts` directory at the top level of this repository) on a specified day and time.
 
