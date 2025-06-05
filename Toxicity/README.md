@@ -50,3 +50,5 @@ There are a few additional things to be aware of, which will likely require some
     -   `ceden_password`: CEDEN data warehouse password
 
 -   The process (optionally) saves data files to a separate directory (i.e., not necessarily the one in which this project is stored). This separate directory is defined by the `file_save_location` variable, and needs to be edited to run the script on a different computer. (As a side note, it's set up this way because, for my own use, I have the project saved to OneDrive, but I don't want to frequently save a lot of large files to a cloud location like OneDrive, so instead save them to the local C drive.)
+
+If you ever need to update the data dictionary for any resource, you can use either the `data_dictionary_API_upload.R` or `data_dictionary_API_upload.py` script in the `ckan-data-dictionary-API-tool` folder to automate the process. In these scripts, you'll need to update the `dictionary_file` and `resources_to_update` variables to refer to the correct data dictionary information and resource ID for the resource(s) you're updating.
