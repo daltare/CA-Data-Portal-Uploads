@@ -1,10 +1,27 @@
-# Instructions - Surface Water Open Data Portal Updates
+# Surface Water Open Data Portal Updates
 
 These scripts update the following data resources on the CA Open Data Portal:
 
 -   `Reg_Meas_AnimalWaste.R`: <https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/c16335af-f2dc-41e6-a429-f19edba5b957>
 -   `Reg_Meas_WastewaterFacilities-PermitsOrders.R`: <https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950>
 -   `Wastewater-Enforcement-Actions.R`: <https://data.ca.gov/dataset/surface-water-water-quality-regulatory-information/resource/64f25cad-2e10-4a66-8368-79293f56c2f1>
+
+## Package Management - {renv}
+
+This project uses [`renv`](https://rstudio.github.io/renv/articles/renv.html) for package management. When opening this project for the first time (ideally as an RStudio project, via the `Surface-Water-Datasets.Rproj` file), run `renv::restore()` to install all package dependencies (`renv` should automatically install itself and prompt you to do this).
+
+In addition:
+
+-   Use [`renv::status()`](https://rstudio.github.io/renv/reference/status.html) to check the status and fix any issues that arise (using the commands below).
+-   Use [`renv::install()`](https://rstudio.github.io/renv/reference/install.html) to add packages, [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) to update package versions, and [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html) after packages are added or updated (which will record the packages and their sources in the lockfile).
+-   Use [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html) to get the specific package versions recorded in the lockfile.
+-   The `renv` documentation notes that if you're making major changes to a project that you haven't worked on for a while, it's generally a good idea to start with an [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) before making any changes to the code.
+
+If you run into problems using `renv` and need to stop using it for this project, you can call [`renv::deactivate()`](https://rstudio.github.io/renv/reference/activate.html), as described [here](https://rstudio.github.io/renv/articles/renv.html#uninstalling-renv).
+
+For more information, see [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html).
+
+## Instructions
 
 The only required step is to run the R script associated with the given resource (e.g., run `source('Reg_Meas_AnimalWaste.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process.
 
