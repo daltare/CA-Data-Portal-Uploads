@@ -1,6 +1,23 @@
-# Instructions - CEDEN Toxicity Summary / Replicate Open Data Portal Updates
+# CEDEN Toxicity Summary / Replicate Open Data Portal Updates
 
 These scripts update the CEDEN Toxicity [Summary](https://data.ca.gov/dataset/surface-water-toxicity-results/resource/674474eb-e093-42de-aef3-da84fd2ff2d8) and [Replicate](https://data.ca.gov/dataset/surface-water-toxicity-results/resource/6fd7b8d7-f8dd-454f-98bb-07e8cc710db8) data resources on the CA open data portal.
+
+## Package Management - {renv}
+
+This project uses [`renv`](https://rstudio.github.io/renv/articles/renv.html) for package management. When opening this project for the first time (ideally as an RStudio project, via the `Surface-Water-Datasets.Rproj` file), run `renv::restore()` to install all package dependencies (`renv` should automatically install itself and prompt you to do this).
+
+In addition:
+
+-   Use [`renv::status()`](https://rstudio.github.io/renv/reference/status.html) to check the status and fix any issues that arise (using the commands below).
+-   Use [`renv::install()`](https://rstudio.github.io/renv/reference/install.html) to add packages, [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) to update package versions, and [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html) after packages are added or updated (which will record the packages and their sources in the lockfile).
+-   Use [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html) to get the specific package versions recorded in the lockfile.
+-   The `renv` documentation notes that if you're making major changes to a project that you haven't worked on for a while, it's generally a good idea to start with an [`renv::update()`](https://rstudio.github.io/renv/reference/update.html) before making any changes to the code.
+
+If you run into problems using `renv` and need to stop using it for this project, you can call [`renv::deactivate()`](https://rstudio.github.io/renv/reference/activate.html), as described [here](https://rstudio.github.io/renv/articles/renv.html#uninstalling-renv).
+
+For more information, see [Introduction to renv](https://rstudio.github.io/renv/articles/renv.html).
+
+## Instructions
 
 The only required step is to run the `Toxicity-Summary-Replicate-Data-Pull.R` script (e.g., run `source('Toxicity-Summary-Replicate-Data-Pull.R')` or open the file in RStudio and click the `Source` button). This should handle all parts of the update process.
 
