@@ -1,6 +1,6 @@
 # Water Rights Master Flat File - Open Data Portal Updates
 
-These scripts update the [California Water Rights LIST (Detail Summary List)](https://data.ca.gov/dataset/water-rights/resource/151c067a-088b-42a2-b6ad-99d84b48fb36) dataset on the CA Open Data Portal.
+These scripts update the [California Water Rights LIST (Detail Summary List)](https://data.ca.gov/dataset/water-rights/resource/151c067a-088b-42a2-b6ad-99d84b48fb36) data resource on the CA Open Data Portal.
 
 ## Package Management - {renv}
 
