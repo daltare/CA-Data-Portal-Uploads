@@ -12,6 +12,7 @@ library(here)
 library(magrittr)
 library(rvest)
 library(httr)
+library(glue)
 
 ## conflicts ----
 library(conflicted)
@@ -54,11 +55,22 @@ vpn <- any(
                pattern = 'ca.epa.local')
     )
 # if (vpn == FALSE) {
-    selenium(
-        check = TRUE,
-        retcommand = TRUE,
-        port = port_use
-    )  
+tryCatch(
+    {
+        selenium(
+            check = TRUE,
+            retcommand = TRUE,
+            port = port_use,
+            phantomver = NULL,
+            iedrver = NULL,
+            geckover = NULL
+        )    
+    },
+    error = function(e) {
+        error_message <- capture.output(cat(as.character(e)))
+        print(glue('Error: {error_message}'))
+    }
+) 
 # }
 
 ### get chrome driver directly from google ---- 
