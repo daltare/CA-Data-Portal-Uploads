@@ -1,4 +1,4 @@
-# Instructions - Data Portal Report
+# Data Portal Report
 
 These scripts automate the process of creating a report about the datasets and data resources associated with the [California State Water Resources Control Board](https://data.ca.gov/organization/california-state-water-resources-control-board) organizational account on the California Open Data Portal, and create a Shiny app that displays some of the results, at: <https://cawaterdatadive.shinyapps.io/Data-Portal-Report/>
 
