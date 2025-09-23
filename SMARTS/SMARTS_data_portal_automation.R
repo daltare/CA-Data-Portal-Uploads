@@ -76,7 +76,7 @@
     # chunked_upload_directory <- here('portal-upload-ckan-chunked_SMARTS')
     
     ## set times for Sys.sleep() arguments
-    sleep_time <- 0.5
+    sleep_time_smarts <- 5
 }
 
 
@@ -244,12 +244,12 @@ tryCatch(
         # remDr$setImplicitWaitTimeout(milliseconds = 10000)
         
         print('Downloading data from SMARTS')
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         
         ## Navigate to SMARTS homepage ----
         SMARTS_url <- "https://smarts.waterboards.ca.gov/smarts/SwPublicUserMenu.xhtml"
         remDr$navigate(SMARTS_url)
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         homeWindow <- remDr$getCurrentWindowHandle()
         
         # # define a function to convert dates and times into a timestamp field that can be read by the portal - ADDED 2019-09-18
@@ -274,13 +274,13 @@ tryCatch(
         
         ### open link to the "Download NOI Data By Regional Board" page ----
         webElem <- remDr$findElement(using = 'id', value = 'publicMenuForm:noiDataLink')
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         webElem$clickElement()
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         allWins <- unlist(remDr$getWindowHandles())
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         noiWindow <- allWins[!allWins %in% homeWindow[[1]]]
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         
         ### Switch to the "Download NOI Data..." page ----
         # remDr$switchToWindow(noiWindow) # this no longer works... need to use the custom function below, from: https://github.com/ropensci/RSelenium/issues/143
@@ -291,15 +291,15 @@ tryCatch(
             remDr$queryRD(qpath, "POST", qdata = list(handle = windowId))
         }
         myswitch(remDr = remDr, windowId = noiWindow[[1]])
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         
         ### find and select the 'Select Regional Board' dropdown box ----
         webElem <- remDr$findElement(using = 'id', value = 'intDataFileDowloaddataFileForm:intDataDumpSelectOne')
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         
         ### Set the dropdown value to 'State Board'
         webElem$sendKeysToElement(list('State Board', key = 'enter'))
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
         # NOTE: It's also possible to do this 'manually' (i.e., by recreating the mouse actions and button clicks), like this:
         # loc <- webElem$getElementLocation()
         # remDr$mouseMoveToLocation(webElement = webElem)
@@ -363,7 +363,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         Sys.sleep(time = 1) # if the file doesn't exist yet, wait 1 second then check again
         i <- i + 1 # to keep track of how many times the loop runs, to prevent an infinite loop
     }
-    Sys.sleep(sleep_time)
+    Sys.sleep(sleep_time_smarts)
     # Rename the file, and append with the date for easier identification (may want to add in the time too?)
     if (file.exists(paste0(download_dir, 'file.tsv'))) {
         file.rename(from = paste0(download_dir, 'file.tsv'), 
@@ -381,7 +381,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
         stop('File does not exist')
     }
     
-    Sys.sleep(sleep_time)
+    Sys.sleep(sleep_time_smarts)
     # to add the time to the filename
     # file.rename(from = 'file.tsv', to = paste0('Industrial_Ad_Hoc_Reports_-_Parameter_Data_', Sys.Date(),'_', hour(Sys.time()),'.', minute(Sys.time()), '.', if(am(Sys.time())) {'AM'} else {'PM'}))
     # Delete old versions of the files (if desired)
@@ -395,13 +395,13 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             file.remove(paste0(download_dir, '\\', files_list_old))
         }
     }
-    Sys.sleep(sleep_time)
+    Sys.sleep(sleep_time_smarts)
     
     # convert the file to .csv
     ## NEW (MORE SIMPLE) METHOD (2021-10-05) ----
     dataset <- read_tsv(paste0(download_dir, '\\', filename, '_', Sys.Date(), '_Raw.txt'),
                         col_types = cols(.default = col_character()))
-    Sys.sleep(sleep_time)
+    Sys.sleep(sleep_time_smarts)
     ### ensure all records are in UTF-8 format, convert if not ----
     dataset <- dataset %>%
         # map_df(~iconv(., to = 'UTF-8')) %>% # this is probably slower
@@ -745,7 +745,7 @@ tryCatch(
                              fields_times = dataset_list[[j]]$time_fields, 
                              fields_timestamps = dataset_list[[j]]$timestamp_names,
                              fields_numeric = dataset_list[[j]]$numeric_fields)
-        Sys.sleep(sleep_time)
+        Sys.sleep(sleep_time_smarts)
     }, 
     error = function(e) {
         error_message <- 'downloading files'
