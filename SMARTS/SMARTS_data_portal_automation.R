@@ -86,9 +86,9 @@
 dataset_list <- list(dataset1 = list(filename = 'Industrial_Ad_Hoc_Reports_-_Parameter_Data', 
                                      html_id = 'intDataFileDowloaddataFileForm:industrialRawDataLink',
                                      resource_id = '7871e8fe-576d-4940-acdf-eca0b399c1aa',
-                                     date_fields = c('SAMPLE_DATE', 'DISCHARGE_START_DATE'), # NOTE: The number of items in this field should be the same as the number of items in the following two fields
+                                     date_fields = c('SAMPLE_DATE', 'DISCHARGE_START_DATE', 'DISCHARGE_END_DATE'), # NOTE: The number of items in this field should be the same as the number of items in the following two fields
                                      time_fields = c('SAMPLE_TIME', 'DISCHARGE_START_TIME'),
-                                     timestamp_names = c('SAMPLE_TIMESTAMP', 'DISCHARGE_START_TIMESTAMP'),
+                                     timestamp_names = c('SAMPLE_TIMESTAMP', 'DISCHARGE_START_TIMESTAMP', 'DISCHARGE_END_TIMESTAMP'),
                                      numeric_fields = c('REPORTING_YEAR', 'MONITORING_LATITUDE', 
                                                         'MONITORING_LONGITUDE', 'RESULT', 
                                                         'MDL', 'RL')),
@@ -548,7 +548,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             # tabyl(nchar(timestamps_text)) # should only be zero or 19
             
             # Insert the timestamp fields into the dataset
-            dataset[,fields_timestamps[counter]] <- timestamps_text
+            # dataset[,fields_timestamps[counter]] <- timestamps_text
             
             
             
@@ -664,9 +664,9 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
                 select(-c('PLACE_CONTACT_FIRST_NAME', 'PLACE_CONTACT_LAST_NAME', 'PLACE_TITLE',
                           'PLACE_PHONE', 'PLACE_EMAIL', 'CERTIFIER_BY', 'CERTIFIER_TITLE',
                           'STATUS', 'NOI_PROCESSED_DATE', 'NOT_EFFECTIVE_DATE',
-                          'CERTIFICATION_DATE', 'NOI_PROCESSED_TIMESTAMP', 
-                          'NOT_EFFECTIVE_TIMESTAMP',
-                          'COUNTY', 'CERTIFICATION_TIMESTAMP'))
+                          'CERTIFICATION_DATE', 
+                          # 'NOI_PROCESSED_TIMESTAMP', 'NOT_EFFECTIVE_TIMESTAMP', 'CERTIFICATION_TIMESTAMP',
+                          'COUNTY'))
             location_data <- location_data %>% 
                 filter(!is.na(APP_ID) & !is.na(WDID))
             location_data <- location_data %>% 
