@@ -481,74 +481,74 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
             
             
             
-            # convert dates and times into a timestamp field ----
-            ## ADDED 2019-09-18
-            
-            # Create a vector of timestamps for any date (plus associated time) fields in the dataset
-            if (fields_times[counter] == '') {
-                timestamps <- dates_iso
-            } else if (filename == 'Industrial_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Industrial_Application_Specific_Data') {
-                timestamps <- mdy_hm(paste(dataset[[fields_dates[counter]]], dataset[[counter]]))
-            } else if (filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Construction_Application_Specific_Data') {
-                timestamps <- mdy_hms(paste(dataset[[fields_dates[counter]]], dataset[[fields_times[counter]]]))
-            }
-            # check NAs: sum(is.na(timestamps))
-            
-            # For timestamps that don't work, just use the date (times are often not in a standard format)
-            timestamps[is.na(timestamps)] <- dates_iso[is.na(timestamps)]
-            # check NAs: 
-            # print(paste0('Unconverted timestamps: ', sum(is.na(timestamps))))
-            
-            ### convert to character
-            timestamps_text <- as.character(timestamps)
-            
-            ### adjust for incorrect years
-            years_correction <- case_when(
-                is.na(timestamps) ~ NA,
-                year(timestamps) < 10 ~ '000',
-                year(timestamps) >= 10 & year(timestamps) < 100 ~ '00',
-                year(timestamps) >= 100 & year(timestamps) < 1000 ~ '0',
-                year(timestamps) > 1000 ~ ''
-            )
-            timestamps_text <- case_when(
-                is.na(timestamps) ~ NA,
-                .default = paste0(years_correction, timestamps_text)
-            )
-            # check
-            # sum(is.na(timestamps_text))
-            # range(nchar(timestamps_text), na.rm = T)
-            # timestamps_text[year(timestamps) < 1000 & !is.na(timestamps)]
-            
-            ### adjust for missing times
-            if (fields_times[counter] == '') {
-                times_correction <- case_when(
-                    is.na(timestamps) ~ NA,
-                    !is.na(timestamps) ~ ' 00:00:00'
-                )
-            } else {
-                times_correction <- case_when(
-                    is.na(timestamps) ~ NA,
-                    is.na(dataset[[fields_times[counter]]]) ~ ' 00:00:00',
-                    dataset[[fields_times[counter]]] == '00:00:00' ~ ' 00:00:00',
-                    dataset[[fields_times[counter]]] != '00:00:00' ~ ''
-                )
-            }
-            timestamps_text <- case_when(
-                is.na(timestamps) ~ NA,
-                .default = paste0(timestamps_text, times_correction)
-            )
-            # check
-            # sum(is.na(timestamps_text))
-            # range(nchar(timestamps_text), na.rm = T)
-            # timestamps_text[year(timestamps) < 1000 & !is.na(timestamps)]
-            
-            ### replace NAs with empty text string
-            timestamps_text[is.na(timestamps_text)] <- ''
-            # sum(is.na(timestamps_text))
-            # tabyl(nchar(timestamps_text)) # should only be zero or 19
-            
-            # Insert the timestamp fields into the dataset
-            # dataset[,fields_timestamps[counter]] <- timestamps_text
+            # # convert dates and times into a timestamp field ----
+            # ## ADDED 2019-09-18
+            # 
+            # # Create a vector of timestamps for any date (plus associated time) fields in the dataset
+            # if (fields_times[counter] == '') {
+            #     timestamps <- dates_iso
+            # } else if (filename == 'Industrial_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Industrial_Application_Specific_Data') {
+            #     timestamps <- mdy_hm(paste(dataset[[fields_dates[counter]]], dataset[[counter]]))
+            # } else if (filename == 'Construction_Ad_Hoc_Reports_-_Parameter_Data' | filename == 'Construction_Application_Specific_Data') {
+            #     timestamps <- mdy_hms(paste(dataset[[fields_dates[counter]]], dataset[[fields_times[counter]]]))
+            # }
+            # # check NAs: sum(is.na(timestamps))
+            # 
+            # # For timestamps that don't work, just use the date (times are often not in a standard format)
+            # timestamps[is.na(timestamps)] <- dates_iso[is.na(timestamps)]
+            # # check NAs: 
+            # # print(paste0('Unconverted timestamps: ', sum(is.na(timestamps))))
+            # 
+            # ### convert to character
+            # timestamps_text <- as.character(timestamps)
+            # 
+            # ### adjust for incorrect years
+            # years_correction <- case_when(
+            #     is.na(timestamps) ~ NA,
+            #     year(timestamps) < 10 ~ '000',
+            #     year(timestamps) >= 10 & year(timestamps) < 100 ~ '00',
+            #     year(timestamps) >= 100 & year(timestamps) < 1000 ~ '0',
+            #     year(timestamps) > 1000 ~ ''
+            # )
+            # timestamps_text <- case_when(
+            #     is.na(timestamps) ~ NA,
+            #     .default = paste0(years_correction, timestamps_text)
+            # )
+            # # check
+            # # sum(is.na(timestamps_text))
+            # # range(nchar(timestamps_text), na.rm = T)
+            # # timestamps_text[year(timestamps) < 1000 & !is.na(timestamps)]
+            # 
+            # ### adjust for missing times
+            # if (fields_times[counter] == '') {
+            #     times_correction <- case_when(
+            #         is.na(timestamps) ~ NA,
+            #         !is.na(timestamps) ~ ' 00:00:00'
+            #     )
+            # } else {
+            #     times_correction <- case_when(
+            #         is.na(timestamps) ~ NA,
+            #         is.na(dataset[[fields_times[counter]]]) ~ ' 00:00:00',
+            #         dataset[[fields_times[counter]]] == '00:00:00' ~ ' 00:00:00',
+            #         dataset[[fields_times[counter]]] != '00:00:00' ~ ''
+            #     )
+            # }
+            # timestamps_text <- case_when(
+            #     is.na(timestamps) ~ NA,
+            #     .default = paste0(timestamps_text, times_correction)
+            # )
+            # # check
+            # # sum(is.na(timestamps_text))
+            # # range(nchar(timestamps_text), na.rm = T)
+            # # timestamps_text[year(timestamps) < 1000 & !is.na(timestamps)]
+            # 
+            # ### replace NAs with empty text string
+            # timestamps_text[is.na(timestamps_text)] <- ''
+            # # sum(is.na(timestamps_text))
+            # # tabyl(nchar(timestamps_text)) # should only be zero or 19
+            # 
+            # # Insert the timestamp fields into the dataset
+            # # dataset[,fields_timestamps[counter]] <- timestamps_text
             
             
             

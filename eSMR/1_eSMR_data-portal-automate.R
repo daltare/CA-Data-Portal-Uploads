@@ -62,7 +62,7 @@
     # NOTE: currently set to keep the versions from the current day if TRUE
     
     ## send email if process fails?
-    send_failure_email <- TRUE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
+    send_failure_email <- FALSE # may be useful to set this to FALSE (ie turn off emails) if the email functions fail (this especially may be the case when on the VPN)
     
     ## enter the email address to send warning emails from
     ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
@@ -101,6 +101,7 @@
     ## portal resource IDs ----
     ## define data portal resource IDs for all years in the dataset
     data_resource_id_list <-  list(
+        '2026' = '7f2c5c3b-914a-490c-b85d-ac2dba0737cf',
         '2025' = '176a58bf-6f5d-4e3f-9ed9-592a509870eb',
         '2024' = '7adb8aea-62fb-412f-9e67-d13b0729222f',
         '2023' = '65eb7023-86b6-4960-b714-5f6574d43556',

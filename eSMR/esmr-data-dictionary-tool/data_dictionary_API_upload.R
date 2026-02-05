@@ -27,12 +27,13 @@ library(here)
 ## enter name of data dictionary file to use ----
 ## (see the documentation for the `upload_ckan_data_dictionary` function for specifications on how this file should be structured)
 dictionary_file <- here("esmr-data-dictionary-tool", 
-                        "eSMR_Data_Dictionary_Template.xlsx")
+                        "eSMR_Data_Dictionary_API.xlsx")
 
 ## list resources to update ----
 ## list values are the resource IDs - this is the alphanumeric part at the end of a resource's URL
 ## list names can be anything you want to use to label a resource (the keys aren't actually used for the API call; they're' just used to keep track of the API responses)
-resources_to_update <- list('2025' = '176a58bf-6f5d-4e3f-9ed9-592a509870eb'#, 
+resources_to_update <- list('2026' = '7f2c5c3b-914a-490c-b85d-ac2dba0737cf'#,
+                            # '2025' = '176a58bf-6f5d-4e3f-9ed9-592a509870eb'#,
                             # '2024' = '7adb8aea-62fb-412f-9e67-d13b0729222f',
                             # '2023' = '65eb7023-86b6-4960-b714-5f6574d43556',
                             # '2022' = '8c6296f7-e226-42b7-9605-235cd33cdee2',
