@@ -33,7 +33,8 @@ dictionary_file <- here("data_dictionaries", "data_dictionary_conversion", "habi
 ## list values are the resource IDs - this is the alphanumeric part at the end of a resource's URL
 ## list names can be anything you want to use to label a resource (the keys aren't actually used for the API call; they're' just used to keep track of the API responses)
 resources_to_update <- list(
-    'year-2025' = '3e02cc4d-7a91-4348-9537-7597b0702f57'#,
+    'year-2026' = '14a00cbe-d85d-4d09-9f1c-7434d8eeb71a'#,
+    # 'year-2025' = '3e02cc4d-7a91-4348-9537-7597b0702f57',
     # 'year-2024' = 'a7bf7ff5-930e-417a-bc3e-1e1794cd2513',
     # 'year-2023' = '1f6b0641-3aac-48b2-b12f-fa2d4966adfd',
     # 'year-2022' = '0fcdfad7-6588-41fc-9040-282bac2147bf',
