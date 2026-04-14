@@ -456,7 +456,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     # dataset <- dataset %>% distinct()
     
     # # FOR TESTING
-    #     write_excel_csv(x = dataset, path = 'TEST_Dataset.csv')
+    #     write_excel_csv(x = dataset, file = 'TEST_Dataset.csv')
     #     dataset <- read_csv('TEST_Dataset.csv')
     
     
@@ -721,7 +721,7 @@ SMARTS_data_download <- function(filename, html_id, delete_old_versions = FALSE,
     
     # write the revised dataset to a csv file
     write_excel_csv(x = dataset, 
-                    path = paste0(download_dir, '\\', 
+                    file = paste0(download_dir, '\\', 
                                   filename, '_', Sys.Date(), 
                                   '.csv'), 
                     na = 'NaN')
