@@ -12,12 +12,14 @@ library(lubridate)
 library(blastula) # for sending automated email
 library(sendmailR)
 library(glue)
+library(config)
 
 
 
 # user inputs -------------------------------------------------------------
 ## define direct link to the data
-file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/flatFilesEwrims.xhtml?fileName=ewrims_flat_file.csv'
+input_conifg <- config::get('water_rights', file = "config-water-rights.yml")
+file_link <- input_conifg$ewrims_flat_file
 
 ## define data portal resource ID
 resourceID <- '151c067a-088b-42a2-b6ad-99d84b48fb36' # https://data.ca.gov/dataset/water-rights/resource/151c067a-088b-42a2-b6ad-99d84b48fb36
@@ -28,8 +30,13 @@ portal_key <- Sys.getenv('data_portal_key')
 # portal_key <- '' # for GIS scripting server, enter key here
 
 ## define location where files will be saved
-file_save_location <- 'C:\\Users\\daltare\\Documents\\ca_data_portal_temp\\Water-Rights\\'
+## NOTE: this is to allow for optionally saving the downloaded data files to a different (local) location on the user's computer rather than the same location where this script / process may be stored (wich may be on a drive that provides automatic backups, like OneDrive, that could cause lags when saving large data files)
+system_user <- Sys.info()[["user"]]
+file_save_location <- glue('C:\\Users\\{system_user}\\Documents\\ca_data_portal_temp\\Water-Rights\\')
 # file_save_location <- 'D:\\Data\\Scripts\\R\\water_rights_update\\' # for GIS scripting server
+if (!dir.exists(file_save_location)) {
+    dir.create(file_save_location)
+}
 
 ## enter the email address to send warning emails from
 ### NOTE - if sending from a personal email address, you'll have to update the credentials -- see below
