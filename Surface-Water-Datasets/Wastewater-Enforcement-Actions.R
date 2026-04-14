@@ -9,6 +9,7 @@
     library(blastula)
     library(sendmailR)
     library(gmailr)
+    library(config)
 }
 
 
@@ -16,7 +17,8 @@
 # user inputs -------------------------------------------------------------
 {
     # define direct link to the data
-    file_link <- 'https://intapps.waterboards.ca.gov/downloadFile/flatFilesWaterBoard.xhtml?fileName=enf_actions_export.txt' 
+    input_conifg <- config::get('surface_water', file = "config-surface-water.yml")
+    file_link <- input_conifg$enf_actions
     
     # define location where files will be saved
     file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/surface_water_datasets/'
