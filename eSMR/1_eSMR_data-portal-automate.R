@@ -20,6 +20,7 @@
     library(here)
     library(archive)
     library(gmailr)
+    library(config)
     
     ## conflicts ----
     library(conflicted)
@@ -41,8 +42,9 @@
     file_name_smr <- 'smr-export'
     
     ## data sources ----
-    esmr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=esmr_analytical_export.txt'
-    smr_url <- 'https://intapps.waterboards.ca.gov/downloadFile/faces/flatFilesCiwqs.xhtml?fileName=smr_export.txt'
+    esmr_conifg <- config::get('eSMR')
+    esmr_url <- esmr_conifg$esmr_url
+    smr_url <- esmr_conifg$smr_url
     
     ## define date and numeric fields in the dataset (will determine how fields are formatted)
     fields_dates <- c('sampling_date', 'analysis_date')
