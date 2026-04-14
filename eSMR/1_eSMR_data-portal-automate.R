@@ -42,7 +42,7 @@
     file_name_smr <- 'smr-export'
     
     ## data sources ----
-    esmr_conifg <- config::get('eSMR')
+    esmr_conifg <- config::get('eSMR', file = "config-esmr.yml")
     esmr_url <- esmr_conifg$esmr_url
     smr_url <- esmr_conifg$smr_url
     
