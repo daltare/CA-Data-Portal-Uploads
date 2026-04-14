@@ -34,7 +34,12 @@
 {
     ## set download directory ----
     ##(i.e., where to save any downloaded files)
-    download_dir <- 'C:/Users/daltare/Documents/ca_data_portal_temp/eSMR/'
+    ## NOTE: this is to allow for optionally saving the downloaded data files to a different (local) location on the user's computer rather than the same location where this script / process may be stored (wich may be on a drive that provides automatic backups, like OneDrive, that could cause lags when saving large data files)
+    system_user <- Sys.info()[["user"]]
+    download_dir <- glue('C:/Users/{system_user}/Documents/ca_data_portal_temp/eSMR/')
+    if (!dir.exists(download_dir)) {
+        dir.create(download_dir)
+    }
     
     # define file name for output csv files
     file_name <- 'esmr-analytical-export'

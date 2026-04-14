@@ -39,7 +39,12 @@
   portal_key <- Sys.getenv('data_portal_key')
   
   ## define location where files will be saved
-  file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/toxicity/'
+  ## NOTE: this is to allow for optionally saving the downloaded data files to a different (local) location on the user's computer rather than the same location where this script / process may be stored (wich may be on a drive that provides automatic backups, like OneDrive, that could cause lags when saving large data files)
+  system_user <- Sys.info()[["user"]]
+  file_save_location <- glue('C:/Users/{system_user}/Documents/ca_data_portal_temp/toxicity/')
+  if (!dir.exists(file_save_location)) {
+    dir.create(file_save_location)
+  }
   
   ## delete old versions of the datasets
   delete_old_versions <- TRUE

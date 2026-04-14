@@ -18,7 +18,12 @@ input_conifg <- config::get('surface_water', file = "config-surface-water.yml")
 file_link <- input_conifg$reg_measures
 
 # define location where files will be saved
-file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/surface_water_datasets/'
+## NOTE: this is to allow for optionally saving the downloaded data files to a different (local) location on the user's computer rather than the same location where this script / process may be stored (wich may be on a drive that provides automatic backups, like OneDrive, that could cause lags when saving large data files)
+system_user <- Sys.info()[["user"]]
+file_save_location <- glue('C:/Users/{system_user}/Documents/ca_data_portal_temp/surface_water_datasets/')
+if (!dir.exists(file_save_location)) {
+    dir.create(file_save_location)
+}
 
 # define data portal resource ID
 resourceID <- '2446e10e-8682-4d7a-952e-07ffe20d4950' # https://data.ca.gov/dataset/surface-water-water-quality-regulated-facility-information/resource/2446e10e-8682-4d7a-952e-07ffe20d4950

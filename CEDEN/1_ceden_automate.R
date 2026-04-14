@@ -33,6 +33,9 @@
     data_files_date <- Sys.Date() %>% as.character()
     system_user <- Sys.info()[["user"]]
     data_files_path <- glue('C:/Users/{system_user}/Documents/ca_data_portal_temp/CEDEN/{data_files_date}/')
+    if (!dir.exists(data_files_path)) {
+        dir.create(data_files_path)
+    }
     
     ## automated email ----
     ### send email if process fails? ----

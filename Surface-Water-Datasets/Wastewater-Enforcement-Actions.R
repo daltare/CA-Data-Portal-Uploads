@@ -21,7 +21,12 @@
     file_link <- input_conifg$enf_actions
     
     # define location where files will be saved
-    file_save_location <- 'C:/Users/daltare/Documents/ca_data_portal_temp/surface_water_datasets/'
+    ## NOTE: this is to allow for optionally saving the downloaded data files to a different (local) location on the user's computer rather than the same location where this script / process may be stored (wich may be on a drive that provides automatic backups, like OneDrive, that could cause lags when saving large data files)
+    system_user <- Sys.info()[["user"]]
+    file_save_location <- glue('C:/Users/{system_user}/Documents/ca_data_portal_temp/surface_water_datasets/')
+    if (!dir.exists(file_save_location)) {
+        dir.create(file_save_location)
+    }
     
     # define data portal resource ID
     resourceID <- '64f25cad-2e10-4a66-8368-79293f56c2f1' # https://data.ca.gov/dataset/surface-water-water-quality-regulatory-information/resource/64f25cad-2e10-4a66-8368-79293f56c2f1
