@@ -29,8 +29,10 @@
 # 1 - user input --------------------------------------------------------------
 {
     ## set path to save data files ----
+    ## NOTE: this is to allow for optionally saving the downloaded data files to a different (local) location on the user's computer rather than the same location where this script / process may be stored (wich may be on a drive that provides automatic backups, like OneDrive, that could cause lags when saving large data files)
     data_files_date <- Sys.Date() %>% as.character()
-    data_files_path <- glue('C:/Users/daltare/Documents/ca_data_portal_temp/CEDEN/{data_files_date}/')
+    system_user <- Sys.info()[["user"]]
+    data_files_path <- glue('C:/Users/{system_user}/Documents/ca_data_portal_temp/CEDEN/{data_files_date}/')
     
     ## automated email ----
     ### send email if process fails? ----
