@@ -12,7 +12,6 @@
     library(blastula)
     library(sendmailR)
     library(reticulate)
-    library(checkpoint)
     library(readxl)
     library(zip)
     library(arrow)
@@ -1322,10 +1321,6 @@ tryCatch(
 # X - write parquet files --------------------------------------------
 # tryCatch(
 #     {
-##        ## optionally, use old version of arrow package (and all other packages for compatibility)
-##        checkpoint('2021-07-28')
-##        Sys.sleep(2)
-##        
 ##        dir.create(glue('{download_dir}{parquet_directory}'))
 ##        
 ##        ## create a list of the column types, to use when reading in the data ----
@@ -1375,9 +1370,6 @@ tryCatch(
 ##        walk(years_download, ~ convert_data(.))
 ##        
 ##        options(warn = 0) # this converts warnings back into regular warnings (not errors)
-##        
-##        uncheckpoint()
-##        Sys.sleep(5)
 ##        
 ##        gc()
 ##        
