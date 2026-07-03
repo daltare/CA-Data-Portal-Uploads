@@ -21,6 +21,9 @@ library(here)
 ## data portal username and password ----
 # portal_username <- Sys.getenv('portal_username') 
 # portal_password <- Sys.getenv('portal_password')
+# 
+# portal_opengov_user <- Sys.getenv('portal_opengov_user')
+# portal_opengov_password <- Sys.getenv('portal_opengov_password')
 
 ### path to data files ----
 # data_files_date <- Sys.Date()
@@ -69,11 +72,34 @@ source(here('start_selenium.R'))
 ## navigate to data.ca.gov log in page and log in ----
 login_url <- 'https://data.ca.gov/user/login'
 remDr$navigate(login_url)
-webElem <- remDr$findElement(using = 'id', value = 'field-login')
-webElem$sendKeysToElement(list(portal_username))
-webElem <- remDr$findElement(using = 'id', value = 'field-password')
-webElem$sendKeysToElement(list(portal_password))
-webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
+# webElem <- remDr$findElement(using = 'id', value = 'field-login')
+# webElem$sendKeysToElement(list(portal_username))
+# webElem <- remDr$findElement(using = 'id', value = 'field-password')
+# webElem$sendKeysToElement(list(portal_password))
+# webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
+# webElem$clickElement()
+Sys.sleep(3)
+
+### click 'Login with OpenGov' button
+webElem <- remDr$findElement(using = 'css selector', value = '.pull-left')
+webElem$clickElement()
+Sys.sleep(3)
+
+### enter email address
+webElem <- remDr$findElement(using = 'id', value = 'email')
+webElem$sendKeysToElement(list(portal_opengov_user))
+
+### click 'Continue' button
+webElem <- remDr$findElement(using = 'css selector', value = '.ktBqic')
+webElem$clickElement()
+Sys.sleep(3)
+
+### enter password
+webElem <- remDr$findElement(using = 'id', value = 'password')
+webElem$sendKeysToElement(list(portal_opengov_password))
+
+### click 'Login' button
+webElem <- remDr$findElement(using = 'css selector', value = '.ktBqic')
 webElem$clickElement()
 Sys.sleep(3)
 

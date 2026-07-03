@@ -13,7 +13,6 @@
     library(sendmailR)
     library(reticulate)
     library(here)
-    library(checkpoint)
     library(gmailr)
     
     ## conflicts ----
@@ -68,6 +67,9 @@
     ## data portal username and password ----
     portal_username <- Sys.getenv('portal_username') 
     portal_password <- Sys.getenv('portal_password')
+    
+    portal_opengov_user <- Sys.getenv('portal_opengov_user')
+    portal_opengov_password <- Sys.getenv('portal_opengov_password')
     
     ## data portal API key ----
     #### key is saved in the local environment (it's available on data.ca.gov by going to your user profile)
@@ -606,14 +608,7 @@ data_dictionaries_path <- here('data_dictionaries',
                                'data_dictionary_conversion')
 parquet_file_save_location <- glue('{data_files_path}parquet_datasets')
 
-## set package versions ----
-### this allows you to use older versions of the arrow package
-### version 5 seems to be unstable (fails unpredictably, causing R to become unresponsive)
-### 2021-07-28 = arrow v4.0.1 (last release of v4)
-### 2021-05-09 = arrow v4.0.0
-### 2021-04-26 = arrow v3.0.0
-### 2021-01-26 = arrow v2.0.0 # this should work
-# checkpoint('2021-07-28') # , checkpoint_location = here())
+
 
 ### define parquet files to create & upload ----
 parquet_resource_id_list <- list(
@@ -674,10 +669,6 @@ tryCatch(
     }
 )
 
-### revert back to using up-to-date packages (if needed - to be safe, this 
-### can stay in the code regardless of whether or not checkpoint is used)
-# uncheckpoint()
-Sys.sleep(1) # pause to make sure reversion completes
 
 ## upload parquet files ----
 tryCatch(

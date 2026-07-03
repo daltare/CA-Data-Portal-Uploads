@@ -13,16 +13,6 @@
 # !!!!!!!!!!!!!!!!!!!
 
 
-# NOTE: if this routinely fails, try using the checkpoint function below (arrow version 5
-# seems to fail repeatedly but unpredictably - it causes R to become unresponsive 
-# when writing parquet files with the write_parquet() function, and is difficult
-# to diagnose/fix since no error message is available once R becomes unresponsive)
-
-# package versions --------------------------------------------------------
-# library(checkpoint)
-# checkpoint('2021-07-28') # , checkpoint_location = here())
-
-
 
 # load packages -----------------------------------------------------------
 {
@@ -288,8 +278,7 @@ for (i in seq_along(names(parquet_resource_id_list))) {
     print(glue('---------- Finished creating parquet file for: {source_file_name} ----------\n\n'))
 }
 
-uncheckpoint()
-Sys.sleep(15)
+Sys.sleep(5)
 
 
 # #### TEST ############################################################################
