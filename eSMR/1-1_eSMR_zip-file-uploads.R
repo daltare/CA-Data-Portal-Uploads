@@ -28,6 +28,9 @@ library(here)
 ## data portal username and password ----
 # portal_username <- Sys.getenv('portal_username') 
 # portal_password <- Sys.getenv('portal_password')
+#
+# portal_opengov_user <- Sys.getenv('portal_opengov_user')
+# portal_opengov_password <- Sys.getenv('portal_opengov_password')
 
 ### path to data files ----
 # download_dir <- 'C:\\David\\_CA_data_portal\\eSMR\\'
@@ -60,12 +63,35 @@ source(here('start_selenium.R'))
 ## navigate to data.ca.gov log in page and log in ----
 login_url <- 'https://data.ca.gov/user/login'
 remDr$navigate(login_url)
-webElem <- remDr$findElement(using = 'id', value = 'field-login')
-webElem$sendKeysToElement(list(portal_username))
-webElem <- remDr$findElement(using = 'id', value = 'field-password')
-webElem$sendKeysToElement(list(portal_password))
-webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
+# webElem <- remDr$findElement(using = 'id', value = 'field-login')
+# webElem$sendKeysToElement(list(portal_username))
+# webElem <- remDr$findElement(using = 'id', value = 'field-password')
+# webElem$sendKeysToElement(list(portal_password))
+# webElem <- remDr$findElement(using = 'css selector', value = 'button.btn.btn-primary')
+# webElem$clickElement()
+
+### click 'Login with OpenGov' button
+webElem <- remDr$findElement(using = 'css selector', value = '.pull-left')
 webElem$clickElement()
+Sys.sleep(3)
+
+### enter email address
+webElem <- remDr$findElement(using = 'id', value = 'email')
+webElem$sendKeysToElement(list(portal_opengov_user))
+
+### click 'Continue' button
+webElem <- remDr$findElement(using = 'css selector', value = '.ktBqic')
+webElem$clickElement()
+Sys.sleep(3)
+
+### enter password
+webElem <- remDr$findElement(using = 'id', value = 'password')
+webElem$sendKeysToElement(list(portal_opengov_password))
+
+### click 'Login' button
+webElem <- remDr$findElement(using = 'css selector', value = '.ktBqic')
+webElem$clickElement()
+
 
 
 ## loop through all resources and enter data ----
@@ -74,6 +100,7 @@ for (id_number in seq_along(names(zip_resource_id_list))) {
     data_resource_id <- zip_resource_id_list[[id_number]][['dataset_id']]
     dataset_name <- zip_resource_id_list[[id_number]][['dataset_name']]
     data_file <- zip_resource_id_list[[id_number]][['data_file']]
+    Sys.sleep(3)
     
     ### navigate to resource editor page ----
     edit_url <- paste0('https://data.ca.gov/dataset/', dataset_name, '/resource_edit/', data_resource_id)

@@ -103,6 +103,9 @@
     portal_username <- Sys.getenv('portal_username')
     portal_password <- Sys.getenv('portal_password')
     
+    portal_opengov_user <- Sys.getenv('portal_opengov_user')
+    portal_opengov_password <- Sys.getenv('portal_opengov_password')
+    
     
     ## portal resource IDs ----
     ## define data portal resource IDs for all years in the dataset
