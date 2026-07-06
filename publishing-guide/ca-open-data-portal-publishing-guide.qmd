@@ -24,26 +24,29 @@ The instructions below demonstrate how to create a new dataset, then add one or 
 
 ## Creating a New Dataset {keep-with-next=true}
 
-1.  Go to <https://data.ca.gov> and click on the **Log in** button at the top right of the window to log in to your user account.
+1.  Go to <https://data.ca.gov> and click on the **Log in** button at the top right of the window to log in to your user account. (NOTE: if you don't already have an account on the data.ca.gov portal, you'll need to contact Office of Information Management and Analysis (OIMA) staff to create an account and get added to the Water Board's organizational account.)
 \nopagebreak
 
     ![](screenshots/01_login.png)
 
-2.  In your account dashboard, click on the **My Organizations** tab, then click on the **California State Water Resources Control Board** icon (if you're not already a member of this organization, you'll need to work with Office of Information Management and Analysis (OIMA) staff to be added to it).
+2.  In your account dashboard, click on the **Add Dataset** button.
 \nopagebreak
 
-    ![](screenshots/02_account_dashboard.png)
-
-3.  On the organization page, click on the **Add Dataset** button.
-\nopagebreak
-
-    ![](screenshots/03_add_dataset.png)
+    ![](screenshots/03_add_dataset_2.png)
+    
+    \pagebreak
 
 
 4.  Fill in the dataset metadata (e.g., Title, Description, etc.). Guidance on how to populate the metadata is available [here](https://docs.data.ca.gov/california-open-data-publishers-handbook/3.-create-metadata-and-data-dictionary "California Open Data Publisher's Handbook - Create Metadata and Data Dictionary") and [here](https://data.ca.gov/pages/creating-metadata-and-data-dictionary "California Open Data Portal Publisher's Guide - Creating Metadata and a Data Dictionary").
 \nopagebreak
 
     ![](screenshots/04_dataset_metadata.png)
+    
+    \pagebreak
+    
+    NOTE: Use the **Visibility** dropdown menu to control whether or not your dataset is publicly accessible. Use the **Private** option to restrict visibility of your dataset to only other users of the Water Board's orgainzational account on the Open Data Portal (this is useful when drafting your dataset prior to publication), or use the **Public** option to make your dataset accessible to the general public. 
+    
+    ![](screenshots/04_set_visibility.png)
     
     \pagebreak
 
