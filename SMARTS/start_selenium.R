@@ -32,9 +32,12 @@ sleep_time <- 0.5
 eCaps <- list( 
     chromeOptions = 
         list(prefs = list(
-            "profile.default_content_settings.popups" = 0L,
+            "profile.default_content_settings.popups" = 0,
+            "profile.default_content_setting_values.automatic_downloads" = 1,
             "download.prompt_for_download" = FALSE,
-            "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = download_dir)
+            "download.default_directory" = gsub(pattern = '/', replacement = '\\\\', x = download_dir),
+            "safebrowsing.enabled" = TRUE,
+            "directory_upgrade" = TRUE
         )
         )
 )
