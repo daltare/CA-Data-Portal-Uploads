@@ -2,17 +2,17 @@
 title: DRAFT California State Water Resources Control Board’s Guide to Publishing on the California Open Data Portal
 editor: source
 format:
-  # html:
-  #   toc: true
-  #   number-sections: true
-  #   css: style.css
-  #   embed-resources: true
-  pdf:
+  html:
     toc: true
     number-sections: true
     css: style.css
-    colorlinks: true
-    fig-pos: 'h'
+    embed-resources: true
+  # pdf:
+  #   toc: true
+  #   number-sections: true
+  #   css: style.css
+  #   colorlinks: true
+  #   fig-pos: 'h'
 format-links: false
 ---
 
@@ -29,7 +29,7 @@ The instructions below demonstrate how to create a new dataset, then add one or 
 
     ![](screenshots/01_login.png)
 
-2.  In your account dashboard, click on the **My Organizations** tab, then click on the **California State Water Resources Control Board** icon (NOTE: you should be automatically taken to the dashboard page after logging in to your account; you can also access the dashboard page by clicking on the dashboard icon (which looks like a speed dial) in the upper right side of the data.ca.gov webpage, next to your user name).
+2.  In your account dashboard, click on the **My Organizations** tab, then click on the **California State Water Resources Control Board** icon. (NOTE: you should be automatically taken to the dashboard page after logging in to your account; you can also access the dashboard page by clicking on the dashboard icon (which looks like a speed dial) in the upper right side of the data.ca.gov webpage, next to your user name.)
 \nopagebreak
 
     ![](screenshots/02_account_dashboard.png)
